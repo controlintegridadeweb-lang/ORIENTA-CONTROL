@@ -33,14 +33,28 @@ describe("validation analysis drafts na baseline consolidada", () => {
 
   it("lê o estado do ciclo sem bloqueá-lo no rascunho de validação", () => {
     const sql = source("20260822190000_validation_draft_reads_cycle_state.sql");
-    expect(sql).toContain("create or replace function public.save_validation_analysis_draft");
-    expect(sql).toMatch(
+    const draftStart = sql.indexOf(
+      "create or replace function public.save_validation_analysis_draft",
+    );
+    const verdictStart = sql.indexOf(
+      "create or replace function public.validate_not_applicable_response",
+    );
+    const draftSql = sql.slice(draftStart, verdictStart);
+    const verdictSql = sql.slice(verdictStart);
+
+    expect(draftStart).toBeGreaterThanOrEqual(0);
+    expect(verdictStart).toBeGreaterThan(draftStart);
+    expect(draftSql).toMatch(
       /select \* into v_cycle\s+from public\.cycles\s+where id = p_cycle_id;/,
     );
-    expect(sql).not.toMatch(/select \* into v_cycle[\s\S]{0,120}for update/i);
-    expect(sql).toMatch(
+    expect(draftSql).not.toMatch(/select \* into v_cycle[\s\S]{0,120}for update/i);
+    expect(draftSql).toMatch(
       /select \* into v_response\s+from public\.responses\s+where id = p_response_id\s+and cycle_id = p_cycle_id;/,
     );
-    expect(sql).not.toMatch(/select \* into v_response[\s\S]{0,160}for update/i);
+    expect(draftSql).not.toMatch(/select \* into v_response[\s\S]{0,160}for update/i);
+    expect(verdictSql).toMatch(
+      /select \* into v_cycle\s+from public\.cycles\s+where id = p_cycle_id;/,
+    );
+    expect(verdictSql).not.toMatch(/select \* into v_cycle[\s\S]{0,120}for update/i);
   });
 });

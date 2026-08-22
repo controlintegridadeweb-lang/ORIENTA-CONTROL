@@ -236,3 +236,141 @@ comment on function public.save_validation_analysis_draft(
   uuid, uuid, text, uuid, uuid, text, text, text, bigint
 ) is
   'Persiste rascunho de análise. Lê ciclo e alvo sem bloqueá-los; o lock exclusivo fica só no próprio rascunho.';
+
+-- O parecer de NA só precisa ler o estado do ciclo. FOR UPDATE no ciclo
+-- serializa com qualquer outra RPC que segure o diagnóstico e, no CI, o Kong
+-- estoura timeout no POST de aceite.
+
+create or replace function public.validate_not_applicable_response(
+  p_response_id uuid,
+  p_cycle_id uuid,
+  p_action text,
+  p_actor_user_id uuid,
+  p_rejection_reason text default null,
+  p_expected_status text default null,
+  p_expected_validated_at timestamptz default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_response public.responses%rowtype;
+  v_cycle public.cycles%rowtype;
+  v_cycle_id uuid;
+  v_reason text;
+  v_validated_at timestamptz;
+begin
+  perform public.set_audit_actor(p_actor_user_id);
+
+  if p_action not in ('approve', 'reject') then
+    raise exception 'invalid_action: %', p_action using errcode = 'P0001';
+  end if;
+
+  select resp.cycle_id into v_cycle_id
+  from public.responses resp
+  where resp.id = p_response_id;
+
+  if not found then
+    raise exception 'response_not_found' using errcode = 'P0002';
+  end if;
+
+  if v_cycle_id <> p_cycle_id then
+    raise exception 'response_not_in_cycle' using errcode = '23514';
+  end if;
+
+  select * into v_cycle
+  from public.cycles
+  where id = p_cycle_id;
+
+  if not found then
+    raise exception 'cycle_not_found' using errcode = 'P0002';
+  end if;
+
+  if v_cycle.state <> 'in_validation'::public.cycle_state then
+    raise exception 'cycle_not_in_validation: estado do ciclo %', v_cycle.state
+      using errcode = 'P0001';
+  end if;
+
+  select * into v_response
+  from public.responses
+  where id = p_response_id
+    and cycle_id = p_cycle_id
+  for update;
+
+  if not found then
+    raise exception 'response_not_in_cycle' using errcode = '23514';
+  end if;
+
+  if p_expected_status is not null and (
+    v_response.na_validation_status::text is distinct from p_expected_status
+    or v_response.na_validated_at is distinct from p_expected_validated_at
+  ) then
+    raise exception 'validation_conflict' using errcode = '40001';
+  end if;
+
+  if not (
+    (v_response.answer = 'not_applicable'::public.answer_value
+      and v_response.na_validation_status in (
+        'pending'::public.na_validation_status,
+        'approved'::public.na_validation_status
+      ))
+    or
+    (v_response.answer = 'no'::public.answer_value
+      and v_response.na_validation_status = 'rejected'::public.na_validation_status)
+  ) then
+    raise exception 'response_not_reviewable_na' using errcode = 'P0001';
+  end if;
+
+  v_validated_at := clock_timestamp();
+
+  if p_action = 'approve' then
+    update public.responses
+    set answer = 'not_applicable'::public.answer_value,
+        is_not_applicable = true,
+        na_validation_status = 'approved'::public.na_validation_status,
+        na_validated_at = v_validated_at,
+        na_validated_by = p_actor_user_id,
+        na_rejection_reason = null
+    where id = p_response_id;
+
+    return jsonb_build_object(
+      'responseId', p_response_id,
+      'answer', 'not_applicable',
+      'naValidationStatus', 'approved',
+      'validatedAt', v_validated_at,
+      'cycleId', v_cycle.id,
+      'rejected', false
+    );
+  end if;
+
+  v_reason := nullif(btrim(coalesce(p_rejection_reason, '')), '');
+  if v_reason is null then
+    raise exception 'na_rejection_reason_required' using errcode = '22023';
+  end if;
+
+  update public.responses
+  set answer = 'no'::public.answer_value,
+      is_not_applicable = false,
+      na_validation_status = 'rejected'::public.na_validation_status,
+      na_validated_at = v_validated_at,
+      na_validated_by = p_actor_user_id,
+      na_rejection_reason = v_reason
+  where id = p_response_id;
+
+  return jsonb_build_object(
+    'responseId', p_response_id,
+    'answer', 'no',
+    'naValidationStatus', 'rejected',
+    'validatedAt', v_validated_at,
+    'cycleId', v_cycle.id,
+    'rejected', true
+  );
+end;
+$$;
+
+comment on function public.validate_not_applicable_response(
+  uuid, uuid, text, uuid, text, text, timestamptz
+) is
+  'Aprova ou rejeita “não se aplica”. Lê o estado do ciclo sem bloqueá-lo; o lock exclusivo fica na resposta.';

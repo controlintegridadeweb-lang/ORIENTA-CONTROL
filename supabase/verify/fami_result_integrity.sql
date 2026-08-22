@@ -42,7 +42,9 @@ set local session_replication_role = replica;
 update public.responses
 set answer = 'not_applicable'::public.answer_value,
     is_not_applicable = true,
-    na_validation_status = 'approved'::public.na_validation_status
+    na_justification = 'Critério fora do escopo operacional desta verificação.',
+    na_validation_status = 'approved'::public.na_validation_status,
+    na_rejection_reason = null
 where id = '00000000-0000-0000-0000-000000000dd1';
 reset session_replication_role;
 
