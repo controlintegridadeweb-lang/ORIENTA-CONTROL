@@ -8,7 +8,10 @@
 --     política v7 e materializa recomendação por ausência de evidência;
 --   • o banco calcula FAMI, recomendações e snapshots pelo mesmo estado vivo;
 --   • o encerramento posterior não aceita payload FAMI nem recalcula;
---   • `validated -> completed` encerra somente o acompanhamento.
+--   • plano incompleto bloqueia validated → completed
+--     (close_requires_completed_and_approved_action_plans);
+--   • com execução, comprovação e aceite da supervisão, o encerramento
+--     só fecha o acompanhamento e preserva o FAMI.
 -- Pré: _seed_minimal.sql.
 -- Saída esperada: "FAMI VALIDATION FINALIZATION: OK".
 -- ============================================================================
@@ -43,6 +46,19 @@ delete from public.evidences
 where response_id = '00000000-0000-0000-0000-000000000dd1';
 reset session_replication_role;
 
+insert into auth.users(id, email)
+values ('00000000-0000-0000-0000-00000000aa01', 'fami-close@orienta.test')
+on conflict do nothing;
+
+insert into public.profiles(user_id, role, organization_id, full_name)
+values (
+  '00000000-0000-0000-0000-00000000aa01',
+  'respondent',
+  '00000000-0000-0000-0000-0000000000b1',
+  'Respondente FAMI'
+)
+on conflict (user_id) do nothing;
+
 do $$
 declare
   v_state public.cycle_state;
@@ -50,6 +66,8 @@ declare
   v_fami_count integer;
   v_global record;
   v_recommendation_id uuid;
+  v_plan_id uuid;
+  v_revision bigint;
   v_dummy_fami jsonb := '[{"scope_type":"global","scope_id":null,"points_obtained":2,"points_possible":2,"percentage":100,"maturity_level":5}]'::jsonb;
 begin
   begin
@@ -129,21 +147,6 @@ begin
     raise exception 'FALHOU(recomendação): ausência de evidência não foi materializada';
   end if;
 
-  insert into public.action_plans(
-    recommendation_id, axis_id, action_text, start_date, due_date, responsible_label, status
-  )
-  select
-    v_recommendation_id,
-    qv.axis_id,
-    'Apresentar evidência válida para o critério diagnosticado.',
-    current_date,
-    current_date + 30,
-    'Responsável institucional',
-    'todo'::public.action_plan_status
-  from public.recommendations r
-  join public.question_versions qv on qv.id = r.question_version_id
-  where r.id = v_recommendation_id;
-
   begin
     perform public.commit_cycle_transition(
       '00000000-0000-0000-0000-000000000cc1',
@@ -159,6 +162,87 @@ begin
       raise;
     end if;
   end;
+
+  select result.plan_id, result.revision
+    into v_plan_id, v_revision
+  from public.save_respondent_action_plan(
+    '00000000-0000-0000-0000-00000000aa01',
+    '00000000-0000-0000-0000-0000000000b1',
+    null,
+    v_recommendation_id,
+    'Apresentar evidência válida para o critério diagnosticado.',
+    current_date + 30,
+    current_date,
+    'Integridade',
+    '00000000-0000-0000-0000-00000000aa01',
+    0,
+    false,
+    null,
+    null
+  ) result;
+
+  begin
+    perform public.commit_cycle_transition(
+      '00000000-0000-0000-0000-000000000cc1',
+      '00000000-0000-0000-0000-0000000000a1',
+      'completed',
+      null,
+      null,
+      'validated'
+    );
+    raise exception 'FALHOU(supervisão): aceitou plano incompleto';
+  exception when sqlstate '23514' then
+    if sqlerrm <> 'close_requires_completed_and_approved_action_plans' then
+      raise;
+    end if;
+  end;
+
+  select result.revision
+    into v_revision
+  from public.save_respondent_action_plan(
+    '00000000-0000-0000-0000-00000000aa01',
+    '00000000-0000-0000-0000-0000000000b1',
+    v_plan_id,
+    v_recommendation_id,
+    'Apresentar evidência válida para o critério diagnosticado.',
+    current_date + 30,
+    current_date,
+    'Integridade',
+    '00000000-0000-0000-0000-00000000aa01',
+    100,
+    false,
+    v_revision,
+    'Execução concluída nesta verificação.',
+    'Conclusão integral da ação.'
+  ) result;
+
+  insert into public.action_plan_documents (
+    action_plan_id,
+    organization_id,
+    action_revision,
+    kind,
+    title,
+    external_link,
+    file_validation_status,
+    uploaded_by
+  ) values (
+    v_plan_id,
+    '00000000-0000-0000-0000-0000000000b1',
+    v_revision,
+    'link',
+    'Comprovação da execução do plano',
+    'https://example.org/comprovacao-fami',
+    'not_applicable',
+    '00000000-0000-0000-0000-00000000aa01'
+  );
+
+  perform public.create_action_plan_supervision_note(
+    v_recommendation_id,
+    v_plan_id,
+    '00000000-0000-0000-0000-0000000000a1',
+    'approval',
+    'Execução conferida e aceita nesta verificação.'
+  );
 
   perform public.commit_cycle_transition(
     '00000000-0000-0000-0000-000000000cc1',
