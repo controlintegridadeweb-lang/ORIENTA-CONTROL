@@ -30,4 +30,13 @@ describe("validation analysis drafts na baseline consolidada", () => {
     expect(sql).toContain("enable row level security");
     expect(sql).toContain("save_validation_analysis_draft");
   });
+
+  it("lê o estado do ciclo sem bloqueá-lo no rascunho de validação", () => {
+    const sql = source("20260822190000_validation_draft_reads_cycle_state.sql");
+    expect(sql).toContain("create or replace function public.save_validation_analysis_draft");
+    expect(sql).toMatch(
+      /select \* into v_cycle\s+from public\.cycles\s+where id = p_cycle_id;/,
+    );
+    expect(sql).not.toMatch(/select \* into v_cycle[\s\S]{0,120}for update/i);
+  });
 });

@@ -53,6 +53,16 @@ begin
         raise exception 'service_role_audit_relation_must_be_append_only: %.%',
           v_relation.nspname, v_relation.relname;
       end if;
+    elsif v_relation.relname = 'reports' then
+      -- Emissão oficial só via RPC security definer. service_role lê a tabela
+      -- e não recebe INSERT/UPDATE/DELETE diretos.
+      if has_table_privilege('service_role', v_relation.oid, 'INSERT')
+         or has_table_privilege('service_role', v_relation.oid, 'UPDATE')
+         or has_table_privilege('service_role', v_relation.oid, 'DELETE')
+         or has_table_privilege('service_role', v_relation.oid, 'TRUNCATE') then
+        raise exception 'service_role_reports_must_mutate_via_rpc: %.%',
+          v_relation.nspname, v_relation.relname;
+      end if;
     elsif not has_table_privilege('service_role', v_relation.oid, 'INSERT')
        or not has_table_privilege('service_role', v_relation.oid, 'UPDATE')
        or not has_table_privilege('service_role', v_relation.oid, 'DELETE') then

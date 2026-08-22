@@ -295,8 +295,8 @@ export async function adminRequestsAdjustment(page: Page, state: CanonicalJourne
   await expect(page).toHaveURL(new RegExp(`/admin/ciclos/${state.cycleId}/validacao`));
   await expect(page.getByRole("heading", { name: "Validação do diagnóstico" })).toBeVisible();
 
-  // A fila padrão é “Pendentes”. Confirmar só libera depois do rascunho persistir,
-  // para o veredito não disputar o lock da resposta com o autosave.
+  // A fila padrão é “Pendentes”. Confirmar só habilita quando o rascunho
+  // deixa de estar em saving — o card some depois do veredito.
   const approvedNaCard = page.getByRole("article").filter({ hasText: E2E.approvedNaQuestion });
   const acceptNa = approvedNaCard.getByRole("button", {
     name: 'Aceitar “Não se aplica”',
@@ -304,13 +304,14 @@ export async function adminRequestsAdjustment(page: Page, state: CanonicalJourne
   });
   await expect(acceptNa).toBeEnabled();
   await acceptNa.click();
-  await expect(approvedNaCard.getByText("Rascunho salvo")).toBeVisible();
+  const confirmAccept = approvedNaCard.getByRole("button", { name: /Confirmar Aceitar/ });
+  await expect(confirmAccept).toBeEnabled();
   const approveNa = page.waitForResponse(
     (response) =>
       response.url().includes("/validation/not-applicable/") &&
       response.request().method() === "POST",
   );
-  await approvedNaCard.getByRole("button", { name: /Confirmar Aceitar/ }).click();
+  await confirmAccept.click();
   await expectSuccessfulResponse(await approveNa, "aceitar não se aplica");
   await expect(page.getByText("“Não se aplica” aceito.")).toBeVisible();
 
@@ -319,13 +320,14 @@ export async function adminRequestsAdjustment(page: Page, state: CanonicalJourne
   await rejectedNaCard
     .getByLabel(/Motivo da rejeição/)
     .fill("O critério é aplicável e deve ser respondido como Não.");
-  await expect(rejectedNaCard.getByText("Rascunho salvo")).toBeVisible();
+  const confirmReject = rejectedNaCard.getByRole("button", { name: /Confirmar Rejeitar/i });
+  await expect(confirmReject).toBeEnabled();
   const rejectNa = page.waitForResponse(
     (response) =>
       response.url().includes("/validation/not-applicable/") &&
       response.request().method() === "POST",
   );
-  await rejectedNaCard.getByRole("button", { name: /Confirmar Rejeitar/i }).click();
+  await confirmReject.click();
   await expectSuccessfulResponse(await rejectNa, "rejeitar não se aplica");
   await expect(
     page.getByText("“Não se aplica” rejeitado; a resposta passou a ser “Não”."),
