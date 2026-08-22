@@ -4,6 +4,8 @@
  *
  * 1. encerra stack residual sem backup de volume;
  * 2. inicia de novo, com até 3 tentativas e diagnóstico na última falha.
+ *    SUPABASE_START_EXCLUDE (CSV) omite containers que o CI não usa
+ *    (Studio, imgproxy, mailpit, postgres-meta, logflare, vector).
  *
  * Não mascara erro de configuração: esgota as tentativas e encerra com o
  * status do CLI.
@@ -39,9 +41,19 @@ if (isStackRunning()) {
   }
 }
 
+const exclude = process.env.SUPABASE_START_EXCLUDE?.trim();
+const startArgs = ["start"];
+if (exclude) {
+  startArgs.push("-x", exclude);
+}
+
 for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-  console.log(`Iniciando Supabase local (tentativa ${attempt}/${maxAttempts})...`);
-  const start = runSupabase(["start"], {
+  console.log(
+    exclude
+      ? `Iniciando Supabase local (tentativa ${attempt}/${maxAttempts}, sem ${exclude})...`
+      : `Iniciando Supabase local (tentativa ${attempt}/${maxAttempts})...`,
+  );
+  const start = runSupabase(startArgs, {
     cwd: rootCwd,
     stdio: "inherit",
   });

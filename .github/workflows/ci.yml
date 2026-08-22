@@ -67,6 +67,8 @@ jobs:
       - name: Audit canonical migrations
         run: npm run db:audit:migrations
       - name: Start isolated Supabase stack
+        env:
+          SUPABASE_START_EXCLUDE: studio,imgproxy,mailpit,postgres-meta,logflare,vector
         run: npm run supabase:start:clean
       - name: Reset local schema from migrations
         run: npm run db:reset:local
@@ -119,6 +121,8 @@ jobs:
       - name: Install Chromium for Playwright
         run: npx playwright install --with-deps chromium
       - name: Start isolated Supabase stack
+        env:
+          SUPABASE_START_EXCLUDE: studio,imgproxy,mailpit,postgres-meta,logflare,vector
         run: npm run supabase:start:clean
       - name: Reset local schema from migrations
         run: npm run db:reset:local

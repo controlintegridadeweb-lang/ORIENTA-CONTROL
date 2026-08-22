@@ -403,3 +403,60 @@ comment on function public.validate_not_applicable_response(
   uuid, uuid, text, uuid, text, text, timestamptz
 ) is
   'Aprova ou rejeita “não se aplica”. Marca o rascunho antes de atualizar a resposta; a concorrência do veredito fica no UPDATE com o estado esperado.';
+
+-- Toda mutação HTTP passa por esta RPC antes do handler. Sem lock_timeout, um
+-- INSERT ON CONFLICT preso na linha do bucket espera até o Kong estourar
+-- (~60s) e a rota devolve 500 opaco — o parecer de NA no E2E caía nisso
+-- sem o PostgreSQL ter começado validate_not_applicable_response.
+
+create or replace function public.consume_api_rate_limit(
+  p_bucket_key text,
+  p_limit integer,
+  p_window_seconds integer
+)
+returns table (allowed boolean, remaining integer, retry_after_seconds integer)
+language plpgsql
+security definer
+set search_path = public
+set lock_timeout = '5s'
+as $$
+declare
+  v_now timestamptz := clock_timestamp();
+  v_row public.api_rate_limits%rowtype;
+begin
+  if nullif(btrim(p_bucket_key), '') is null
+     or p_limit < 1 or p_limit > 10000
+     or p_window_seconds < 1 or p_window_seconds > 86400 then
+    raise exception 'invalid_rate_limit_arguments' using errcode = '22023';
+  end if;
+
+  insert into public.api_rate_limits (
+    bucket_key, window_started_at, hit_count, expires_at, updated_at
+  ) values (
+    p_bucket_key, v_now, 1, v_now + make_interval(secs => p_window_seconds), v_now
+  )
+  on conflict (bucket_key) do update
+  set window_started_at = case
+        when public.api_rate_limits.expires_at <= v_now then v_now
+        else public.api_rate_limits.window_started_at
+      end,
+      hit_count = case
+        when public.api_rate_limits.expires_at <= v_now then 1
+        else public.api_rate_limits.hit_count + 1
+      end,
+      expires_at = case
+        when public.api_rate_limits.expires_at <= v_now
+          then v_now + make_interval(secs => p_window_seconds)
+        else public.api_rate_limits.expires_at
+      end,
+      updated_at = v_now
+  returning * into v_row;
+
+  return query select
+    v_row.hit_count <= p_limit,
+    greatest(p_limit - v_row.hit_count, 0),
+    case when v_row.hit_count <= p_limit then 0
+      else greatest(ceil(extract(epoch from (v_row.expires_at - v_now)))::integer, 1)
+    end;
+end;
+$$;
