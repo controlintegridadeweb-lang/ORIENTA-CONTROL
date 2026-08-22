@@ -3,6 +3,8 @@
 --
 -- Mutações executadas pelo backend sob service_role não possuem auth.uid(). As
 -- RPCs auditáveis devem chamar set_audit_actor na mesma transação da alteração.
+-- A reabertura exige relatório oficial vigente do encerramento; o fixture
+-- preserva esse PDF antes de chamar reopen_cycle.
 -- Exercitamos reabertura e atualização de cronograma.
 -- Pré: _seed_minimal.sql. Saída esperada: "AUDIT ACTOR: OK".
 -- ============================================================================
@@ -31,7 +33,31 @@ on conflict (id) do update
 
 insert into public.cycle_processings(id, cycle_id, processing_version, status, completed_at)
 values ('00000000-0000-0000-0000-00000000ad18','00000000-0000-0000-0000-00000000ad17',1,'completed', now())
-on conflict (id) do nothing;
+on conflict (id) do update set status = 'completed', completed_at = excluded.completed_at;
+
+insert into public.fami_results(
+  cycle_id, cycle_processing_id, scope_type,
+  points_obtained, points_possible, percentage, maturity_level
+) values (
+  '00000000-0000-0000-0000-00000000ad17',
+  '00000000-0000-0000-0000-00000000ad18',
+  'global', 1, 2, 50, 3
+) on conflict do nothing;
+
+insert into public.reports(
+  id, cycle_id, cycle_processing_id, file_path, generated_by,
+  status, emission_version
+) values (
+  '00000000-0000-0000-0000-00000000ad1a',
+  '00000000-0000-0000-0000-00000000ad17',
+  '00000000-0000-0000-0000-00000000ad18',
+  '00000000-0000-0000-0000-00000000ad17/audit-actor-preserved.pdf',
+  '00000000-0000-0000-0000-0000000000a1',
+  'legacy',
+  1
+) on conflict (id) do update set
+  status = 'legacy',
+  file_path = excluded.file_path;
 reset session_replication_role;
 
 do $$
@@ -92,6 +118,9 @@ begin
     '00000000-0000-0000-0000-00000000ad17',
     '00000000-0000-0000-0000-00000000ad19'
   );
+  delete from public.reports where cycle_id = '00000000-0000-0000-0000-00000000ad17';
+  delete from public.fami_results where cycle_id = '00000000-0000-0000-0000-00000000ad17';
+  delete from public.cycle_reopen_events where cycle_id = '00000000-0000-0000-0000-00000000ad17';
   delete from public.cycle_processings where cycle_id='00000000-0000-0000-0000-00000000ad17';
   delete from public.cycles where id in (
     '00000000-0000-0000-0000-00000000ad17',

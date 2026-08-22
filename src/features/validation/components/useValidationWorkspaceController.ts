@@ -108,7 +108,8 @@ export function useValidationWorkspaceController(
     onApplyBatch: input.onApplyBatch,
     onRefresh: criteriaState.refreshAndFocus,
   });
-  const queueLocked = baseQueueLocked || batch.pending;
+  const queueLocked =
+    baseQueueLocked || batch.pending || navigation.navigationPending;
 
   async function handleVerdict(
     evidenceId: string,

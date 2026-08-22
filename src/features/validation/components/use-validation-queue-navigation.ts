@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   queueSituationFilterToParam,
@@ -61,6 +61,7 @@ export function useValidationQueueNavigation({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [navigationPending, startNavigationTransition] = useTransition();
   const [searchDraft, setSearchDraft] = useState(pagination.search);
   const [seenSearch, setSeenSearch] = useState(pagination.search);
   if (seenSearch !== pagination.search) {
@@ -188,7 +189,9 @@ export function useValidationQueueNavigation({
         params.delete(key);
       }
       const query = params.toString();
-      router.replace(query ? `${pathname}?${query}` : pathname);
+      startNavigationTransition(() => {
+        router.replace(query ? `${pathname}?${query}` : pathname);
+      });
     },
     [
       formSections,
@@ -199,6 +202,7 @@ export function useValidationQueueNavigation({
       queueSituation,
       router,
       searchParams,
+      startNavigationTransition,
       selectedAxisId,
       selectedSectionId,
     ],
@@ -283,5 +287,6 @@ export function useValidationQueueNavigation({
     fullFormHref,
     replaceParams,
     clearFilters,
+    navigationPending,
   };
 }
