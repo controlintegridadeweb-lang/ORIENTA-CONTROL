@@ -37,7 +37,7 @@ jobs:
       NOTIFICATION_WEBHOOK_URL: ${{ secrets.NOTIFICATION_WEBHOOK_URL }}
       NOTIFICATION_WEBHOOK_SECRET: ${{ secrets.NOTIFICATION_WEBHOOK_SECRET }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v5
         with:
           node-version-file: .node-version
@@ -67,7 +67,7 @@ jobs:
       PRODUCTION_BASE_URL: ${{ inputs.base_url }}
       EXPECTED_COMMIT: ${{ inputs.expected_commit }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v5
         with:
           node-version-file: .node-version
