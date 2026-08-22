@@ -295,8 +295,8 @@ export async function adminRequestsAdjustment(page: Page, state: CanonicalJourne
   await expect(page).toHaveURL(new RegExp(`/admin/ciclos/${state.cycleId}/validacao`));
   await expect(page.getByRole("heading", { name: "Validação do diagnóstico" })).toBeVisible();
 
-  // A fila padrão é “Pendentes”. Confirmar só habilita quando o rascunho
-  // deixa de estar em saving — o card some depois do veredito.
+  // A fila padrão é “Pendentes”. O Confirmar não espera o autosave: o clique
+  // faz flush do rascunho e em seguida o veredito. O card some depois.
   const approvedNaCard = page.getByRole("article").filter({ hasText: E2E.approvedNaQuestion });
   const acceptNa = approvedNaCard.getByRole("button", {
     name: 'Aceitar “Não se aplica”',
@@ -304,14 +304,12 @@ export async function adminRequestsAdjustment(page: Page, state: CanonicalJourne
   });
   await expect(acceptNa).toBeEnabled();
   await acceptNa.click();
-  const confirmAccept = approvedNaCard.getByRole("button", { name: /Confirmar Aceitar/ });
-  await expect(confirmAccept).toBeEnabled();
   const approveNa = page.waitForResponse(
     (response) =>
       response.url().includes("/validation/not-applicable/") &&
       response.request().method() === "POST",
   );
-  await confirmAccept.click();
+  await approvedNaCard.getByRole("button", { name: /Confirmar Aceitar/ }).click();
   await expectSuccessfulResponse(await approveNa, "aceitar não se aplica");
   await expect(page.getByText("“Não se aplica” aceito.")).toBeVisible();
 
@@ -320,14 +318,12 @@ export async function adminRequestsAdjustment(page: Page, state: CanonicalJourne
   await rejectedNaCard
     .getByLabel(/Motivo da rejeição/)
     .fill("O critério é aplicável e deve ser respondido como Não.");
-  const confirmReject = rejectedNaCard.getByRole("button", { name: /Confirmar Rejeitar/i });
-  await expect(confirmReject).toBeEnabled();
   const rejectNa = page.waitForResponse(
     (response) =>
       response.url().includes("/validation/not-applicable/") &&
       response.request().method() === "POST",
   );
-  await confirmReject.click();
+  await rejectedNaCard.getByRole("button", { name: /Confirmar Rejeitar/i }).click();
   await expectSuccessfulResponse(await rejectNa, "rejeitar não se aplica");
   await expect(
     page.getByText("“Não se aplica” rejeitado; a resposta passou a ser “Não”."),

@@ -62,13 +62,11 @@ export function useNotApplicableCardController({
   const decided = item.status !== "pending";
   const showActions =
     !isAdminDecision && (!decided || changingDecision || action !== null);
-  const draftAutosaveStatus = draftAutosave?.getStatus(targetKey)?.status;
   const canSubmit =
     action !== null &&
     canSubmitNaVerdict(action, rejectionReason) &&
     !submitting &&
-    !disabled &&
-    draftAutosaveStatus !== "saving";
+    !disabled;
 
   useEffect(() => {
     if (hydratedRef.current) return;

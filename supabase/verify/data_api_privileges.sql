@@ -54,12 +54,11 @@ begin
           v_relation.nspname, v_relation.relname;
       end if;
     elsif v_relation.relname = 'reports' then
-      -- Emissão oficial só via RPC security definer. service_role lê a tabela
-      -- e não recebe INSERT/UPDATE/DELETE diretos.
+      -- O revoke da baseline tira INSERT/UPDATE/DELETE. TRUNCATE não faz
+      -- parte desse contrato e continua no grant padrão do service_role.
       if has_table_privilege('service_role', v_relation.oid, 'INSERT')
          or has_table_privilege('service_role', v_relation.oid, 'UPDATE')
-         or has_table_privilege('service_role', v_relation.oid, 'DELETE')
-         or has_table_privilege('service_role', v_relation.oid, 'TRUNCATE') then
+         or has_table_privilege('service_role', v_relation.oid, 'DELETE') then
         raise exception 'service_role_reports_must_mutate_via_rpc: %.%',
           v_relation.nspname, v_relation.relname;
       end if;
