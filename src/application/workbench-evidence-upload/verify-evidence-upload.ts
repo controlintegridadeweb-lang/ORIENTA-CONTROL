@@ -62,17 +62,12 @@ export const verifyEvidenceUpload: RouteHandler<Record<string, never>> = async (
     mimeType: pending.mime_type,
     sizeBytes: Number(pending.size_bytes),
   });
-  const { data: signedDownload, error: signedDownloadError } = await supabase.storage
-    .from(EVIDENCE_BUCKET)
-    .createSignedUrl(pending.storage_path, 60, { download: true });
-  if (signedDownloadError || !signedDownload?.signedUrl) {
-    throw signedDownloadError ?? new Error("signed_download_url_missing");
-  }
-
   try {
     const expectedSize = Number(pending.size_bytes);
     const verifiedMimeType = await verifyStoredEvidenceFile({
-      signedUrl: signedDownload.signedUrl,
+      supabase,
+      bucket: EVIDENCE_BUCKET,
+      storagePath: pending.storage_path,
       descriptor,
       expectedSizeBytes: expectedSize,
     });

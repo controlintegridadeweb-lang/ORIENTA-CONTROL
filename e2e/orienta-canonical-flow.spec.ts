@@ -231,11 +231,17 @@ test.describe.serial("jornada canônica da plataforma", () => {
     // A pergunta exige evidência: "Sim" revela a área de anexo. O teste usa
     // um PNG estruturalmente válido, que respeita a mesma allowlist da produção.
     await chooseCriterionAnswer(evidenceCard, "Sim");
+    const uploadConfirmed = page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/workbench/evidence/upload") &&
+        response.request().method() === "PATCH",
+    );
     await evidenceCard.locator('input[type="file"]').setInputFiles({
       name: "evidencia-e2e.png",
       mimeType: "image/png",
       buffer: E2E_EVIDENCE_PNG,
     });
+    expect((await uploadConfirmed).ok()).toBeTruthy();
     await expect(evidenceCard.getByLabel("Novas evidências")).toBeVisible();
     await evidenceCard.getByLabel(/^Título/).fill("Evidência E2E");
     await evidenceCard.getByRole("button", { name: "Salvar resposta" }).click();

@@ -158,6 +158,7 @@ function throwDocumentWriteError(error: unknown): never {
 function isTransientStorageVerificationError(error: unknown): boolean {
   const message = errorMessage(error);
   return (
+    message.startsWith("storage_object_download_failed:") ||
     message.startsWith("storage_signature_fetch_failed:") ||
     message === "storage_signature_body_missing"
   );
@@ -390,17 +391,12 @@ export class ActionPlanDocumentService {
       mimeType: pending.mime_type,
       sizeBytes: pending.size_bytes,
     });
-    const { data: signedDownload, error: signedDownloadError } = await this.supabase.storage
-      .from(ACTION_PLAN_DOCUMENT_BUCKET)
-      .createSignedUrl(pending.storage_path, 120, { download: true });
-    if (signedDownloadError || !signedDownload?.signedUrl) {
-      throw signedDownloadError ?? new Error("signed_download_url_missing");
-    }
-
     let verifiedMimeType: string;
     try {
       verifiedMimeType = await verifyStoredEvidenceFile({
-        signedUrl: signedDownload.signedUrl,
+        supabase: this.supabase,
+        bucket: ACTION_PLAN_DOCUMENT_BUCKET,
+        storagePath: pending.storage_path,
         descriptor,
         expectedSizeBytes: pending.size_bytes,
       });
