@@ -174,7 +174,7 @@ test.describe.serial("jornada canônica da plataforma", () => {
 
     // UI atual: lote com organizações vinculadas ao formulário (padrão "todas"),
     // abertura imediata e relatório — não há mais select "Organização atribuída".
-    await expect(page.getByText(/Formulário publicado/)).toBeVisible();
+    await expect(page.getByRole("status", { name: "Formulário publicado" })).toBeVisible();
     await page.getByLabel("Período").fill("2026 — E2E");
     await page.getByRole("radio", { name: /Abrir agora/ }).check();
     await page

@@ -80,6 +80,7 @@ export function AdminActionPlanExecutiveOverview() {
   const ctx = useRecommendationDetailContext();
   const row = ctx.row;
   const adminItem = ctx.adminItem;
+  const recommendationId = row?.recommendationId;
   const searchParams = useSearchParams();
   const [completionReadiness, setCompletionReadiness] =
     useState<ActionPlanCompletionReadiness | null>(null);
@@ -87,12 +88,12 @@ export function AdminActionPlanExecutiveOverview() {
   const [readinessError, setReadinessError] = useState<string | null>(null);
 
   const loadCompletionReadiness = useCallback(async () => {
-    if (!row?.recommendationId) return;
+    if (!recommendationId) return;
     setReadinessLoading(true);
     setReadinessError(null);
     try {
       const next = await getAdminRecommendationActionPlanCompletionReadiness(
-        row.recommendationId,
+        recommendationId,
       );
       setCompletionReadiness(next);
     } catch (caught) {
@@ -103,9 +104,10 @@ export function AdminActionPlanExecutiveOverview() {
     } finally {
       setReadinessLoading(false);
     }
-  }, [row?.recommendationId]);
+  }, [recommendationId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Inicia a leitura assíncrona da API para o escopo atual; os setters ocorrem na continuação da requisição.
     void loadCompletionReadiness();
   }, [loadCompletionReadiness]);
 

@@ -31,3 +31,26 @@ $$;
 
 comment on function public.list_organization_respondents(uuid) is
   'Lista identidades respondentes do órgão para atribuição de responsabilidade no plano de ação. O e-mail vem de auth.users quando visível; a existência do membro não depende desse join.';
+
+-- Sem FORCE RLS, o dono de `profiles` enxerga as linhas. No Postgres local do
+-- Supabase o papel `postgres` da URL não tem BYPASSRLS; se a função permanecer
+-- com esse dono, a lista institucional volta vazia mesmo com LEFT JOIN.
+do $$
+declare
+  profile_owner text;
+begin
+  select pg_get_userbyid(c.relowner)
+    into profile_owner
+  from pg_class c
+  join pg_namespace n on n.oid = c.relnamespace
+  where n.nspname = 'public'
+    and c.relname = 'profiles';
+
+  execute format(
+    'alter function public.list_organization_respondents(uuid) owner to %I',
+    profile_owner
+  );
+end $$;
+
+revoke all on function public.list_organization_respondents(uuid) from public;
+grant execute on function public.list_organization_respondents(uuid) to service_role;

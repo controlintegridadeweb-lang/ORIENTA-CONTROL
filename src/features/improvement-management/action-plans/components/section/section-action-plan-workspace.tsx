@@ -448,6 +448,7 @@ export function SectionActionPlanWorkspace({
   }, [cycleId, role, sectionId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Inicia a leitura assíncrona da API para o escopo atual; os setters ocorrem na continuação da requisição.
     void load();
   }, [load]);
 
