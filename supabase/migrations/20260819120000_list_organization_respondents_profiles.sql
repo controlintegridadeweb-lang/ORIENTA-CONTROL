@@ -25,7 +25,7 @@ begin
   return query
   select
     p.user_id,
-    au.email,
+    au.email::text,
     p.full_name
   from public.profiles p
   left join auth.users au on au.id = p.user_id

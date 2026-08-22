@@ -246,7 +246,7 @@ test.describe.serial("jornada canônica da plataforma", () => {
     await evidenceCard.getByLabel(/^Título/).fill("Evidência E2E");
     await evidenceCard.getByRole("button", { name: "Salvar resposta" }).click();
     await expect(
-      evidenceCard.getByText("Evidência enviada e aguardando validação."),
+      evidenceCard.getByText("Evidência enviada e aguardando validação.", { exact: true }),
     ).toBeVisible();
 
     const recommendationCard = page.locator("li").filter({ hasText: E2E.recommendationQuestion });
