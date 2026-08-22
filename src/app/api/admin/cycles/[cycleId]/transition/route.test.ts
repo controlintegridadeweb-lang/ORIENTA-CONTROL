@@ -98,6 +98,7 @@ describe("POST /api/admin/cycles/[cycleId]/transition", () => {
     await expect(response.json()).resolves.toEqual({
       cycle: { id: mocks.cycleId, from: "validated", to: "in_validation" },
       closed: false,
+      report: null,
     });
   });
 

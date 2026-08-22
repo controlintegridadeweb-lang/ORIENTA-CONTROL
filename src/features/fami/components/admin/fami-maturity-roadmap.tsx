@@ -1,7 +1,7 @@
-import { typography } from "@/shared/layout/design-system";
-﻿"use client";
+"use client";
 
 import Image from "next/image";
+import { typography } from "@/shared/layout/design-system";
 import {
   FAMI_LEVEL_THRESHOLDS,
   FAMI_MATURITY_JOURNEY_SUMMARY,

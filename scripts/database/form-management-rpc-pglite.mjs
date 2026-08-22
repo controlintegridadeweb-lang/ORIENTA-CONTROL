@@ -87,6 +87,10 @@ const expectedMigrations = [
   "20260812001100_action_plan_deadline_change_requests.sql",
   "20260813000100_fami_preliminary_open_period_and_close.sql",
   "20260814000100_action_plan_monitoring_export_fields.sql",
+  "20260819000100_repair_cycles_manual_fami_workspace.sql",
+  "20260819120000_list_organization_respondents_profiles.sql",
+  "20260820120000_action_plan_progress_monotonic.sql",
+  "20260821190000_report_closure_emission_integrity.sql",
 ];
 if (JSON.stringify(files) !== JSON.stringify(expectedMigrations)) {
   throw new Error(`Baseline oficial divergente: ${files.join(", ")}`);
@@ -286,7 +290,8 @@ async function seedGraph(db) {
     insert into public.cycles (
       id, form_version_id, organization_id, period_id, period_label, state,
       starts_at, response_deadline_at, original_response_deadline_at,
-      submitted_at, validated_at, closed_at
+      submitted_at, validated_at, closed_at,
+      reference_start_year, reference_end_year, action_plan_revision
     ) values (
       '${ids.cycleCompleted}', '${ids.formVersion}', '${ids.org}', '${ids.period2024}', '2024',
       'completed',
@@ -295,7 +300,8 @@ async function seedGraph(db) {
       now() - interval '90 days',
       now() - interval '80 days',
       now() - interval '70 days',
-      now() - interval '60 days'
+      now() - interval '60 days',
+      2024, 2024, 0
     );
 
     insert into public.cycle_processings (
@@ -424,8 +430,46 @@ async function runAssertions(db, ids) {
   );
   assert("working_processing_created", working.rows[0].n === 1);
 
-  // 4) Reabertura parcial: só critério A editável
+  // 4) Reabertura de ciclo concluído exige relatório oficial preservado
   const reopenDeadline = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString();
+  let reopenBlockedWithoutReport = false;
+  try {
+    await db.query(
+      `select public.reopen_cycle(
+        $1::uuid, $2::uuid,
+        'Reabertura parcial apenas do criterio A no ciclo concluido.',
+        $3::timestamptz,
+        ARRAY[$4::uuid]
+      )`,
+      [ids.cycleCompleted, ids.admin, reopenDeadline, ids.qvA],
+    );
+  } catch (error) {
+    reopenBlockedWithoutReport = /reopen_requires_official_report/i.test(
+      String(error.message || error),
+    );
+    if (!reopenBlockedWithoutReport) throw error;
+  }
+  assert(
+    "reopen_completed_requires_official_report",
+    reopenBlockedWithoutReport,
+  );
+
+  await db.exec(`
+    insert into public.reports (
+      cycle_id, cycle_processing_id, file_path, generated_by,
+      status, file_sha256, content_sha256, file_size_bytes,
+      action_plan_revision, reference_start_year, reference_end_year
+    ) values (
+      '${ids.cycleCompleted}', '${ids.processingCompleted}',
+      'reports/pglite-completed-official.pdf', '${ids.admin}',
+      'completed',
+      'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+      2048, 0, 2024, 2024
+    );
+  `);
+
+  // 5) Reabertura parcial: só critério A editável
   await db.query(
     `select public.reopen_cycle(
       $1::uuid, $2::uuid,

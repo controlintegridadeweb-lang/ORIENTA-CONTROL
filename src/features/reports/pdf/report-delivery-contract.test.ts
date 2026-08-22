@@ -20,6 +20,7 @@ function read(relativePath: string): string {
 const sql = baselineSql();
 const dashboard = read("src/features/dashboard/queries.ts");
 const bundle = read("src/application/automation/report-bundle-service.ts");
+const closure = read("src/application/reporting/cycle-closure-service.ts");
 
 describe("contrato de entrega do relatório oficial", () => {
   it("notifica somente após a transição preparing -> completed", () => {
@@ -32,6 +33,8 @@ describe("contrato de entrega do relatório oficial", () => {
 
   it("dashboard e bundle consomem o relatório documental concluído", () => {
     expect(dashboard).toContain('.in("status", ["completed", "legacy"])');
-    expect(bundle).toContain("persistofficialreport");
+    expect(closure).toContain("persistofficialreport");
+    expect(bundle).toContain("cycleclosureservice");
+    expect(bundle).toContain("ensureclosedcyclereport");
   });
 });

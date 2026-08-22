@@ -45,7 +45,7 @@ describe("gestão de formulário — RPC + FAMI (PGlite)", () => {
 
       expect(existsSync(reportPath)).toBe(true);
       const report = JSON.parse(readFileSync(reportPath, "utf8"));
-      expect(report.appliedCount).toBe(13);
+      expect(report.appliedCount).toBe(17);
       expect(report.failures).toEqual([]);
       expect(report.verdict).toBe("PASS_FORM_MANAGEMENT_RPC");
 
@@ -60,6 +60,7 @@ describe("gestão de formulário — RPC + FAMI (PGlite)", () => {
           "fami_preserved_after_validation_reopen",
           "fami_still_points_to_previous_processing",
           "working_processing_created",
+          "reopen_completed_requires_official_report",
           "partial_scope_allows_selected",
           "partial_scope_blocks_other",
           "fami_preserved_after_response_reopen",

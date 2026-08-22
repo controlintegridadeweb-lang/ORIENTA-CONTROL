@@ -1,8 +1,8 @@
 # Migrations do ORIENTA
 
-Este diretório contém **13 migrations SQL timestampadas**: as 10 primeiras formam a baseline canônica validada da primeira implantação e permanecem imutáveis; as seguintes são evoluções pós-baseline.
+Este diretório contém **17 migrations SQL timestampadas**: as 10 primeiras formam a baseline canônica validada da primeira implantação e permanecem imutáveis; as seguintes são evoluções pós-baseline.
 
-Não há migrations corretivas, backfills históricos ou dados reais neste diretório. A sequência atual vai de `20260812000100` a `20260814000100`.
+Não há migrations corretivas, backfills históricos ou dados reais neste diretório. A sequência atual vai de `20260812000100` a `20260821190000`.
 
 ## Ordem canônica
 
@@ -21,6 +21,10 @@ Não há migrations corretivas, backfills históricos ou dados reais neste diret
 | `20260812001100_action_plan_deadline_change_requests.sql` | Solicitação, decisão administrativa, RLS e auditoria para alteração do prazo de conclusão de ações. |
 | `20260813000100_fami_preliminary_open_period_and_close.sql` | Cálculo do FAMI preliminar no período aberto, snapshot imutável no corte e fechamento automático. |
 | `20260814000100_action_plan_monitoring_export_fields.sql` | Inclui início da ação e ordem oficial de seção/pergunta na RPC de monitoramento do plano de ação. |
+| `20260819000100_repair_cycles_manual_fami_workspace.sql` | Reparo da carga 2026: processamentos ausentes, FAMI oficial só por validação manual e prazo do período. |
+| `20260819120000_list_organization_respondents_profiles.sql` | Lista responsáveis do órgão a partir de `public.profiles`, sem depender do RLS de `auth.users`. |
+| `20260820120000_action_plan_progress_monotonic.sql` | Impede redução do percentual persistido da ação; o andamento só avança. |
+| `20260821190000_report_closure_emission_integrity.sql` | Coordena encerramento, emissão oficial, falhas auditáveis e bloqueio de reabertura sem documento preservado. |
 
 ## Regras
 

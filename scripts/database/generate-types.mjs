@@ -10,6 +10,7 @@
  * (tabelas, colunas, Insert/Update, views, RPCs, enums). Metadata interna
  * do gerador (Relationships, SetofOptions, PostgrestVersion) não falha o check.
  */
+import { spawnSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -132,9 +133,8 @@ function generateTypesFromSchema({
   accessToken,
   canUseProjectApi,
 }) {
-  const preferLocal =
-    process.env.SUPABASE_GEN_TYPES_MODE === "local" ||
-    isLocalSupabaseDbUrl(databaseUrl);
+  const localOnly = process.env.SUPABASE_GEN_TYPES_MODE === "local";
+  const preferLocal = localOnly || isLocalSupabaseDbUrl(databaseUrl);
 
   const attempts = [];
   if (preferLocal) {
@@ -143,7 +143,7 @@ function generateTypesFromSchema({
       args: ["gen", "types", "typescript", "--local", "--schema", "public"],
     });
   }
-  if (databaseUrl) {
+  if (!localOnly && databaseUrl) {
     attempts.push({
       label: "db-url",
       args: [
@@ -157,7 +157,7 @@ function generateTypesFromSchema({
       ],
     });
   }
-  if (canUseProjectApi) {
+  if (!localOnly && canUseProjectApi) {
     attempts.push({
       label: "project-id",
       args: [
@@ -173,7 +173,59 @@ function generateTypesFromSchema({
   }
 
   let last = { status: 1, stdout: "", stderr: "" };
-  for (const attempt of attempts) {
+  for (const [index, attempt] of attempts.entries()) {
+    last = runGenTypesWithRetries(attempt, accessToken);
+    if (last.status === 0) return last;
+    const detail = (last.stderr || last.stdout || "").trim();
+    if (detail && index < attempts.length - 1) {
+      console.warn(`Fonte ${attempt.label} indisponível; tentando alternativa.`);
+      console.warn(summarizeGenTypesError(detail));
+    } else if (detail) {
+      console.error(summarizeGenTypesError(detail));
+    }
+  }
+  return last;
+}
+
+function summarizeGenTypesError(detail) {
+  return detail.split("\n").slice(0, 16).join("\n");
+}
+
+function isRetryableGenTypesError(detail) {
+  return /toomanyrequests|rate exceeded|429|connection refused|temporarily unavailable|dial tcp|i\/o timeout|context deadline exceeded|unable to find image|error running container/i.test(
+    detail,
+  );
+}
+
+function extractPostgresMetaImage(detail) {
+  const match = detail.match(/public\.ecr\.aws\/supabase\/postgres-meta:[^\s'"]+/);
+  return match?.[0] ?? null;
+}
+
+function pullPostgresMetaImage(image) {
+  const pulled = spawnSync("docker", ["pull", image], {
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+  if (pulled.status === 0) {
+    console.log(`Imagem ${image} disponível para a geração de tipos.`);
+    return true;
+  }
+  const detail = (pulled.stderr || pulled.stdout || "").trim();
+  console.warn(`Falha ao baixar ${image}:`);
+  console.warn(summarizeGenTypesError(detail || `docker pull saiu com status ${pulled.status}`));
+  return false;
+}
+
+function sleepSync(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+function runGenTypesWithRetries(attempt, accessToken) {
+  const maxAttempts = 5;
+  let last = { status: 1, stdout: "", stderr: "" };
+
+  for (let retry = 1; retry <= maxAttempts; retry += 1) {
     last = runSupabase(attempt.args, {
       cwd: root,
       stdio: "pipe",
@@ -183,13 +235,30 @@ function generateTypesFromSchema({
       },
     });
     if (last.status === 0) return last;
+
     const detail = (last.stderr || last.stdout || "").trim();
-    if (detail && attempts.indexOf(attempt) < attempts.length - 1) {
-      console.warn(`Fonte ${attempt.label} indisponível; tentando alternativa.`);
-    } else if (detail) {
-      console.error(detail.split("\n").slice(0, 12).join("\n"));
+    const retryable = isRetryableGenTypesError(detail);
+    if (!retryable || retry === maxAttempts) {
+      if (detail && !retryable) {
+        console.error(`Fonte ${attempt.label} recusou a geração de tipos:`);
+        console.error(summarizeGenTypesError(detail));
+      }
+      return last;
     }
+
+    const image = extractPostgresMetaImage(detail);
+    if (image && pullPostgresMetaImage(image)) {
+      continue;
+    }
+
+    const waitMs = 15_000 * 2 ** (retry - 1);
+    console.warn(
+      `Fonte ${attempt.label} falhou por limite/transiente do Docker (tentativa ${retry}/${maxAttempts}). Nova tentativa em ${waitMs / 1000}s.`,
+    );
+    console.warn(summarizeGenTypesError(detail));
+    sleepSync(waitMs);
   }
+
   return last;
 }
 
