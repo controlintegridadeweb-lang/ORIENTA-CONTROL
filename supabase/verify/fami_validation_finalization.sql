@@ -130,12 +130,13 @@ begin
   end if;
 
   insert into public.action_plans(
-    recommendation_id, axis_id, action_text, due_date, responsible_label, status
+    recommendation_id, axis_id, action_text, start_date, due_date, responsible_label, status
   )
   select
     v_recommendation_id,
     qv.axis_id,
     'Apresentar evidência válida para o critério diagnosticado.',
+    current_date,
     current_date + 30,
     'Responsável institucional',
     'todo'::public.action_plan_status

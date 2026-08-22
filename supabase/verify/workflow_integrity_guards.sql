@@ -73,14 +73,14 @@ insert into public.recommendations(
 );
 
 insert into public.action_plans(
-  id, recommendation_id, axis_id, action_text, due_date,
+  id, recommendation_id, axis_id, action_text, start_date, due_date,
   responsible_label, status
 )
 select
   '10000000-0000-0000-0000-000000000009',
   '10000000-0000-0000-0000-000000000008',
   qv.axis_id,
-  'Manter a cobertura institucional', current_date + 30,
+  'Manter a cobertura institucional', current_date, current_date + 30,
   'Responsável institucional', 'todo'
 from public.question_versions qv
 where qv.id = '00000000-0000-0000-0000-0000000000f1';

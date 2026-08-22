@@ -63,5 +63,9 @@ describe("validation analysis drafts na baseline consolidada", () => {
     expect(verdictSql).toMatch(
       /na_validation_status::text is not distinct from p_expected_status/,
     );
+    expect(verdictSql.indexOf("mark_validation_analysis_draft_applied")).toBeGreaterThanOrEqual(0);
+    expect(verdictSql.indexOf("mark_validation_analysis_draft_applied")).toBeLessThan(
+      verdictSql.indexOf("update public.responses"),
+    );
   });
 });

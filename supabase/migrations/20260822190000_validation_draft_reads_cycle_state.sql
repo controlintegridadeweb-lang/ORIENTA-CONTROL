@@ -237,10 +237,9 @@ comment on function public.save_validation_analysis_draft(
 ) is
   'Persiste rascunho de análise. Lê ciclo e alvo sem bloqueá-los; o lock exclusivo fica só no próprio rascunho.';
 
--- O parecer de NA lê ciclo e resposta sem bloqueá-los. FOR UPDATE na resposta
--- serializa com o rascunho, com o trigger que marca o rascunho aplicado e com
--- qualquer SELECT ... FOR UPDATE residual; no CI o Kong estoura timeout no
--- POST de aceite. A concorrência fica no UPDATE com o estado esperado.
+-- O parecer de NA lê ciclo e resposta sem bloqueá-los. O rascunho é marcado
+-- aplicado antes do UPDATE da resposta, na mesma ordem de lock do autosave
+-- (rascunho → resposta). Se o trigger tentar de novo, a linha já não está ativa.
 
 create or replace function public.validate_not_applicable_response(
   p_response_id uuid,
@@ -255,6 +254,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = public
+set lock_timeout = '5s'
 as $$
 declare
   v_response public.responses%rowtype;
@@ -322,6 +322,13 @@ begin
   ) then
     raise exception 'response_not_reviewable_na' using errcode = 'P0001';
   end if;
+
+  perform public.mark_validation_analysis_draft_applied(
+    p_cycle_id,
+    'not_applicable',
+    null,
+    p_response_id
+  );
 
   v_validated_at := clock_timestamp();
 
@@ -395,4 +402,4 @@ $$;
 comment on function public.validate_not_applicable_response(
   uuid, uuid, text, uuid, text, text, timestamptz
 ) is
-  'Aprova ou rejeita “não se aplica”. Lê ciclo e resposta sem bloqueá-los; a concorrência fica no UPDATE com o estado esperado.';
+  'Aprova ou rejeita “não se aplica”. Marca o rascunho antes de atualizar a resposta; a concorrência do veredito fica no UPDATE com o estado esperado.';
