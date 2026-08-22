@@ -1,0 +1,3 @@
+import { createListActionPlanAuditRoute } from "@/features/improvement-management/action-plans/route-handlers";
+
+export const GET = createListActionPlanAuditRoute("respondent");

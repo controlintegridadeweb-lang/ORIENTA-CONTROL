@@ -1,0 +1,58 @@
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+
+# Relatórios gerados pela execução de cobertura
+coverage/
+
+# TypeScript incremental build cache
+tsconfig.tsbuildinfo
+
+# Artefatos gerados pelo Playwright
+playwright-report/
+test-results/
+
+# Supabase CLI scratch directory
+supabase/.temp/
+
+# Environment files (never commit secrets)
+.env*
+!.env.example
+*.env.bak
+
+# Vercel CLI project linking / payloads gerados
+.vercel
+var/vercel-env.json
+
+# Credenciais temporárias geradas por bootstraps administrativos
+var/bootstrap/
+*.credentials.csv
+
+# Importações históricas com dados pessoais e respostas institucionais
+var/imports/*
+!var/imports/README.md
+
+# Relatórios gerados por validações locais do banco
+var/greenfield-pglite-report.json
+var/form-management-rpc-pglite-report.json
+var/database.generated.types.ts
+var/database.current.canonical.ts
+var/database.generated.canonical.ts
+var/database.compare.ts
+var/greenfield/*.log
+
+# Relatórios e artefatos operacionais de produção
+var/release/*
+var/backups/*
+!var/release/README.md
+!var/backups/README.md
+
+var/*.mjs
+
+# Carga inicial real de 2026: mantida localmente, nunca versionada
+data/bootstrap-2026/private/*
+!data/bootstrap-2026/private/.gitkeep
+
+# Relatórios/credenciais locais do bootstrap

@@ -1,0 +1,81 @@
+name: Release readiness
+permissions:
+  contents: read
+on:
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: Ambiente protegido do GitHub
+        required: true
+        type: choice
+        options: [preview, staging, production]
+      base_url:
+        description: URL HTTPS já implantada para smoke test
+        required: true
+        type: string
+      expected_commit:
+        description: SHA esperado no deploy; deixe vazio para não conferir
+        required: false
+        type: string
+concurrency:
+  group: release-readiness-${{ inputs.target_environment }}
+  cancel-in-progress: false
+jobs:
+  preflight:
+    name: Static release gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment: ${{ inputs.target_environment }}
+    env:
+      NODE_ENV: production
+      NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      HEALTHCHECK_SECRET: ${{ secrets.HEALTHCHECK_SECRET }}
+      NOTIFICATION_WEBHOOK_URL: ${{ secrets.NOTIFICATION_WEBHOOK_URL }}
+      NOTIFICATION_WEBHOOK_SECRET: ${{ secrets.NOTIFICATION_WEBHOOK_SECRET }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npm run check:production-env
+      - name: Audit runtime dependencies
+        run: npm audit --omit=dev --audit-level=high
+      - run: npm run release:static
+      - if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-gate-${{ inputs.target_environment }}
+          path: |
+            var/release
+            coverage
+          if-no-files-found: ignore
+          retention-days: 14
+  smoke:
+    name: Post-deploy smoke test
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ${{ inputs.target_environment }}
+    env:
+      HEALTHCHECK_SECRET: ${{ secrets.HEALTHCHECK_SECRET }}
+      PRODUCTION_BASE_URL: ${{ inputs.base_url }}
+      EXPECTED_COMMIT: ${{ inputs.expected_commit }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+      - run: npm run smoke:production
+      - if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: smoke-${{ inputs.target_environment }}
+          path: var/release/smoke-report.json
+          if-no-files-found: error
+          retention-days: 30

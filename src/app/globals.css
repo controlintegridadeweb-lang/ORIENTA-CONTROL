@@ -1,0 +1,349 @@
+@import "tailwindcss";
+
+/* =============================================================================
+   Plataforma Orienta — Design tokens
+   ---------------------------------------------------------------------------
+   Escala tipográfica sugerida (alinhada ao corpo 16px):
+   - Display / título de página: clamp(1.375rem, 2.5vw, 1.75rem), medium–semibold
+   - Seção (h2): clamp(1.125rem, 1.8vw, 1.375rem), medium
+   - Corpo: 1rem (16px), line-height ~1.6, peso 400
+   - Secundário / metadados: 0.875rem–0.9375rem (14–15px)
+   - KPI / número em destaque: clamp(2rem, 4vw, 2.75rem), tabular-nums quando couber
+   ---------------------------------------------------------------------------
+   Presets Tailwind (tipografia de UI, grids, sidebar): `src/shared/layout/design-system.ts`
+   Superfícies / formulários / botões: `src/shared/layout/form-surface.ts`
+   --------------------------------------------------------------------------- */
+
+:root {
+  /* Brand colors. Tons de teal/menta usados na sidebar, login e accent. */
+  --color-brand-50: #f0fdf4;
+  --color-brand-100: #d1f0e3;
+  --color-brand-200: #a7e0c7;
+  --color-brand-300: #7ccfa9;
+  --color-brand-400: #64ac95;
+  --color-brand-500: #5a9e8a;
+  --color-brand-600: #3d7a68;
+  --color-brand-700: #0f9387;
+  --color-brand-800: #0a7a70;
+  --color-brand-900: #0c7a70;
+  --color-brand-950: #064640;
+
+  /* Aliases semânticos. Trocar a paleta no futuro = mexer só aqui. */
+  --color-brand: var(--color-brand-400);
+  --color-brand-hover: var(--color-brand-500);
+  --color-brand-soft: var(--color-brand-50);
+  --color-brand-deep: var(--color-brand-700);
+  --color-brand-deepest: var(--color-brand-800);
+  --color-footer: #0c6861;
+
+  /* Superfícies e textos neutros (override do default Tailwind via @theme). */
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8fafc;
+  --color-foreground: #0f172a;
+
+  /* Sombras (mais suaves, padronizadas para cards e popovers). */
+  --ds-shadow-card: 0 1px 2px -1px rgb(15 23 42 / 0.06), 0 2px 4px -2px rgb(15 23 42 / 0.06);
+  --ds-shadow-card-hover: 0 4px 8px -2px rgb(15 23 42 / 0.10), 0 2px 4px -2px rgb(15 23 42 / 0.06);
+  --ds-shadow-popover: 0 12px 24px -6px rgb(15 23 42 / 0.18), 0 4px 8px -4px rgb(15 23 42 / 0.10);
+
+  /* Radii de uso geral. */
+  --radius-card: 0.75rem; /* rounded-xl */
+  --radius-control: 0.5rem; /* rounded-lg */
+
+  /* Header sticky (App shell). */
+  --header-h: 4rem;
+
+  /* Tipografia base (dashboard SaaS — escala confortável, ~15–16px corpo). */
+  --text-base-size: 1rem;
+  --leading-body: 1.6;
+  --leading-snug-readable: 1.5;
+
+  /* Ritmo vertical entre blocos de página. */
+  --space-section-y: clamp(1.75rem, 4vw, 2.5rem);
+
+  /* Cards: respiro interno padrão. */
+  --card-padding-x: clamp(1.375rem, 3vw, 1.75rem);
+  --card-padding-y: clamp(1.25rem, 2.5vw, 1.625rem);
+}
+
+@theme inline {
+  --color-background: var(--color-surface-muted);
+  --color-foreground: var(--color-foreground);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* Disponibiliza utilitarios `bg-brand`, `text-brand`, etc. no Tailwind 4. */
+  --color-brand: var(--color-brand-400);
+  --color-brand-50: var(--color-brand-50);
+  --color-brand-100: var(--color-brand-100);
+  --color-brand-200: var(--color-brand-200);
+  --color-brand-300: var(--color-brand-300);
+  --color-brand-400: var(--color-brand-400);
+  --color-brand-500: var(--color-brand-500);
+  --color-brand-600: var(--color-brand-600);
+  --color-brand-700: var(--color-brand-700);
+  --color-brand-800: var(--color-brand-800);
+  --color-brand-900: var(--color-brand-900);
+  --color-brand-950: var(--color-brand-950);
+  --color-footer: var(--color-footer);
+
+  --shadow-card: var(--ds-shadow-card);
+  --shadow-card-hover: var(--ds-shadow-card-hover);
+  --shadow-popover: var(--ds-shadow-popover);
+
+  /* Micro tipografia UI (tabelas, badges, labels densos) — evita text-[Npx] arbitrário. */
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 0.875rem;
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1rem;
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.125rem;
+  --text-body-15: 0.9375rem;
+  --text-body-15--line-height: 1.25rem;
+
+  /*
+   * Tokens legados de títulos intermediários — a hierarquia oficial usa a escala
+   * Tailwind padrão (text-2xl/3xl, text-lg/xl). Ver docs/current/design-system/tipografia.md.
+   * Mantidos só para não quebrar classes residuais em CSS compilado.
+   */
+  --text-panel-section: 1.375rem;
+  --text-panel-section--line-height: 1.75rem;
+  --text-panel-hero: 1.75rem;
+  --text-panel-hero--line-height: 2.125rem;
+  --text-panel-hero-lg: 1.65rem;
+  --text-panel-hero-lg--line-height: 2rem;
+  --text-kicker-md: 1.0625rem;
+  --text-kicker-md--line-height: 1.5rem;
+  --text-hero-title: 2rem;
+  --text-hero-title--line-height: 2.375rem;
+
+  /* Números grandes (roadmap FAMI). */
+  --text-display-step: 4.25rem;
+  --text-display-step--line-height: 1;
+  --text-display-step-lg: 4.75rem;
+  --text-display-step-lg--line-height: 1;
+}
+
+/* =============================================================================
+   Base
+   --------------------------------------------------------------------------- */
+
+/* Remove as setas (spin buttons) dos inputs numéricos no Chrome/Safari/Edge e Firefox. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--color-surface-muted);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  font-size: var(--text-base-size);
+  font-weight: 400;
+  line-height: var(--leading-body);
+  letter-spacing: -0.004em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "cv11", "ss01";
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-mono);
+}
+
+/* Acessibilidade: anel de foco coerente em todo controle interativo. Componentes
+   podem sobrescrever via `focus-visible:` quando precisarem de estilo proprio. */
+:focus-visible {
+  outline: 2px solid var(--color-brand-400);
+  outline-offset: 2px;
+}
+
+/* Respeita usuarios que pedem menos animacao. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* =============================================================================
+   Sidebar (Plataforma Orienta) — colapso lateral
+   --------------------------------------------------------------------------- */
+
+aside[data-collapsed="true"] .sb-label,
+aside[data-collapsed="true"] .sb-group {
+  display: none;
+}
+
+aside[data-collapsed="true"] a,
+aside[data-collapsed="true"] button[type="submit"] {
+  justify-content: center;
+}
+
+/* Branding: no modo colapsado, vira so a marca "O" centralizada (sem padding
+   lateral grosso que sobraria de px-5). */
+aside[data-collapsed="true"] .sb-brand {
+  padding-left: 0;
+  padding-right: 0;
+  justify-content: center;
+}
+
+/* User card: avatar centralizado e padding lateral zerado para nao empurrar
+   o circulo para o canto da aside (w-16). */
+aside[data-collapsed="true"] .sb-user-card {
+  padding-left: 0;
+  padding-right: 0;
+  justify-content: center;
+}
+
+/* Footer: encosta o icone do logout no centro, sem padding "vazio" lateral. */
+aside[data-collapsed="true"] .sb-footer {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Item ativo no modo colapsado: mantém contraste sem ring pesado. */
+aside[data-collapsed="true"] .sb-link-active {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12);
+}
+
+/* Remove o padding lateral do <nav> no modo colapsado para que a "pilula" do
+   item ativo encoste nas bordas do aside e nao parecca encolhida no centro. */
+aside[data-collapsed="true"] nav {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Ícones maiores no modo recolhido (navegação e logout). */
+aside[data-collapsed="true"] nav a svg,
+aside[data-collapsed="true"] .sb-footer button svg {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
+/* =============================================================================
+   Scrollbar mais discreta para contextos de sidebar/painel.
+   --------------------------------------------------------------------------- */
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Kanban: rolagem horizontal do quadro e vertical por coluna */
+.kanban-scroll-x,
+.kanban-scroll-y {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+}
+
+.kanban-scroll-x::-webkit-scrollbar {
+  height: 7px;
+}
+
+.kanban-scroll-y::-webkit-scrollbar {
+  width: 6px;
+}
+
+.kanban-scroll-x::-webkit-scrollbar-thumb,
+.kanban-scroll-y::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+}
+
+.kanban-scroll-x::-webkit-scrollbar-track,
+.kanban-scroll-y::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Formulário por etapas (wizard de seções) */
+@keyframes form-step-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes form-step-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.form-step-enter-forward {
+  animation: form-step-in-right 0.28s ease-out;
+}
+
+.form-step-enter-back {
+  animation: form-step-in-left 0.28s ease-out;
+}
+
+/* Guia FAMI — entrada escalonada dos passos da timeline */
+@keyframes fami-guide-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.4rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fami-guide-step-in {
+  animation: fami-guide-step-in 0.42s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form-step-enter-forward,
+  .form-step-enter-back,
+  .fami-guide-step-in {
+    animation: none;
+  }
+}

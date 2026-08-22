@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "release": {
+    "commit": null,
+    "deploymentId": null,
+    "baseUrl": null,
+    "approvedBy": null,
+    "approvedAt": null
+  },
+  "gates": {
+    "static_release": {
+      "status": "pending",
+      "evidence": null,
+      "checkedAt": null
+    },
+    "dependency_audit": {
+      "status": "pending",
+      "evidence": null,
+      "checkedAt": null
+    },
+    "production_environment": {
+      "status": "pending",
+      "evidence": null,
+      "checkedAt": null
+    },
+    "database_migrations": {
+      "status": "pending",
+      "evidence": null,
+      "checkedAt": null
+    },
+    "generated_types": {
+      "status": "pending",
+      "evidence": null,
+      "checkedAt": null
+    },
+    "database_verify": {
+      "status": "pending",
+      "evidence": null,
+      "checkedAt": null
+    },
+    "report_storage": {
+      "status": "pending",
+      "evidence": null,
+      "checkedAt": null
+    },
+    "end_to_end": {
+      "status": "pending",
+      "evidence": null,
+      "checkedAt": null
+    },
+    "smoke": {
+      "status": "pending",
+      "evidence": null,
+      "checkedAt": null
+    },
+    "backup": {
+      "status": "pending",
+      "evidence": null,
+      "checkedAt": null
+    },
+    "restore_drill": {
+      "status": "pending",
+      "evidence": null,
+      "checkedAt": null
+    },
+    "final_data_snapshot": {
+      "status": "pending",
+      "evidence": null,
+      "checkedAt": null
+    },
+    "migration_dry_run": {
+      "status": "pending",
+      "evidence": null,
+      "checkedAt": null
+    },
+    "migration_parity": {
+      "status": "pending",
+      "evidence": null,
+      "checkedAt": null
+    },
+    "rollback_plan": {
+      "status": "pending",
+      "evidence": null,
+      "checkedAt": null
+    },
+    "incident_response": {
+      "status": "pending",
+      "evidence": null,
+      "checkedAt": null
+    },
+    "homologation": {
+      "status": "pending",
+      "evidence": null,
+      "checkedAt": null
+    }
+  }
+}

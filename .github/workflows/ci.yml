@@ -1,0 +1,152 @@
+name: CI
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Audit canonical migrations
+        run: npm run db:audit:migrations
+      - name: Restore Next.js build cache
+        uses: actions/cache@v5
+        with:
+          path: .next/cache
+          key: ${{ runner.os }}-next-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**', 'next.config.ts') }}
+          restore-keys: |
+            ${{ runner.os }}-next-${{ hashFiles('package-lock.json') }}-
+      - run: npm run typecheck
+      - name: Tests and coverage
+        run: npm run test:coverage
+      - name: Lint
+        run: timeout --preserve-status 120s npm run lint
+      - name: Dead code
+        run: npm run check:dead-code
+      - run: npm run check:architecture
+      - run: npm run check:security-sync
+      - run: npm run check:sensitive-artifacts
+      - run: npm run check:visual-consistency
+      - run: npm run check:complexity
+      - run: npm run check:production-readiness
+      - run: npm run check:respondent-seed
+      - run: npm run check:diagnostic-import
+      - name: Production build
+        env:
+          NEXT_BUILD_CPUS: "2"
+          NEXT_STATIC_GENERATION_CONCURRENCY: "2"
+        run: timeout --preserve-status 300s npm run build:bundle
+
+  database-integration:
+    name: Database integration (Supabase local)
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Audit canonical migrations
+        run: npm run db:audit:migrations
+      - name: Start isolated Supabase stack
+        run: npm run supabase:start:clean
+      - name: Reset local schema from migrations
+        run: npm run db:reset:local
+      - name: Export local Supabase environment
+        run: npm run supabase:env:local
+      - name: Verify generated database types
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          SUPABASE_GEN_TYPES_MODE: local
+        run: npm run check:generated-types
+      - name: Upload generated database types
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: database-generated-types
+          path: var/database.generated.types.ts
+          if-no-files-found: ignore
+      - name: Install diagnostic test fixture
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: npm run supabase:fixture:diagnostic
+      - name: Verify RLS, RPCs and Storage policies against real Supabase PostgreSQL
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          DB_VERIFY_ONLY: "1"
+        run: npm run db:verify
+      - name: Verify report persistence and signed URL against real Storage
+        env:
+          SUPABASE_URL: http://127.0.0.1:54321
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: npm run db:verify:reports
+      - name: Supabase diagnostics on failure
+        if: failure()
+        run: npm run supabase:cli -- status || true
+      - name: Stop Supabase local stack
+        if: always()
+        run: npm run supabase:cli -- stop --no-backup
+
+  end-to-end:
+    name: End-to-end (Playwright + Supabase local)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Start isolated Supabase stack
+        run: npm run supabase:start:clean
+      - name: Reset local schema from migrations
+        run: npm run db:reset:local
+      - name: Export local Supabase environment
+        run: npm run supabase:env:local
+      - name: Prepare deterministic E2E accounts and catalog
+        run: npm run e2e:prepare
+      - name: Build application for E2E
+        env:
+          NEXT_BUILD_CPUS: "2"
+          NEXT_STATIC_GENERATION_CONCURRENCY: "2"
+        run: timeout --preserve-status 300s npm run build
+      - name: Run Playwright
+        env:
+          PLAYWRIGHT_PREBUILT_APP: "1"
+        run: npm run test:e2e
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
+      - name: Supabase diagnostics on failure
+        if: failure()
+        run: npm run supabase:cli -- status || true
+      - name: Stop Supabase local stack
+        if: always()
+        run: npm run supabase:cli -- stop --no-backup

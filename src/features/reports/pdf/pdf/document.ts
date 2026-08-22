@@ -1,0 +1,332 @@
+import { formatPlatformDate, formatPlatformDateTime } from "@/shared/datetime/platform-date-time";
+import fs from "node:fs/promises";
+import path from "node:path";
+import {
+  PDFDocument,
+  StandardFonts,
+  rgb,
+  type PDFImage,
+  type PDFPage,
+} from "pdf-lib";
+import type { OfficialReportData } from "@/features/reports/pdf/report-types";
+import { contentWidth, reportTheme } from "./theme";
+
+export type ReportFonts = {
+  regular: Awaited<ReturnType<PDFDocument["embedFont"]>>;
+  bold: Awaited<ReturnType<PDFDocument["embedFont"]>>;
+};
+
+export type Cursor = { page: PDFPage; y: number };
+
+export type TocEntry = {
+  id: string;
+  title: string;
+  page: number;
+  /** 0 = seção principal; 1 = eixo/subseção no sumário. */
+  level: number;
+};
+
+export class OrientaPdfDocument {
+  readonly pdf: PDFDocument;
+  readonly fonts: ReportFonts;
+  readonly data: OfficialReportData;
+  logo: PDFImage | null = null;
+  private pageIndex = -1;
+  readonly coverPageIndex = 0;
+  tocPageIndex = 1;
+  readonly tocEntries: TocEntry[] = [];
+
+  private constructor(pdf: PDFDocument, fonts: ReportFonts, data: OfficialReportData) {
+    this.pdf = pdf;
+    this.fonts = fonts;
+    this.data = data;
+  }
+
+  static async create(data: OfficialReportData): Promise<OrientaPdfDocument> {
+    const pdf = await PDFDocument.create();
+    const fonts: ReportFonts = {
+      regular: await pdf.embedFont(StandardFonts.Helvetica),
+      bold: await pdf.embedFont(StandardFonts.HelveticaBold),
+    };
+    const doc = new OrientaPdfDocument(pdf, fonts, data);
+    try {
+      const logoPath = path.join(process.cwd(), "public", "assets", "logo-orienta.png");
+      const bytes = await fs.readFile(logoPath);
+      doc.logo = await pdf.embedPng(bytes);
+    } catch {
+      doc.logo = null;
+    }
+    return doc;
+  }
+
+  get contentBottom(): number {
+    return reportTheme.margin + reportTheme.footerH;
+  }
+
+  get contentTop(): number {
+    return reportTheme.page.h - reportTheme.margin;
+  }
+
+  newPage(): Cursor {
+    const page = this.pdf.addPage([reportTheme.page.w, reportTheme.page.h]);
+    this.pageIndex += 1;
+    page.drawRectangle({
+      x: 0,
+      y: 0,
+      width: reportTheme.page.w,
+      height: reportTheme.page.h,
+      color: reportTheme.white,
+    });
+    return { page, y: this.contentTop };
+  }
+
+  /** Reserva a página de sumário (preenchida ao final da geração). */
+  reserveTocPage(): Cursor {
+    return this.newPage();
+  }
+
+  getPage(index: number): PDFPage {
+    return this.pdf.getPages()[index]!;
+  }
+
+  registerTocEntry(id: string, title: string, level = 0): void {
+    this.tocEntries.push({
+      id,
+      title,
+      page: this.pageIndex + 1,
+      level,
+    });
+  }
+
+  /**
+   * Inicia seção principal em nova página, registra no sumário e desenha cabeçalho.
+   */
+  beginMajorSection(
+    title: string,
+    subtitle: string | undefined,
+    tocId: string,
+  ): Cursor {
+    let cur = this.newPage();
+    this.registerTocEntry(tocId, title);
+    cur = this.drawSectionTitle(cur, title, subtitle, { forceTop: true });
+    return cur;
+  }
+
+  ensureSpace(c: Cursor, needed: number): Cursor {
+    if (c.y - needed < this.contentBottom) return this.newPage();
+    return c;
+  }
+
+  /** Garante espaço para bloco indivisível (card, card de recomendação, etc.). */
+  ensureBlock(c: Cursor, blockHeight: number): Cursor {
+    return this.ensureSpace(c, blockHeight + reportTheme.sectionGap);
+  }
+
+  drawFooter(page: PDFPage, pageNum: number): void {
+    const y = 22;
+    const gen = this.formatDateShort(this.data.generatedAtIso);
+    const org =
+      this.data.organizationName.length > 42
+        ? `${this.data.organizationName.slice(0, 40)}…`
+        : this.data.organizationName;
+    const left = `Plataforma Orienta · ${org}`;
+    const right = `Período ${this.data.referencePeriodLabel} · ${gen} · pág. ${pageNum}`;
+
+    page.drawLine({
+      start: { x: reportTheme.margin, y: y + 12 },
+      end: { x: reportTheme.page.w - reportTheme.margin, y: y + 12 },
+      thickness: 0.4,
+      color: reportTheme.slate200,
+    });
+    page.drawText(left, {
+      x: reportTheme.margin,
+      y,
+      size: 7,
+      font: this.fonts.regular,
+      color: reportTheme.slate500,
+    });
+    const rightW = this.fonts.regular.widthOfTextAtSize(right, 7);
+    page.drawText(right, {
+      x: reportTheme.page.w - reportTheme.margin - rightW,
+      y,
+      size: 7,
+      font: this.fonts.regular,
+      color: reportTheme.slate500,
+    });
+  }
+
+  applyFooters(): void {
+    const pages = this.pdf.getPages();
+    pages.forEach((page, i) => {
+      if (i === this.coverPageIndex) return;
+      this.drawFooter(page, i + 1);
+    });
+  }
+
+  formatDateShort(iso: string): string {
+    try {
+      return formatPlatformDate(iso, { day: "2-digit", month: "2-digit", year: "numeric" }, iso);
+    } catch {
+      return iso;
+    }
+  }
+
+  chunkText(text: string, maxChars: number): string[] {
+    const t = text.replace(/\s+/g, " ").trim();
+    if (!t) return [];
+    if (t.length <= maxChars) return [t];
+    const out: string[] = [];
+    let rest = t;
+    while (rest.length > maxChars) {
+      const slice = rest.slice(0, maxChars);
+      const sp = slice.lastIndexOf(" ");
+      const br = sp > 40 ? sp : maxChars;
+      const line = rest.slice(0, br).trim();
+      if (line) out.push(line);
+      rest = rest.slice(br).trim();
+    }
+    if (rest) out.push(rest);
+    return out;
+  }
+
+  drawParagraph(
+    c: Cursor,
+    text: string,
+    opts: { size?: number; bold?: boolean; color?: ReturnType<typeof rgb>; indent?: number; gap?: number } = {},
+  ): Cursor {
+    const size = opts.size ?? 10;
+    const font = opts.bold ? this.fonts.bold : this.fonts.regular;
+    const color = opts.color ?? reportTheme.slate700;
+    const indent = opts.indent ?? 0;
+    const gap = opts.gap ?? 0;
+    const maxChars = Math.floor((contentWidth() - indent) / (size * 0.52));
+    let cur = { ...c, y: c.y - gap };
+    for (const line of this.chunkText(text, maxChars)) {
+      cur = this.ensureSpace(cur, reportTheme.line);
+      cur.page.drawText(line, {
+        x: reportTheme.margin + indent,
+        y: cur.y,
+        size,
+        font,
+        color,
+        maxWidth: contentWidth() - indent,
+      });
+      cur = { ...cur, y: cur.y - reportTheme.line };
+    }
+    return { ...cur, y: cur.y - 6 };
+  }
+
+  drawSectionTitle(
+    c: Cursor,
+    title: string,
+    subtitle?: string,
+    opts: { forceTop?: boolean } = {},
+  ): Cursor {
+    const blockH =
+      reportTheme.titleBlockH +
+      (subtitle ? 28 : 0) +
+      reportTheme.minContentAfterTitle;
+
+    let cur = c;
+    if (opts.forceTop) {
+      cur = { page: cur.page, y: this.contentTop };
+    } else if (cur.y - blockH < this.contentBottom) {
+      cur = this.newPage();
+    } else {
+      cur = { ...cur, y: cur.y - reportTheme.sectionGap };
+      if (cur.y - reportTheme.titleBlockH < this.contentBottom) cur = this.newPage();
+    }
+
+    const barY = cur.y;
+    cur.page.drawRectangle({
+      x: reportTheme.margin,
+      y: barY - 24,
+      width: 4,
+      height: 26,
+      color: reportTheme.brand,
+    });
+    cur.page.drawText(title, {
+      x: reportTheme.margin + 14,
+      y: barY - 4,
+      size: 17,
+      font: this.fonts.bold,
+      color: reportTheme.slate900,
+    });
+    cur = { ...cur, y: barY - 28 };
+
+    if (subtitle) {
+      cur = this.drawParagraph(cur, subtitle, { size: 9, color: reportTheme.slate500, gap: 0 });
+    }
+
+    cur.page.drawLine({
+      start: { x: reportTheme.margin, y: cur.y - 6 },
+      end: { x: reportTheme.page.w - reportTheme.margin, y: cur.y - 6 },
+      thickness: 0.75,
+      color: reportTheme.slate200,
+    });
+    return { ...cur, y: cur.y - 20 };
+  }
+
+  drawSubsectionTitle(
+    c: Cursor,
+    title: string,
+    subtitle?: string,
+    opts: { accent?: ReturnType<typeof rgb> } = {},
+  ): Cursor {
+    const needed = 48 + (subtitle ? 24 : 0);
+    let cur = this.ensureSpace(c, needed + 40);
+    cur.page.drawText(title, {
+      x: reportTheme.margin,
+      y: cur.y,
+      size: 12,
+      font: this.fonts.bold,
+      color: opts.accent ?? reportTheme.brandDark,
+    });
+    cur = { ...cur, y: cur.y - 18 };
+    if (subtitle) {
+      cur = this.drawParagraph(cur, subtitle, { size: 9, color: reportTheme.slate500, gap: 0 });
+    }
+    cur.page.drawRectangle({
+      x: reportTheme.margin,
+      y: cur.y - 4,
+      width: 56,
+      height: 2,
+      color: opts.accent ?? reportTheme.brand,
+    });
+    return { ...cur, y: cur.y - 16 };
+  }
+
+  drawRoundedCard(
+    c: Cursor,
+    height: number,
+    opts: { fill?: ReturnType<typeof rgb>; border?: ReturnType<typeof rgb> } = {},
+  ): { cursor: Cursor; innerX: number; innerY: number; innerW: number } {
+    const cur = this.ensureBlock(c, height);
+    const w = contentWidth();
+    const fill = opts.fill ?? reportTheme.white;
+    const border = opts.border ?? reportTheme.slate200;
+    cur.page.drawRectangle({
+      x: reportTheme.margin,
+      y: cur.y - height,
+      width: w,
+      height,
+      color: fill,
+      borderColor: border,
+      borderWidth: 0.75,
+    });
+    return {
+      cursor: { page: cur.page, y: cur.y - height },
+      innerX: reportTheme.margin + 16,
+      innerY: cur.y - 16,
+      innerW: w - 32,
+    };
+  }
+
+  formatDate(iso: string): string {
+    try {
+      return formatPlatformDateTime(iso, { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }, iso);
+    } catch {
+      return iso;
+    }
+  }
+}

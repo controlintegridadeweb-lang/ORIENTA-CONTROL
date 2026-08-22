@@ -1,0 +1,22 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignore": [
+    "src/infrastructure/supabase/database.types.ts",
+    "src/test/server-only-stub.ts"
+  ],
+  "ignoreBinaries": [
+    "pg_dump",
+    "pg_restore",
+    "age"
+  ],
+  "rules": {
+    "exports": "off",
+    "nsExports": "off",
+    "types": "off",
+    "nsTypes": "off",
+    "enumMembers": "off"
+  },
+  "ignoreDependencies": [
+    "@testing-library/dom"
+  ]
+}

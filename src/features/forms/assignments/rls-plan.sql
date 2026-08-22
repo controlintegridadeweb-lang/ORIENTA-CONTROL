@@ -1,0 +1,48 @@
+-- RLS planejada para Baseline V4 (nao aplicar como migration na Fase C0).
+-- Tabela alvo: public.form_assignments (form_id, organization_id, assigned_at, assigned_by)
+
+-- Leitura: admin ve tudo; respondente ve apenas assignments da propria org.
+-- create policy "form_assignments read admin"
+--   on form_assignments for select
+--   using (app_private.is_admin());
+
+-- create policy "form_assignments read respondent"
+--   on form_assignments for select
+--   using (
+--     organization_id = app_private.current_organization_id()
+--     and app_private.is_respondent()
+--   );
+
+-- Escrita: somente admin.
+-- create policy "form_assignments write admin"
+--   on form_assignments for all
+--   using (app_private.is_admin())
+--   with check (app_private.is_admin());
+
+-- responses: condicionar insert/select/update ao assignment existente.
+-- create policy "responses respondent assigned form"
+--   on responses for all
+--   using (
+--     app_private.is_admin()
+--     or (
+--       app_private.is_respondent()
+--       and organization_id = app_private.current_organization_id()
+--       and exists (
+--         select 1 from form_assignments fa
+--         where fa.form_id = responses.form_id
+--           and fa.organization_id = responses.organization_id
+--       )
+--     )
+--   )
+--   with check (
+--     app_private.is_admin()
+--     or (
+--       app_private.is_respondent()
+--       and organization_id = app_private.current_organization_id()
+--       and exists (
+--         select 1 from form_assignments fa
+--         where fa.form_id = responses.form_id
+--           and fa.organization_id = responses.organization_id
+--       )
+--     )
+--   );

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build:vercel",
+  "regions": [
+    "gru1"
+  ],
+  "crons": [
+    {
+      "path": "/api/maintenance/cycle-jobs",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/maintenance/imports",
+      "schedule": "15 3 * * *"
+    },
+    {
+      "path": "/api/maintenance/report-bundles",
+      "schedule": "30 3 * * *"
+    },
+    {
+      "path": "/api/maintenance/notifications/enqueue",
+      "schedule": "45 3 * * *"
+    },
+    {
+      "path": "/api/maintenance/notifications/dispatch",
+      "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/maintenance/pending-evidence-cleanup",
+      "schedule": "15 2 * * *"
+    },
+    {
+      "path": "/api/maintenance/fami-preliminary-close",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+# UTF-8 em todo o projeto (evita mojibake ao salvar arquivos no Windows)
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.md]
+trim_trailing_whitespace = false
