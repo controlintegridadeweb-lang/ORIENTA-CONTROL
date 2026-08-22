@@ -448,7 +448,7 @@ requireSqlCallArity("supabase/verify/not_applicable_validation.sql", "apply_work
 requireSqlCallArity("supabase/verify/respondent_profile_details_import.sql", "apply_workbench_response", 7);
 requireSqlCallArity("supabase/verify/workbench_multiple_evidences.sql", "apply_workbench_response", 7);
 requireSqlCallArity("supabase/verify/workbench_multiple_evidences.sql", "remove_workbench_evidence_item", 5);
-requireSqlCallArity("supabase/verify/action_plans_cycle_editability.sql", "save_respondent_action_plan", 11);
+requireSqlCallArity("supabase/verify/action_plans_cycle_editability.sql", "save_respondent_action_plan", 13);
 
 for (const file of walkFiles("src").filter((name) => /\.(?:ts|tsx)$/.test(name))) {
   const source = read(file);

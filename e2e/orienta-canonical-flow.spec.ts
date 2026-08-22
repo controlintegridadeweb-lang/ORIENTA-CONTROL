@@ -313,9 +313,19 @@ test.describe.serial("jornada canônica da plataforma", () => {
     await expect(page).toHaveURL(new RegExp(`/admin/ciclos/${cycleId}/validacao`));
     await expect(page.getByRole("heading", { name: "Validação do diagnóstico" })).toBeVisible();
 
+    // A fila padrão é “Pendentes”: após decidir, o card some. O teste precisa
+    // ver o badge “Aceito”/“Rejeitado” no mesmo artigo.
+    await page.getByLabel("Situação da análise").selectOption("all");
+
     const approvedNaCard = page.getByRole("article").filter({ hasText: E2E.approvedNaQuestion });
     await approvedNaCard.getByRole("button", { name: 'Aceitar “Não se aplica”', exact: true }).click();
+    const approveNa = page.waitForResponse(
+      (response) =>
+        response.url().includes("/validation/not-applicable/") &&
+        response.request().method() === "POST",
+    );
     await approvedNaCard.getByRole("button", { name: /Confirmar Aceitar/ }).click();
+    expect((await approveNa).ok()).toBeTruthy();
     await expect(approvedNaCard.getByText("Aceito", { exact: true })).toBeVisible();
 
     const rejectedNaCard = page.getByRole("article").filter({ hasText: E2E.rejectedNaQuestion });
@@ -323,9 +333,15 @@ test.describe.serial("jornada canônica da plataforma", () => {
     await rejectedNaCard
       .getByLabel(/Motivo da rejeição/)
       .fill("O critério é aplicável e deve ser respondido como Não.");
+    const rejectNa = page.waitForResponse(
+      (response) =>
+        response.url().includes("/validation/not-applicable/") &&
+        response.request().method() === "POST",
+    );
     await rejectedNaCard
       .getByRole("button", { name: /Confirmar Rejeitar/i })
       .click();
+    expect((await rejectNa).ok()).toBeTruthy();
     await expect(rejectedNaCard.getByText("Rejeitado", { exact: true })).toBeVisible();
 
     const evidenceValidationCard = page
