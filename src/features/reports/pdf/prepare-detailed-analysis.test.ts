@@ -4,7 +4,7 @@ import {
   flattenDetailedAnalysisIds,
   prepareDetailedAnalysis,
   REPORT_EMPTY_ACTION_MOVEMENTS,
-  REPORT_EMPTY_RECOMMENDATION_ACTIONS,
+  REPORT_EMPTY_SECTION_ACTIONS,
   REPORT_EMPTY_SECTION_RECOMMENDATIONS,
 } from "./prepare-detailed-analysis";
 
@@ -376,7 +376,7 @@ describe("prepareDetailedAnalysis", () => {
     expect(ambiental?.sections[0]?.recommendations).toHaveLength(0);
     expect(planning?.actionPlan.actions[1]?.movements).toHaveLength(0);
     expect(REPORT_EMPTY_SECTION_RECOMMENDATIONS).toContain("Nenhuma recomendação");
-    expect(REPORT_EMPTY_RECOMMENDATION_ACTIONS).toContain("Ainda não há ações");
+    expect(REPORT_EMPTY_SECTION_ACTIONS).toContain("Ainda não há ações");
     expect(REPORT_EMPTY_ACTION_MOVEMENTS).toContain("Nenhuma movimentação");
 
     const flat = flattenDetailedAnalysisIds(view);

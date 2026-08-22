@@ -11,11 +11,18 @@ returns table (
   email text,
   full_name text
 )
-language sql
+language plpgsql
 security definer
 set search_path = public, auth
 stable
 as $$
+begin
+  -- O dono de `profiles` (sem BYPASSRLS) só ignora RLS com row_security=off.
+  -- Sem isso o Postgres local do Supabase devolve lista vazia para o mesmo
+  -- órgão que acabou de persistir o respondente.
+  perform set_config('row_security', 'off', true);
+
+  return query
   select
     p.user_id,
     au.email,
@@ -27,6 +34,7 @@ as $$
   order by
     coalesce(nullif(btrim(p.full_name), ''), nullif(btrim(au.email), ''), p.user_id::text),
     p.user_id;
+end;
 $$;
 
 comment on function public.list_organization_respondents(uuid) is

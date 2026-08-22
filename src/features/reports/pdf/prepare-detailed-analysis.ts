@@ -28,8 +28,6 @@ export const REPORT_EMPTY_SECTION_RECOMMENDATIONS =
 
 export const REPORT_EMPTY_SECTION_ACTIONS =
   "Ainda não há ações cadastradas para o plano desta seção.";
-/** @deprecated: use REPORT_EMPTY_SECTION_ACTIONS. */
-export const REPORT_EMPTY_RECOMMENDATION_ACTIONS = REPORT_EMPTY_SECTION_ACTIONS;
 
 export const REPORT_EMPTY_ACTION_MOVEMENTS =
   "Nenhuma movimentação registrada para esta ação.";

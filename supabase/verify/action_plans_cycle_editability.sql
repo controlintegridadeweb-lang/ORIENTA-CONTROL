@@ -133,6 +133,17 @@ declare
   v_action_text text;
   v_member_count integer;
 begin
+  perform set_config('row_security', 'off', true);
+  if not exists (
+    select 1
+    from public.profiles
+    where user_id = '00000000-0000-0000-0000-0000000000a2'::uuid
+      and organization_id = '00000000-0000-0000-0000-0000000000b1'::uuid
+      and role = 'respondent'::public.app_user_role
+  ) then
+    raise exception 'FALHOU(responsáveis): o perfil respondente do órgão seed não persistiu';
+  end if;
+
   select count(*) into v_member_count
   from public.list_organization_respondents('00000000-0000-0000-0000-0000000000b1');
   if v_member_count <> 1 then

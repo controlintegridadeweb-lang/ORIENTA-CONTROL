@@ -236,8 +236,8 @@ test.describe.serial("jornada canônica da plataforma", () => {
       mimeType: "image/png",
       buffer: E2E_EVIDENCE_PNG,
     });
-    await expect(evidenceCard.getByText("Arquivo enviado")).toBeVisible();
-    await evidenceCard.getByLabel(/T[íi]tulo da evid[êe]ncia/i).fill("Evidência E2E");
+    await expect(evidenceCard.getByLabel("Novas evidências")).toBeVisible();
+    await evidenceCard.getByLabel(/^Título/).fill("Evidência E2E");
     await evidenceCard.getByRole("button", { name: "Salvar resposta" }).click();
     await expect(
       evidenceCard.getByText("Evidência enviada e aguardando validação."),

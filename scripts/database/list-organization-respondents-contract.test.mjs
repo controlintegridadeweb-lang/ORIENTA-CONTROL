@@ -25,6 +25,7 @@ describe("list_organization_respondents", () => {
     expect(body.length).toBeGreaterThan(0);
     expect(body).toContain("from public.profiles p");
     expect(body).toContain("left join auth.users au on au.id = p.user_id");
+    expect(body).toContain("set_config('row_security', 'off', true)");
     expect(body).not.toMatch(/from public\.profiles p join auth\.users/);
     expect(body).toContain(
       "alter function public.list_organization_respondents(uuid) owner to",
