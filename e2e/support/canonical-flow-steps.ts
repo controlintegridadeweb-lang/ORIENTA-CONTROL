@@ -47,7 +47,10 @@ export function createCanonicalJourneyState(): CanonicalJourneyState {
 async function expectSuccessfulResponse(response: Response, label: string) {
   if (response.ok()) return;
   const body = await response.text();
-  expect(response.ok(), `${label}: HTTP ${response.status} ${body}`).toBeTruthy();
+  expect(
+    response.ok(),
+    `${label}: HTTP ${response.status()} ${body}`,
+  ).toBeTruthy();
 }
 
 async function createCompletedActionWithEvidence(
@@ -292,11 +295,8 @@ export async function adminRequestsAdjustment(page: Page, state: CanonicalJourne
   await expect(page).toHaveURL(new RegExp(`/admin/ciclos/${state.cycleId}/validacao`));
   await expect(page.getByRole("heading", { name: "Validação do diagnóstico" })).toBeVisible();
 
-  const situationFilter = page.getByLabel("Situação da análise");
-  await situationFilter.selectOption("all");
-  await expect(page).toHaveURL(/[?&]situacao=todos-itens/);
-  await expect(situationFilter).toHaveValue("all");
-
+  // A fila padrão é “Pendentes”. Confirmar só libera depois do rascunho persistir,
+  // para o veredito não disputar o lock da resposta com o autosave.
   const approvedNaCard = page.getByRole("article").filter({ hasText: E2E.approvedNaQuestion });
   const acceptNa = approvedNaCard.getByRole("button", {
     name: 'Aceitar “Não se aplica”',
@@ -304,6 +304,7 @@ export async function adminRequestsAdjustment(page: Page, state: CanonicalJourne
   });
   await expect(acceptNa).toBeEnabled();
   await acceptNa.click();
+  await expect(approvedNaCard.getByText("Rascunho salvo")).toBeVisible();
   const approveNa = page.waitForResponse(
     (response) =>
       response.url().includes("/validation/not-applicable/") &&
@@ -311,13 +312,14 @@ export async function adminRequestsAdjustment(page: Page, state: CanonicalJourne
   );
   await approvedNaCard.getByRole("button", { name: /Confirmar Aceitar/ }).click();
   await expectSuccessfulResponse(await approveNa, "aceitar não se aplica");
-  await expect(approvedNaCard.getByText("Aceito", { exact: true })).toBeVisible();
+  await expect(page.getByText("“Não se aplica” aceito.")).toBeVisible();
 
   const rejectedNaCard = page.getByRole("article").filter({ hasText: E2E.rejectedNaQuestion });
   await rejectedNaCard.getByRole("button", { name: 'Rejeitar “Não se aplica”', exact: true }).click();
   await rejectedNaCard
     .getByLabel(/Motivo da rejeição/)
     .fill("O critério é aplicável e deve ser respondido como Não.");
+  await expect(rejectedNaCard.getByText("Rascunho salvo")).toBeVisible();
   const rejectNa = page.waitForResponse(
     (response) =>
       response.url().includes("/validation/not-applicable/") &&
@@ -325,7 +327,9 @@ export async function adminRequestsAdjustment(page: Page, state: CanonicalJourne
   );
   await rejectedNaCard.getByRole("button", { name: /Confirmar Rejeitar/i }).click();
   await expectSuccessfulResponse(await rejectNa, "rejeitar não se aplica");
-  await expect(rejectedNaCard.getByText("Rejeitado", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("“Não se aplica” rejeitado; a resposta passou a ser “Não”."),
+  ).toBeVisible();
 
   const evidenceValidationCard = page
     .getByRole("article")

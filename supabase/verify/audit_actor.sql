@@ -110,8 +110,8 @@ begin
     where item.job_id = job.id
       and item.entity_type = 'cycle'
       and item.entity_id in (
-        '00000000-0000-0000-0000-00000000ad17'::uuid,
-        '00000000-0000-0000-0000-00000000ad19'::uuid
+        '00000000-0000-0000-0000-00000000ad17',
+        '00000000-0000-0000-0000-00000000ad19'
       )
   );
   delete from public.audit_logs where record_id in (
