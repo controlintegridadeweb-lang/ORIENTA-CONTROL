@@ -31,7 +31,7 @@ describe("validation analysis drafts na baseline consolidada", () => {
     expect(sql).toContain("save_validation_analysis_draft");
   });
 
-  it("lê o estado do ciclo sem bloqueá-lo no rascunho de validação", () => {
+  it("lê ciclo e alvo sem bloqueá-los no rascunho e no parecer de N/A", () => {
     const sql = source("20260822190000_validation_draft_reads_cycle_state.sql");
     const draftStart = sql.indexOf(
       "create or replace function public.save_validation_analysis_draft",
@@ -56,5 +56,12 @@ describe("validation analysis drafts na baseline consolidada", () => {
       /select \* into v_cycle\s+from public\.cycles\s+where id = p_cycle_id;/,
     );
     expect(verdictSql).not.toMatch(/select \* into v_cycle[\s\S]{0,120}for update/i);
+    expect(verdictSql).toMatch(
+      /select \* into v_response\s+from public\.responses\s+where id = p_response_id\s+and cycle_id = p_cycle_id;/,
+    );
+    expect(verdictSql).not.toMatch(/select \* into v_response[\s\S]{0,160}for update/i);
+    expect(verdictSql).toMatch(
+      /na_validation_status::text is not distinct from p_expected_status/,
+    );
   });
 });

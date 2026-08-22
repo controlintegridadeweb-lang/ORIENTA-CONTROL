@@ -237,9 +237,10 @@ comment on function public.save_validation_analysis_draft(
 ) is
   'Persiste rascunho de análise. Lê ciclo e alvo sem bloqueá-los; o lock exclusivo fica só no próprio rascunho.';
 
--- O parecer de NA só precisa ler o estado do ciclo. FOR UPDATE no ciclo
--- serializa com qualquer outra RPC que segure o diagnóstico e, no CI, o Kong
--- estoura timeout no POST de aceite.
+-- O parecer de NA lê ciclo e resposta sem bloqueá-los. FOR UPDATE na resposta
+-- serializa com o rascunho, com o trigger que marca o rascunho aplicado e com
+-- qualquer SELECT ... FOR UPDATE residual; no CI o Kong estoura timeout no
+-- POST de aceite. A concorrência fica no UPDATE com o estado esperado.
 
 create or replace function public.validate_not_applicable_response(
   p_response_id uuid,
@@ -296,8 +297,7 @@ begin
   select * into v_response
   from public.responses
   where id = p_response_id
-    and cycle_id = p_cycle_id
-  for update;
+    and cycle_id = p_cycle_id;
 
   if not found then
     raise exception 'response_not_in_cycle' using errcode = '23514';
@@ -333,7 +333,18 @@ begin
         na_validated_at = v_validated_at,
         na_validated_by = p_actor_user_id,
         na_rejection_reason = null
-    where id = p_response_id;
+    where id = p_response_id
+      and (
+        p_expected_status is null
+        or (
+          na_validation_status::text is not distinct from p_expected_status
+          and na_validated_at is not distinct from p_expected_validated_at
+        )
+      );
+
+    if not found then
+      raise exception 'validation_conflict' using errcode = '40001';
+    end if;
 
     return jsonb_build_object(
       'responseId', p_response_id,
@@ -357,7 +368,18 @@ begin
       na_validated_at = v_validated_at,
       na_validated_by = p_actor_user_id,
       na_rejection_reason = v_reason
-  where id = p_response_id;
+  where id = p_response_id
+    and (
+      p_expected_status is null
+      or (
+        na_validation_status::text is not distinct from p_expected_status
+        and na_validated_at is not distinct from p_expected_validated_at
+      )
+    );
+
+  if not found then
+    raise exception 'validation_conflict' using errcode = '40001';
+  end if;
 
   return jsonb_build_object(
     'responseId', p_response_id,
@@ -373,4 +395,4 @@ $$;
 comment on function public.validate_not_applicable_response(
   uuid, uuid, text, uuid, text, text, timestamptz
 ) is
-  'Aprova ou rejeita “não se aplica”. Lê o estado do ciclo sem bloqueá-lo; o lock exclusivo fica na resposta.';
+  'Aprova ou rejeita “não se aplica”. Lê ciclo e resposta sem bloqueá-los; a concorrência fica no UPDATE com o estado esperado.';

@@ -303,11 +303,16 @@ export async function adminRequestsAdjustment(page: Page, state: CanonicalJourne
     exact: true,
   });
   await expect(acceptNa).toBeEnabled();
-  const saveApprovedDraft = page.waitForResponse(
-    (response) =>
-      response.url().includes("/validation/analysis-draft") &&
-      response.request().method() === "POST",
-  );
+  const saveApprovedDraft = page.waitForResponse((response) => {
+    if (
+      !response.url().includes("/validation/analysis-draft") ||
+      response.request().method() !== "POST"
+    ) {
+      return false;
+    }
+    const body = response.request().postData() ?? "";
+    return body.includes("not_applicable") && body.includes("approve");
+  });
   await acceptNa.click();
   await expectSuccessfulResponse(await saveApprovedDraft, "rascunho de aceite NA");
   const approveNa = page.waitForResponse(

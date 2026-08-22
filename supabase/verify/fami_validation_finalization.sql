@@ -2,9 +2,10 @@
 -- Verificação de integração: FAMI calculado e materializado na conclusão.
 --
 -- Prova no PostgreSQL real que:
---   • "Sim" em pergunta com evidência obrigatória pode ser finalizado, recebe
---     0 ponto sem comprovação aprovada (peso possível 1,5) e gera recomendação
---     por ausência dela;
+--   • "Sim" sem documento exige decide_response_without_proof antes de
+--     finalize_validation_cycle (validation_unresolved_absent_proof);
+--   • validar sem comprovação desbloqueia a consolidação, pontua 0 de 2 na
+--     política v7 e materializa recomendação por ausência de evidência;
 --   • o banco calcula FAMI, recomendações e snapshots pelo mesmo estado vivo;
 --   • o encerramento posterior não aceita payload FAMI nem recalcula;
 --   • `validated -> completed` encerra somente o acompanhamento.
@@ -51,6 +52,26 @@ declare
   v_recommendation_id uuid;
   v_dummy_fami jsonb := '[{"scope_type":"global","scope_id":null,"points_obtained":2,"points_possible":2,"percentage":100,"maturity_level":5}]'::jsonb;
 begin
+  begin
+    perform public.finalize_validation_cycle(
+      '00000000-0000-0000-0000-000000000cc1',
+      '00000000-0000-0000-0000-0000000000a1'
+    );
+    raise exception 'FALHOU(ausência): aceitou Sim sem decisão administrativa';
+  exception when sqlstate 'P0001' then
+    if sqlerrm not like 'validation_unresolved_absent_proof:%' then
+      raise;
+    end if;
+  end;
+
+  perform public.decide_response_without_proof(
+    '00000000-0000-0000-0000-000000000dd1',
+    '00000000-0000-0000-0000-000000000cc1',
+    '00000000-0000-0000-0000-0000000000a1',
+    'validate_without_proof',
+    'Critério sem documento: validar sem comprovação nesta verificação.'
+  );
+
   perform public.finalize_validation_cycle(
     '00000000-0000-0000-0000-000000000cc1',
     '00000000-0000-0000-0000-0000000000a1'
@@ -80,10 +101,10 @@ begin
   if v_fami_count <> 3 then
     raise exception 'FALHOU(FAMI): esperadas 3 linhas, encontradas %', v_fami_count;
   end if;
-  if v_global.points_obtained <> 1
+  if v_global.points_obtained <> 0
      or v_global.points_possible <> 2
-     or v_global.percentage <> 50
-     or v_global.maturity_level <> 3 then
+     or v_global.percentage <> 0
+     or v_global.maturity_level <> 1 then
     raise exception 'FALHOU(cálculo sem evidência): %', row_to_json(v_global);
   end if;
   if not exists (
