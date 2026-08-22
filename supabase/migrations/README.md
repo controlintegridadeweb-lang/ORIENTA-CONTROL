@@ -25,7 +25,7 @@ Não há migrations corretivas, backfills históricos ou dados reais neste diret
 | `20260819120000_list_organization_respondents_profiles.sql` | Lista responsáveis do órgão a partir de `public.profiles`, sem depender do RLS de `auth.users`. |
 | `20260820120000_action_plan_progress_monotonic.sql` | Impede redução do percentual persistido da ação; o andamento só avança. |
 | `20260821190000_report_closure_emission_integrity.sql` | Coordena encerramento, emissão oficial, falhas auditáveis e bloqueio de reabertura sem documento preservado. |
-| `20260822190000_validation_draft_reads_cycle_state.sql` | O rascunho de validação lê o estado do ciclo sem `FOR UPDATE`, para o autosave não serializar com o veredito. |
+| `20260822190000_validation_draft_reads_cycle_state.sql` | O rascunho de validação lê ciclo e alvo sem `FOR UPDATE`, para o autosave não serializar com o veredito. |
 
 ## Regras
 

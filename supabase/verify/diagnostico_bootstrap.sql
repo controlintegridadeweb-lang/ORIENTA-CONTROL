@@ -16,6 +16,9 @@ values (
   public.bootstrap_diagnostico_integridade_2026('00000000-0000-0000-0000-0000000000a1'::uuid)
 );
 
+drop table if exists diagnostico_integridade_2026_context;
+drop table if exists diagnostico_integridade_2026_source;
+
 insert into diagnostico_bootstrap_probe (step, result)
 values (
   'second',

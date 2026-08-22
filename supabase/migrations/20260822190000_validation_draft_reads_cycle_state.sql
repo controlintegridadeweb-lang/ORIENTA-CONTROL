@@ -1,6 +1,6 @@
--- O rascunho de validação só precisa ler o estado do ciclo. FOR UPDATE no
--- ciclo serializava o autosave com o veredito e com a transição, e no CI o
--- POST do rascunho ficava preso em “Salvando rascunho...”.
+-- O rascunho de validação só precisa ler ciclo e alvo. FOR UPDATE no ciclo
+-- ou na resposta serializa o autosave com o veredito; no CI o Kong estoura
+-- timeout no POST de “Não se aplica” enquanto o rascunho ainda segura o lock.
 
 create or replace function public.save_validation_analysis_draft(
   p_cycle_id uuid,
@@ -105,8 +105,7 @@ begin
     join public.responses r on r.id = e.response_id
     where e.id = p_evidence_id
       and r.cycle_id = p_cycle_id
-      and e.deactivated_at is null
-    for update of e;
+      and e.deactivated_at is null;
 
     if not found then
       raise exception 'evidence_not_in_cycle' using errcode = '23514';
@@ -119,8 +118,7 @@ begin
     select * into v_response
     from public.responses
     where id = p_response_id
-      and cycle_id = p_cycle_id
-    for update;
+      and cycle_id = p_cycle_id;
 
     if not found then
       raise exception 'response_not_in_cycle' using errcode = '23514';
@@ -237,4 +235,4 @@ $$;
 comment on function public.save_validation_analysis_draft(
   uuid, uuid, text, uuid, uuid, text, text, text, bigint
 ) is
-  'Persiste rascunho de análise. Lê o estado do ciclo sem bloqueá-lo; o lock exclusivo fica no alvo (evidência ou resposta) e no próprio rascunho.';
+  'Persiste rascunho de análise. Lê ciclo e alvo sem bloqueá-los; o lock exclusivo fica só no próprio rascunho.';

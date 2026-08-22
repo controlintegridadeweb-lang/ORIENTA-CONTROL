@@ -36,6 +36,11 @@ begin
 
   perform public.set_audit_actor(p_actor_user_id);
 
+  -- O verify envia o arquivo inteiro numa query só (transação implícita).
+  -- Sem o drop, a segunda invocação idempotente falha com "already exists".
+  drop table if exists diagnostico_integridade_2026_context;
+  drop table if exists diagnostico_integridade_2026_source;
+
   create temporary table diagnostico_integridade_2026_context (
     admin_user_id uuid not null,
     form_id uuid,

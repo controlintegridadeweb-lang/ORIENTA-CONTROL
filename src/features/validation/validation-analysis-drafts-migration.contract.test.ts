@@ -38,5 +38,9 @@ describe("validation analysis drafts na baseline consolidada", () => {
       /select \* into v_cycle\s+from public\.cycles\s+where id = p_cycle_id;/,
     );
     expect(sql).not.toMatch(/select \* into v_cycle[\s\S]{0,120}for update/i);
+    expect(sql).toMatch(
+      /select \* into v_response\s+from public\.responses\s+where id = p_response_id\s+and cycle_id = p_cycle_id;/,
+    );
+    expect(sql).not.toMatch(/select \* into v_response[\s\S]{0,160}for update/i);
   });
 });
