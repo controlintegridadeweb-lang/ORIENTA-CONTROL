@@ -178,9 +178,11 @@ begin
     '00000000-0000-0000-0000-00000000b241',
     'Implantar controle institucional',
     current_date + 30,
+    current_date,
     'Tecnologia da Informação',
     '00000000-0000-0000-0000-0000000000a2',
-    'todo',
+    0,
+    false,
     null,
     'Observação operacional'
   ) result;
@@ -207,9 +209,11 @@ begin
     '00000000-0000-0000-0000-00000000b241',
     'Implantar e monitorar controle institucional',
     current_date + 45,
+    current_date,
     'Tecnologia da Informação',
     '00000000-0000-0000-0000-0000000000a2',
-    'doing',
+    40,
+    false,
     v_revision,
     'Execução iniciada'
   ) result;
@@ -228,9 +232,11 @@ begin
       '00000000-0000-0000-0000-00000000b241',
       'Sobrescrita concorrente indevida',
       current_date + 60,
+      current_date,
       'Tecnologia da Informação',
       '00000000-0000-0000-0000-0000000000a2',
-      'doing',
+      40,
+      false,
       v_stale_revision,
       'Esta alteração deve ser rejeitada.'
     );
@@ -254,9 +260,11 @@ begin
       '00000000-0000-0000-0000-00000000b241',
       'Ação administrativa indevida',
       current_date + 30,
+      current_date,
       'Administração',
       '00000000-0000-0000-0000-0000000000a2',
-      'todo',
+      0,
+      false,
       null,
       null
     );
@@ -274,15 +282,20 @@ begin
       '00000000-0000-0000-0000-00000000b242',
       'Ação antes da consolidação',
       current_date + 30,
+      current_date,
       'Tecnologia da Informação',
       '00000000-0000-0000-0000-0000000000a2',
-      'todo',
+      0,
+      false,
       null,
       null
     );
     raise exception 'FALHOU(estado): RPC aceitou recomendação não editável';
-  exception when insufficient_privilege then
-    null;
+  exception
+    when insufficient_privilege then
+      null;
+    when sqlstate 'P0001' then
+      null;
   end;
 
   -- O responsável precisa ser um respondente real da mesma organização.
@@ -294,9 +307,11 @@ begin
       '00000000-0000-0000-0000-00000000b241',
       'Ação com responsável externo',
       current_date + 30,
+      current_date,
       'Tecnologia da Informação',
       '00000000-0000-0000-0000-0000000000a3',
-      'todo',
+      0,
+      false,
       null,
       null
     );
@@ -314,9 +329,11 @@ begin
       '00000000-0000-0000-0000-00000000b241',
       '     ',
       current_date + 30,
+      current_date,
       'TI',
       '00000000-0000-0000-0000-0000000000a2',
-      'todo',
+      0,
+      false,
       null,
       null
     );

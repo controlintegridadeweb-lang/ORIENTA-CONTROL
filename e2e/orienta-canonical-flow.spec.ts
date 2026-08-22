@@ -308,8 +308,9 @@ test.describe.serial("jornada canônica da plataforma", () => {
     await expectAdminCycleState(page, /^Enviado$/);
 
     await clickWithPlatformConfirm(page, "Iniciar validação");
-    await expectAdminCycleState(page, /^Em validação$/);
-    await page.getByRole("link", { name: /Revisar validação do diagnóstico/ }).click();
+    // A UI entra na fila imediatamente após a transição; o painel do ciclo
+    // não permanece visível para ler “Em validação”.
+    await expect(page).toHaveURL(new RegExp(`/admin/ciclos/${cycleId}/validacao`));
     await expect(page.getByRole("heading", { name: "Validação do diagnóstico" })).toBeVisible();
 
     const approvedNaCard = page.getByRole("article").filter({ hasText: E2E.approvedNaQuestion });
