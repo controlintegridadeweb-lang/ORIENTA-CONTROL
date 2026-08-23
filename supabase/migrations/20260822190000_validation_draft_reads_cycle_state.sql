@@ -310,7 +310,7 @@ begin
   -- workbench manda null; um timestamp residual na linha não é outro parecer.
   if p_expected_status is not null then
     if p_expected_status = 'pending' then
-      if v_response.na_validation_status::text is distinct from 'pending' then
+      if coalesce(v_response.na_validation_status::text, 'pending') is distinct from 'pending' then
         raise exception
           'validation_conflict status=% expected=pending validated_at=% expected_at=%',
           v_response.na_validation_status,
@@ -333,7 +333,10 @@ begin
 
   if not (
     (v_response.answer = 'not_applicable'::public.answer_value
-      and v_response.na_validation_status in (
+      and coalesce(
+        v_response.na_validation_status,
+        'pending'::public.na_validation_status
+      ) in (
         'pending'::public.na_validation_status,
         'approved'::public.na_validation_status
       ))
@@ -366,7 +369,10 @@ begin
         p_expected_status is null
         or (
           p_expected_status = 'pending'
-          and na_validation_status = 'pending'::public.na_validation_status
+          and coalesce(
+            na_validation_status,
+            'pending'::public.na_validation_status
+          ) = 'pending'::public.na_validation_status
         )
         or (
           p_expected_status is distinct from 'pending'
@@ -410,7 +416,10 @@ begin
       p_expected_status is null
       or (
         p_expected_status = 'pending'
-        and na_validation_status = 'pending'::public.na_validation_status
+        and coalesce(
+          na_validation_status,
+          'pending'::public.na_validation_status
+        ) = 'pending'::public.na_validation_status
       )
       or (
         p_expected_status is distinct from 'pending'
@@ -442,6 +451,77 @@ comment on function public.validate_not_applicable_response(
   uuid, uuid, text, uuid, text, text, timestamptz
 ) is
   'Aprova ou rejeita “não se aplica”. Marca o rascunho antes de atualizar a resposta; a concorrência do veredito fica no UPDATE com o estado esperado.';
+
+-- O INSERT do workbench não manda na_validation_status. NULL NOT IN
+-- (pending, approved) é desconhecido, então o IF da baseline não entra.
+-- O CHECK também passa no desconhecido. A fila e o mapper já leem NULL
+-- como pendente; o trigger precisa gravar esse estado.
+
+create or replace function public.responses_sync_na_fields()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if new.answer = 'not_applicable'::public.answer_value then
+    if new.na_justification is null or btrim(new.na_justification) = '' then
+      new.na_justification := nullif(btrim(coalesce(new.notes, '')), '');
+    end if;
+
+    if new.na_justification is null or char_length(btrim(new.na_justification)) < 20 then
+      raise exception 'na_justification_required'
+        using errcode = '22023';
+    end if;
+
+    new.notes := new.na_justification;
+
+    if (
+         new.na_validation_status is distinct from 'pending'::public.na_validation_status
+         and new.na_validation_status is distinct from 'approved'::public.na_validation_status
+       )
+       or (
+         tg_op = 'UPDATE'
+         and old.answer is distinct from 'not_applicable'::public.answer_value
+         and new.na_validation_status is distinct from 'approved'::public.na_validation_status
+       )
+       or (
+         tg_op = 'UPDATE'
+         and old.na_justification is distinct from new.na_justification
+         and new.na_validation_status is not distinct from old.na_validation_status
+       ) then
+      new.na_validation_status := 'pending'::public.na_validation_status;
+      new.na_validated_at := null;
+      new.na_validated_by := null;
+      new.na_rejection_reason := null;
+    end if;
+  elsif new.na_validation_status = 'rejected'::public.na_validation_status then
+    if new.answer <> 'no'::public.answer_value then
+      raise exception 'invalid_rejected_na_answer'
+        using errcode = '23514';
+    end if;
+
+    if new.na_justification is null
+       or char_length(btrim(new.na_justification)) < 20 then
+      raise exception 'na_justification_required'
+        using errcode = '22023';
+    end if;
+
+    if new.na_rejection_reason is null
+       or btrim(new.na_rejection_reason) = '' then
+      raise exception 'na_rejection_reason_required'
+        using errcode = '22023';
+    end if;
+  else
+    new.na_justification := null;
+    new.na_validation_status := null;
+    new.na_validated_at := null;
+    new.na_validated_by := null;
+    new.na_rejection_reason := null;
+  end if;
+
+  return new;
+end;
+$$;
 
 -- Toda mutação HTTP passa por esta RPC antes do handler. Sem lock_timeout, um
 -- INSERT ON CONFLICT preso na linha do bucket espera até o Kong estourar

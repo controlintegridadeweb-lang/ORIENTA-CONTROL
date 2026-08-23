@@ -61,10 +61,13 @@ describe("validation analysis drafts na baseline consolidada", () => {
     );
     expect(verdictSql).not.toMatch(/select \* into v_response[\s\S]{0,160}for update/i);
     expect(verdictSql).toMatch(
-      /p_expected_status = 'pending'\s+and na_validation_status = 'pending'/,
+      /p_expected_status = 'pending'\s+and\s+coalesce\(\s*na_validation_status,\s*'pending'::public\.na_validation_status\s*\) = 'pending'::public\.na_validation_status/,
     );
     expect(verdictSql).toMatch(
       /date_trunc\('milliseconds', na_validated_at\)/,
+    );
+    expect(sql).toMatch(
+      /create or replace function public.responses_sync_na_fields\(\)[\s\S]+na_validation_status is distinct from 'pending'::public\.na_validation_status\s+and new\.na_validation_status is distinct from 'approved'::public\.na_validation_status/,
     );
     expect(verdictSql.indexOf("mark_validation_analysis_draft_applied")).toBeGreaterThanOrEqual(0);
     expect(verdictSql.indexOf("mark_validation_analysis_draft_applied")).toBeLessThan(
