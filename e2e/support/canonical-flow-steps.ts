@@ -359,7 +359,7 @@ export async function adminRequestsAdjustment(page: Page, state: CanonicalJourne
   // Pedir ajuste conclui a análise: o card sai de “Pendentes” e a
   // devolutiva fica preparada no rodapé até o envio ao respondente.
   await expect(page.getByText("Uma solicitação de ajuste está preparada.")).toBeVisible();
-  await page.getByRole("button", { name: "Enviar solicitações de ajuste" }).click();
+  await clickWithPlatformConfirm(page, "Enviar solicitações de ajuste", "Enviar solicitação");
   await expect(page).toHaveURL(
     new RegExp(`/admin/ciclos/${state.cycleId}\\?validation=adjustment_requested`),
   );
@@ -424,7 +424,7 @@ export async function respondentCorrectsAndAdminCloses(
   await evidenceValidationCard.getByRole("button", { name: "Aprovar", exact: true }).click();
   await evidenceValidationCard.getByRole("button", { name: "Confirmar: Aprovar" }).click();
   await expect(page.getByRole("button", { name: "Concluir validação e calcular FAMI" })).toBeVisible();
-  await page.getByRole("button", { name: "Concluir validação e calcular FAMI" }).click();
+  await clickWithPlatformConfirm(page, "Concluir validação e calcular FAMI", "Concluir e calcular FAMI");
   await expect(page).toHaveURL(new RegExp(`/admin/ciclos/${state.cycleId}`));
   await expectAdminCycleState(page, /^Diagnóstico concluído$/);
   await expect(page.getByText("Validação concluída e resultado FAMI calculado.")).toBeVisible();
