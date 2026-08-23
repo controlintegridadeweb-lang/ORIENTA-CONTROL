@@ -47,7 +47,8 @@ export function ActionPlanEvidenceManager({
     event.preventDefault();
     setError(null);
     setPending(true);
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     try {
       const title = String(form.get("title") ?? "");
       if (kind === "file") {
@@ -69,7 +70,7 @@ export function ActionPlanEvidenceManager({
           externalLink: String(form.get("externalLink") ?? ""),
         });
       }
-      event.currentTarget.reset();
+      formElement.reset();
       if (embedded) setComposerOpen(false);
       notify.success("Comprovação adicionada à ação.");
       await onChanged();
