@@ -31,6 +31,10 @@ declare
   v_reason text;
   v_revision bigint;
 begin
+  select revision into strict v_revision
+  from public.responses
+  where id = '00000000-0000-0000-0000-000000000dd1';
+
   begin
     perform public.apply_workbench_response(
       '00000000-0000-0000-0000-000000000cc1',
@@ -38,7 +42,7 @@ begin
       '00000000-0000-0000-0000-0000000000f1',
       'not_applicable'::public.answer_value,
       'justificativa curta',
-      null,
+      v_revision,
       null
     );
     raise exception 'FALHOU(justificativa): aceitou texto com menos de 20 caracteres';
@@ -52,7 +56,7 @@ begin
     '00000000-0000-0000-0000-0000000000f1',
     'not_applicable'::public.answer_value,
     'Esta justificativa válida possui mais de vinte caracteres.',
-    null,
+    v_revision,
     null
   );
 

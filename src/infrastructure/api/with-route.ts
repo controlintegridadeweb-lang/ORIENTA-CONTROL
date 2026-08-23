@@ -93,19 +93,31 @@ export function withRoute<P = Record<string, never>>(
           limit: context.role === "admin" ? 90 : 150,
           windowSeconds: 300,
         };
-        const rate = await consumeRateLimit({
-          scope: `api:${method}:${options.route}`,
-          subject: context.userId,
-          limit: configured.limit,
-          windowSeconds: configured.windowSeconds,
-        });
-        if (!rate.allowed) {
-          return NextResponse.json(
-            { error: "Muitas operações em pouco tempo. Aguarde e tente novamente." },
-            {
-              status: 429,
-              headers: { "Retry-After": String(rate.retryAfterSeconds) },
-            },
+        try {
+          const rate = await consumeRateLimit({
+            scope: `api:${method}:${options.route}`,
+            subject: context.userId,
+            limit: configured.limit,
+            windowSeconds: configured.windowSeconds,
+          });
+          if (!rate.allowed) {
+            return NextResponse.json(
+              { error: "Muitas operações em pouco tempo. Aguarde e tente novamente." },
+              {
+                status: 429,
+                headers: { "Retry-After": String(rate.retryAfterSeconds) },
+              },
+            );
+          }
+        } catch (error) {
+          logError(options.logMessage ?? `Route error: ${options.route}`, error, {
+            route: options.route,
+            phase: "rate_limit",
+          });
+          return handleDomainError(
+            error,
+            options.extraErrorHandlers,
+            options.internalErrorMessage,
           );
         }
       }
@@ -115,6 +127,7 @@ export function withRoute<P = Record<string, never>>(
     } catch (error) {
       logError(options.logMessage ?? `Route error: ${options.route}`, error, {
         route: options.route,
+        phase: "handler",
       });
       return handleDomainError(
         error,

@@ -68,7 +68,8 @@ describe("validation analysis drafts na baseline consolidada", () => {
       verdictSql.indexOf("update public.responses"),
     );
     expect(sql).toMatch(
-      /create or replace function public.consume_api_rate_limit[\s\S]+?set lock_timeout = '5s'/,
+      /create or replace function public.consume_api_rate_limit[\s\S]+?set lock_timeout = '5s'\s+set statement_timeout = '8s'/,
     );
+    expect(verdictSql).toMatch(/set statement_timeout = '8s'/);
   });
 });

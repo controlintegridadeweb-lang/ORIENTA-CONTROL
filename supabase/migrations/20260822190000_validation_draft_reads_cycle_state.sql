@@ -17,6 +17,8 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = public
+set lock_timeout = '5s'
+set statement_timeout = '8s'
 as $$
 declare
   v_cycle public.cycles%rowtype;
@@ -255,6 +257,7 @@ language plpgsql
 security definer
 set search_path = public
 set lock_timeout = '5s'
+set statement_timeout = '8s'
 as $$
 declare
   v_response public.responses%rowtype;
@@ -419,6 +422,7 @@ language plpgsql
 security definer
 set search_path = public
 set lock_timeout = '5s'
+set statement_timeout = '8s'
 as $$
 declare
   v_now timestamptz := clock_timestamp();
