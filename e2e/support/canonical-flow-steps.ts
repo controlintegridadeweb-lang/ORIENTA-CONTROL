@@ -347,10 +347,18 @@ export async function adminRequestsAdjustment(page: Page, state: CanonicalJourne
   await evidenceValidationCard
     .getByPlaceholder("Selecione uma resposta padrão ou escreva uma justificativa")
     .fill("Substitua o arquivo por uma versão atualizada.");
+  const requestAdjustment = page.waitForResponse(
+    (response) =>
+      response.url().includes("/validation/evidences/") &&
+      response.request().method() === "POST",
+  );
   await evidenceValidationCard
     .getByRole("button", { name: "Confirmar: Solicitar ajuste" })
     .click();
-  await expect(evidenceValidationCard.getByText("Ajuste solicitado", { exact: true })).toBeVisible();
+  await expectSuccessfulResponse(await requestAdjustment, "solicitar ajuste da evidência");
+  // Pedir ajuste conclui a análise: o card sai de “Pendentes” e a
+  // devolutiva fica preparada no rodapé até o envio ao respondente.
+  await expect(page.getByText("Uma solicitação de ajuste está preparada.")).toBeVisible();
   await page.getByRole("button", { name: "Enviar solicitações de ajuste" }).click();
   await expect(page).toHaveURL(
     new RegExp(`/admin/ciclos/${state.cycleId}\\?validation=adjustment_requested`),
