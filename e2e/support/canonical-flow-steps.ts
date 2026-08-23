@@ -421,8 +421,8 @@ export async function respondentCorrectsAndAdminCloses(
   const evidenceValidationCard = page
     .getByRole("article")
     .filter({ hasText: E2E.evidenceQuestion });
-  await evidenceValidationCard.getByRole("button", { name: "Aprovar", exact: true }).click();
-  await evidenceValidationCard.getByRole("button", { name: "Confirmar: Aprovar" }).click();
+  await evidenceValidationCard.getByRole("button", { name: "Aprovar evidência", exact: true }).click();
+  await evidenceValidationCard.getByRole("button", { name: "Confirmar: Aprovar evidência" }).click();
   await expect(page.getByRole("button", { name: "Concluir validação e calcular FAMI" })).toBeVisible();
   await clickWithPlatformConfirm(page, "Concluir validação e calcular FAMI", "Concluir e calcular FAMI");
   await expect(page).toHaveURL(new RegExp(`/admin/ciclos/${state.cycleId}`));
