@@ -79,11 +79,15 @@ async function createCompletedActionWithEvidence(
     .getByLabel("O que foi realizado nesta atualização?")
     .fill("Execução concluída no fluxo E2E.");
   await page.getByRole("button", { name: "Salvar atualização" }).click();
-  await expect(page.getByText("Concluída").first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Atualizar andamento" })).toHaveCount(0);
+  await expect(
+    page.getByRole("row", { name: new RegExp(actionText) }).getByText("Concluída", { exact: true }),
+  ).toBeVisible();
 
   await page.getByRole("button", { name: `Opções da ação ${actionText}` }).click();
   await page.getByRole("menuitem", { name: "Comprovantes" }).click();
-  await page.getByRole("button", { name: /Adicionar comprovante/ }).click();
+  await expect(page.getByRole("heading", { name: "Comprovantes" })).toBeVisible();
+  await page.getByRole("button", { name: "+ Adicionar comprovante" }).click();
   await page.getByRole("button", { name: "Link HTTPS" }).click();
   await page.getByLabel("Título da comprovação").fill(`Comprovação E2E ${index + 1}`);
   await page

@@ -10,6 +10,7 @@ import { CreateActionForm } from "@/features/improvement-management/action-plans
 import { CancelActionDialog } from "@/features/improvement-management/action-plans/components/execution/cancel-action-dialog";
 import {
   ActionPlanActionList,
+  type ActionPanelMode,
 } from "@/features/improvement-management/action-plans/components/execution/action-plan-action-list";
 import { useActionWorkspacePanel } from "@/features/improvement-management/action-plans/components/execution/use-action-workspace-panel";
 import { useActionPlanResponsibleMembers } from "@/features/improvement-management/action-plans/components/execution/use-action-plan-responsible-members";
@@ -27,6 +28,12 @@ import {
   OverviewBlockTitle,
   OverviewSoftPanel,
 } from "@/features/improvement-management/recommendations/components/hub/overview-section-primitives";
+
+function isSameActionPanel(left: ActionPanelMode, right: ActionPanelMode): boolean {
+  if (left.kind !== right.kind) return false;
+  if (left.kind === "none" || left.kind === "create") return true;
+  return left.planId === right.planId;
+}
 
 function sortPlans(plans: ActionPlanAction[]): ActionPlanAction[] {
   return [...plans].sort((a, b) => {
@@ -60,6 +67,8 @@ export function RecommendationActionsWorkspace() {
     : openCreateFromQuery
       ? { kind: "create" as const }
       : panel;
+  const panelRef = useRef(activePanel);
+  panelRef.current = activePanel;
 
   async function handleRemotePlanChange() {
     if (localMutationRef.current) return;
@@ -191,9 +200,15 @@ export function RecommendationActionsWorkspace() {
   }
 
   async function handleSaved() {
+    const panelBeingSaved = panelRef.current;
     await withLocalMutation(async () => {
       await ctx.refetch();
-      setPanel({ kind: "none" });
+      // O selo “Concluída” do slider aparece antes do refetch. Se o
+      // respondente já abriu comprovantes, fechar o painel antigo apaga o
+      // compositor e o botão some no meio do clique.
+      if (isSameActionPanel(panelRef.current, panelBeingSaved)) {
+        setPanel({ kind: "none" });
+      }
     });
   }
 
