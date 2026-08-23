@@ -31,7 +31,7 @@ import {
 
 function isSameActionPanel(left: ActionPanelMode, right: ActionPanelMode): boolean {
   if (left.kind !== right.kind) return false;
-  if (left.kind === "none" || left.kind === "create") return true;
+  if (!("planId" in left) || !("planId" in right)) return true;
   return left.planId === right.planId;
 }
 
