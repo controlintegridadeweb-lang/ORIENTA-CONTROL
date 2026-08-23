@@ -306,18 +306,29 @@ begin
     raise exception 'response_not_in_cycle' using errcode = '23514';
   end if;
 
-  if p_expected_status is not null and (
-    v_response.na_validation_status::text is distinct from p_expected_status
-    or date_trunc('milliseconds', v_response.na_validated_at)
-         is distinct from date_trunc('milliseconds', p_expected_validated_at)
-  ) then
-    raise exception
-      'validation_conflict status=% expected=% validated_at=% expected_at=%',
-      v_response.na_validation_status,
-      p_expected_status,
-      v_response.na_validated_at,
-      p_expected_validated_at
-      using errcode = '40001';
+  -- Pendente é um único estado: ainda não há instante de decisão. O JSON do
+  -- workbench manda null; um timestamp residual na linha não é outro parecer.
+  if p_expected_status is not null then
+    if p_expected_status = 'pending' then
+      if v_response.na_validation_status::text is distinct from 'pending' then
+        raise exception
+          'validation_conflict status=% expected=pending validated_at=% expected_at=%',
+          v_response.na_validation_status,
+          v_response.na_validated_at,
+          p_expected_validated_at
+          using errcode = '40001';
+      end if;
+    elsif v_response.na_validation_status::text is distinct from p_expected_status
+       or date_trunc('milliseconds', v_response.na_validated_at)
+            is distinct from date_trunc('milliseconds', p_expected_validated_at) then
+      raise exception
+        'validation_conflict status=% expected=% validated_at=% expected_at=%',
+        v_response.na_validation_status,
+        p_expected_status,
+        v_response.na_validated_at,
+        p_expected_validated_at
+        using errcode = '40001';
+    end if;
   end if;
 
   if not (
@@ -354,14 +365,22 @@ begin
       and (
         p_expected_status is null
         or (
-          na_validation_status::text is not distinct from p_expected_status
+          p_expected_status = 'pending'
+          and na_validation_status = 'pending'::public.na_validation_status
+        )
+        or (
+          p_expected_status is distinct from 'pending'
+          and na_validation_status::text is not distinct from p_expected_status
           and date_trunc('milliseconds', na_validated_at)
             is not distinct from date_trunc('milliseconds', p_expected_validated_at)
         )
       );
 
     if not found then
-      raise exception 'validation_conflict' using errcode = '40001';
+      raise exception
+        'validation_conflict status=changed expected=%',
+        p_expected_status
+        using errcode = '40001';
     end if;
 
     return jsonb_build_object(
@@ -390,14 +409,22 @@ begin
     and (
       p_expected_status is null
       or (
-        na_validation_status::text is not distinct from p_expected_status
+        p_expected_status = 'pending'
+        and na_validation_status = 'pending'::public.na_validation_status
+      )
+      or (
+        p_expected_status is distinct from 'pending'
+        and na_validation_status::text is not distinct from p_expected_status
         and date_trunc('milliseconds', na_validated_at)
           is not distinct from date_trunc('milliseconds', p_expected_validated_at)
       )
     );
 
   if not found then
-    raise exception 'validation_conflict' using errcode = '40001';
+    raise exception
+      'validation_conflict status=changed expected=%',
+      p_expected_status
+      using errcode = '40001';
   end if;
 
   return jsonb_build_object(

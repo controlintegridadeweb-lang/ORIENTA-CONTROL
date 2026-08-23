@@ -5,7 +5,7 @@ import {
   DomainNotFoundError,
   DomainConflictError,
 } from "@/infrastructure/api/domain-errors";
-import { logInfo } from "@/infrastructure/observability/logger";
+import { logError, logInfo } from "@/infrastructure/observability/logger";
 import { cycleValidationStateError, rpcErrorMessage } from "@/features/cycles/rpc-validation-errors";
 import {
   canInvokeLocalDatabaseRpc,
@@ -67,19 +67,33 @@ export async function validateNotApplicableResponse(
 
   if (canInvokeLocalDatabaseRpc()) {
     try {
+      const expectedAt = input.expectedValidatedAt;
       const row = await invokeLocalDatabaseRpc<{ result: unknown }>(
-        `select public.validate_not_applicable_response(
-           $1::uuid, $2::uuid, $3::text, $4::uuid, $5::text, $6::text, $7::timestamptz
-         ) as result`,
-        [
-          responseId,
-          cycleId,
-          input.action,
-          input.actorUserId,
-          rejectionReason,
-          input.expectedStatus,
-          input.expectedValidatedAt,
-        ],
+        expectedAt == null
+          ? `select public.validate_not_applicable_response(
+               $1::uuid, $2::uuid, $3::text, $4::uuid, $5::text, $6::text, null::timestamptz
+             ) as result`
+          : `select public.validate_not_applicable_response(
+               $1::uuid, $2::uuid, $3::text, $4::uuid, $5::text, $6::text, $7::timestamptz
+             ) as result`,
+        expectedAt == null
+          ? [
+              responseId,
+              cycleId,
+              input.action,
+              input.actorUserId,
+              rejectionReason,
+              input.expectedStatus,
+            ]
+          : [
+              responseId,
+              cycleId,
+              input.action,
+              input.actorUserId,
+              rejectionReason,
+              input.expectedStatus,
+              expectedAt,
+            ],
       );
       data = row.result;
     } catch (caught) {
@@ -106,7 +120,7 @@ export async function validateNotApplicableResponse(
       throw new DomainConflictError("Resposta não pertence ao diagnóstico informado.");
     }
     if (hasDatabaseErrorCode(msg, "validation_conflict")) {
-      logInfo("na.validation_conflict", {
+      logError("na.validation_conflict", error, {
         responseId,
         cycleId,
         action: input.action,

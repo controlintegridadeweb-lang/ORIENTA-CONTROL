@@ -61,7 +61,7 @@ describe("validation analysis drafts na baseline consolidada", () => {
     );
     expect(verdictSql).not.toMatch(/select \* into v_response[\s\S]{0,160}for update/i);
     expect(verdictSql).toMatch(
-      /na_validation_status::text is not distinct from p_expected_status/,
+      /p_expected_status = 'pending'\s+and na_validation_status = 'pending'/,
     );
     expect(verdictSql).toMatch(
       /date_trunc\('milliseconds', na_validated_at\)/,
