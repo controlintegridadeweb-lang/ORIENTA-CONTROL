@@ -388,7 +388,7 @@ export async function respondentCorrectsAndAdminCloses(
   await expect(page.getByRole("article").getByText(/Correções solicitadas/i)).toBeVisible();
 
   const evidenceCard = page.locator("li").filter({ hasText: E2E.evidenceQuestion });
-  await expect(evidenceCard.getByText("Preservada no histórico")).toBeVisible();
+  await expect(evidenceCard.getByText("Preservada no histórico", { exact: true })).toBeVisible();
   await evidenceCard.locator('input[type="file"]').setInputFiles({
     name: "evidencia-e2e-corrigida.png",
     mimeType: "image/png",
