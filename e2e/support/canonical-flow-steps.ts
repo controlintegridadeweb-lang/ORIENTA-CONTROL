@@ -86,7 +86,7 @@ async function createCompletedActionWithEvidence(
 
   await page.getByRole("button", { name: `Opções da ação ${actionText}` }).click();
   await page.getByRole("menuitem", { name: "Comprovantes" }).click();
-  await expect(page.getByRole("heading", { name: "Comprovantes" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Comprovantes", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "+ Adicionar comprovante" }).click();
   await page.getByRole("button", { name: "Link HTTPS" }).click();
   await page.getByLabel("Título da comprovação").fill(`Comprovação E2E ${index + 1}`);

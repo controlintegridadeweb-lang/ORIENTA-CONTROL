@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ActionPlanAction } from "@/features/improvement-management/action-plans/domain-model";
 import { computeActionSla } from "@/features/improvement-management/action-plans/domain-model";
 import { CreateActionForm } from "@/features/improvement-management/action-plans/components/execution/create-action-form";
@@ -62,13 +62,15 @@ export function RecommendationActionsWorkspace() {
   const { panel, setPanel, hasOverride } = useActionWorkspacePanel(planIds);
   const actionCount = ordered.length;
   const openCreateFromQuery = searchParams.get("new") === "1" && actionCount === 0;
-  const activePanel = hasOverride
-    ? panel
-    : openCreateFromQuery
-      ? { kind: "create" as const }
-      : panel;
+  const activePanel = useMemo<ActionPanelMode>(
+    () =>
+      hasOverride ? panel : openCreateFromQuery ? { kind: "create" } : panel,
+    [hasOverride, openCreateFromQuery, panel],
+  );
   const panelRef = useRef(activePanel);
-  panelRef.current = activePanel;
+  useEffect(() => {
+    panelRef.current = activePanel;
+  }, [activePanel]);
 
   async function handleRemotePlanChange() {
     if (localMutationRef.current) return;
