@@ -170,11 +170,16 @@ begin
   exception when sqlstate '55000' then null;
   end;
 
+  -- A plataforma recusa DELETE direto (42501) sem
+  -- storage.allow_delete_query. O produto tem de recusar o objeto oficial
+  -- mesmo quando a API de Storage autoriza a mutação do schema.
+  perform set_config('storage.allow_delete_query', 'true', true);
   begin
     delete from storage.objects where bucket_id = 'relatorios' and name = v_first_path;
     raise exception 'FALHOU(storage): permitiu excluir objeto oficial';
   exception when sqlstate '55000' then null;
   end;
+  perform set_config('storage.allow_delete_query', 'false', true);
 
   set session_replication_role = replica;
   update public.cycles set state = 'in_response', closed_at = null where id = v_cycle;
@@ -193,7 +198,9 @@ begin
   delete from public.user_notifications
   where user_id = v_respondent and kind = 'official_report_available';
   delete from public.reports where id in (v_second_id, v_first_id);
+  perform set_config('storage.allow_delete_query', 'true', true);
   delete from storage.objects where bucket_id = 'relatorios' and name in (v_first_path, v_second_path);
+  perform set_config('storage.allow_delete_query', 'false', true);
   delete from public.cycle_processings where id = v_processing;
   delete from public.cycles where id = v_cycle;
   delete from public.profiles where user_id = v_respondent;

@@ -137,7 +137,9 @@ begin
 
   set session_replication_role = replica;
   delete from public.reports where cycle_id = v_cycle;
+  perform set_config('storage.allow_delete_query', 'true', true);
   delete from storage.objects where bucket_id = 'relatorios' and name in (v_first_path, v_second_path);
+  perform set_config('storage.allow_delete_query', 'false', true);
   delete from public.fami_results where cycle_id = v_cycle;
   delete from public.cycle_processings where id = v_processing;
   delete from public.cycles where id = v_cycle;
