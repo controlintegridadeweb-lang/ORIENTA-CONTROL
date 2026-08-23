@@ -39,6 +39,10 @@ export async function parseJson<T>(response: Response, schema: ZodType<T>): Prom
 
   const parsed = schema.safeParse(value);
   if (!parsed.success) {
+    const errorPayload = apiErrorSchema.safeParse(value);
+    if (errorPayload.success && errorPayload.data.error) {
+      throw new Error(formatError(value));
+    }
     throw new Error("O servidor retornou dados incompatíveis com o contrato esperado.");
   }
   return parsed.data;

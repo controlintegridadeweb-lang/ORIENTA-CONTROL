@@ -35,6 +35,31 @@ begin
   );
 
   -- Uma resposta pode reunir vários documentos comprobatórios ativos.
+  -- Arquivo só entra com pending verificado; o produto recusa INSERT direto.
+  insert into public.pending_evidence_uploads(
+    id, cycle_id, organization_id, uploaded_by, storage_path,
+    original_filename, mime_type, verified_mime_type, verified_at, size_bytes,
+    file_validation_status
+  ) values
+    (
+      '00000000-0000-0000-0000-00000000a717',
+      '00000000-0000-0000-0000-000000000cc1',
+      '00000000-0000-0000-0000-0000000000b1',
+      '00000000-0000-0000-0000-0000000000a1',
+      'seed/cycle/evidencia-ativa-1.pdf',
+      'evidencia-ativa-1.pdf', 'application/pdf', 'application/pdf', now(), 128,
+      'valid'
+    ),
+    (
+      '00000000-0000-0000-0000-00000000a718',
+      '00000000-0000-0000-0000-000000000cc1',
+      '00000000-0000-0000-0000-0000000000b1',
+      '00000000-0000-0000-0000-0000000000a1',
+      'seed/cycle/evidencia-ativa-2.pdf',
+      'evidencia-ativa-2.pdf', 'application/pdf', 'application/pdf', now(), 256,
+      'valid'
+    );
+
   insert into public.evidences(
     id, response_id, kind, storage_path, original_filename, submitted_by
   ) values (

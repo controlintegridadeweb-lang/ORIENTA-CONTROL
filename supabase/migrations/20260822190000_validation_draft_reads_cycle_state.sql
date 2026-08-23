@@ -308,9 +308,16 @@ begin
 
   if p_expected_status is not null and (
     v_response.na_validation_status::text is distinct from p_expected_status
-    or v_response.na_validated_at is distinct from p_expected_validated_at
+    or date_trunc('milliseconds', v_response.na_validated_at)
+         is distinct from date_trunc('milliseconds', p_expected_validated_at)
   ) then
-    raise exception 'validation_conflict' using errcode = '40001';
+    raise exception
+      'validation_conflict status=% expected=% validated_at=% expected_at=%',
+      v_response.na_validation_status,
+      p_expected_status,
+      v_response.na_validated_at,
+      p_expected_validated_at
+      using errcode = '40001';
   end if;
 
   if not (
@@ -348,7 +355,8 @@ begin
         p_expected_status is null
         or (
           na_validation_status::text is not distinct from p_expected_status
-          and na_validated_at is not distinct from p_expected_validated_at
+          and date_trunc('milliseconds', na_validated_at)
+            is not distinct from date_trunc('milliseconds', p_expected_validated_at)
         )
       );
 
@@ -383,7 +391,8 @@ begin
       p_expected_status is null
       or (
         na_validation_status::text is not distinct from p_expected_status
-        and na_validated_at is not distinct from p_expected_validated_at
+        and date_trunc('milliseconds', na_validated_at)
+          is not distinct from date_trunc('milliseconds', p_expected_validated_at)
       )
     );
 

@@ -116,7 +116,8 @@ export function ValidationFormShell({
         action,
         rejectionReason: rejectionReason.trim() || null,
         expectedStatus: item.status,
-        expectedValidatedAt: item.validatedAt ?? null,
+        expectedValidatedAt:
+          item.status === "pending" ? null : item.validatedAt ?? null,
       });
 
       return {

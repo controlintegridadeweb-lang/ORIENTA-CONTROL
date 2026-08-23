@@ -43,4 +43,16 @@ describe("parseJson", () => {
       "O servidor retornou dados incompatíveis com o contrato esperado.",
     );
   });
+
+  it("repassa a mensagem de erro da API quando o contrato de sucesso não cabe", async () => {
+    await expect(
+      parseJson(
+        new Response(
+          '{"error":"Este parecer foi alterado por outro administrador."}',
+          { status: 409, headers: { "Content-Type": "application/json" } },
+        ),
+        payloadSchema,
+      ),
+    ).rejects.toThrow("Este parecer foi alterado por outro administrador.");
+  });
 });

@@ -20,7 +20,8 @@ insert into public.cycles(
 
 insert into public.pending_evidence_uploads(
   id, cycle_id, organization_id, uploaded_by, storage_path,
-  original_filename, mime_type, verified_mime_type, verified_at, size_bytes
+  original_filename, mime_type, verified_mime_type, verified_at, size_bytes,
+  file_validation_status
 ) values
   (
     '00000000-0000-0000-0000-000000000a11',
@@ -32,7 +33,8 @@ insert into public.pending_evidence_uploads(
     'application/pdf',
     'application/pdf',
     now(),
-    100
+    100,
+    'valid'
   ),
   (
     '00000000-0000-0000-0000-000000000a12',
@@ -44,7 +46,8 @@ insert into public.pending_evidence_uploads(
     'application/pdf',
     'application/pdf',
     now(),
-    200
+    200,
+    'valid'
   );
 
 select public.apply_workbench_response(

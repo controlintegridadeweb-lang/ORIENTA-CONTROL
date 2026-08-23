@@ -106,6 +106,14 @@ export async function validateNotApplicableResponse(
       throw new DomainConflictError("Resposta não pertence ao diagnóstico informado.");
     }
     if (hasDatabaseErrorCode(msg, "validation_conflict")) {
+      logInfo("na.validation_conflict", {
+        responseId,
+        cycleId,
+        action: input.action,
+        expectedStatus: input.expectedStatus,
+        expectedValidatedAt: input.expectedValidatedAt,
+        rpcMessage: msg,
+      });
       throw new DomainConflictError(
         "Este parecer foi alterado por outro administrador. A fila será atualizada; revise o estado atual antes de tentar novamente.",
       );

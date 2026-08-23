@@ -45,6 +45,8 @@ export const POST = withRoute<{ cycleId: string; responseId: string }>(
       logError("Failed to validate not-applicable response", error, {
         route: "/api/admin/cycles/[cycleId]/validation/not-applicable/[responseId]",
         phase: "validate_rpc",
+        expectedStatus: body.expectedStatus,
+        expectedValidatedAt: body.expectedValidatedAt,
       });
       throw error;
     }

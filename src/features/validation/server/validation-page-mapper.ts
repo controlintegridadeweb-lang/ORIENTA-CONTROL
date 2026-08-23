@@ -186,7 +186,9 @@ function buildNotApplicableItem(
     rejectionReason: response.na_rejection_reason,
     validatedAt: isAdmin
       ? response.admin_na_decided_at
-      : response.na_validated_at,
+      : status === "pending"
+        ? null
+        : response.na_validated_at,
     validatedByName: isAdmin
       ? response.admin_na_decided_by
         ? names.get(response.admin_na_decided_by) ?? "Administração"
