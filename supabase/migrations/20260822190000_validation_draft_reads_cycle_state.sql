@@ -464,3 +464,9 @@ begin
     end;
 end;
 $$;
+
+-- O after() de /api/notifications chama esta RPC e segura uma conexão do
+-- PostgREST enquanto varre prazos. Sem teto, ela compete com o parecer de NA
+-- até o Kong estourar. O cron horário continua sendo a fonte da outbox.
+alter function public.enqueue_operational_notifications()
+  set statement_timeout = '8s';

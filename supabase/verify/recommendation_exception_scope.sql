@@ -52,12 +52,14 @@ begin
       organization_id,
       recommendation_id,
       question_id,
-      motivo
+      motivo,
+      requested_by
     ) values (
       '00000000-0000-0000-0000-0000000000b1',
       '00000000-0000-0000-0000-00000000b251',
       '00000000-0000-0000-0000-0000000000e2',
-      'Justificativa institucional válida, porém ligada ao critério incorreto.'
+      'Justificativa institucional válida, porém ligada ao critério incorreto.',
+      '00000000-0000-0000-0000-0000000000a1'
     );
     raise exception 'recommendation_exception_question_scope_not_enforced';
   exception
@@ -80,12 +82,14 @@ begin
       organization_id,
       recommendation_id,
       question_id,
-      motivo
+      motivo,
+      requested_by
     ) values (
       '00000000-0000-0000-0000-0000000000b2',
       '00000000-0000-0000-0000-00000000b251',
       '00000000-0000-0000-0000-0000000000e1',
-      'Justificativa institucional válida, porém ligada à organização incorreta.'
+      'Justificativa institucional válida, porém ligada à organização incorreta.',
+      '00000000-0000-0000-0000-0000000000a1'
     );
     raise exception 'recommendation_exception_organization_scope_not_enforced';
   exception
@@ -100,13 +104,15 @@ begin
     organization_id,
     recommendation_id,
     question_id,
-    motivo
+    motivo,
+    requested_by
   ) values (
     '00000000-0000-0000-0000-00000000ec01',
     '00000000-0000-0000-0000-0000000000b1',
     '00000000-0000-0000-0000-00000000b251',
     '00000000-0000-0000-0000-0000000000e1',
-    'Justificativa institucional válida e coerente com a recomendação.'
+    'Justificativa institucional válida e coerente com a recomendação.',
+    '00000000-0000-0000-0000-0000000000a1'
   )
   on conflict (id) do nothing;
 

@@ -7,6 +7,10 @@ import {
 } from "@/infrastructure/api/domain-errors";
 import { logInfo } from "@/infrastructure/observability/logger";
 import { cycleValidationStateError, rpcErrorMessage } from "@/features/cycles/rpc-validation-errors";
+import {
+  canInvokeLocalDatabaseRpc,
+  invokeLocalDatabaseRpc,
+} from "@/infrastructure/supabase/local-database-rpc";
 
 type ValidateNaAction = "approve" | "reject";
 
@@ -58,15 +62,40 @@ export async function validateNotApplicableResponse(
     ]);
   }
 
-  const { data, error } = await supabase.rpc("validate_not_applicable_response", {
-    p_response_id: responseId,
-    p_cycle_id: cycleId,
-    p_action: input.action,
-    p_actor_user_id: input.actorUserId,
-    p_rejection_reason: rejectionReason,
-    p_expected_status: input.expectedStatus,
-    p_expected_validated_at: input.expectedValidatedAt,
-  });
+  let data: unknown = null;
+  let error: unknown = null;
+
+  if (canInvokeLocalDatabaseRpc()) {
+    try {
+      const row = await invokeLocalDatabaseRpc<{ result: unknown }>(
+        `select public.validate_not_applicable_response(
+           $1::uuid, $2::uuid, $3::text, $4::uuid, $5::text, $6::text, $7::timestamptz
+         ) as result`,
+        [
+          responseId,
+          cycleId,
+          input.action,
+          input.actorUserId,
+          rejectionReason,
+          input.expectedStatus,
+          input.expectedValidatedAt,
+        ],
+      );
+      data = row.result;
+    } catch (caught) {
+      error = caught;
+    }
+  } else {
+    ({ data, error } = await supabase.rpc("validate_not_applicable_response", {
+      p_response_id: responseId,
+      p_cycle_id: cycleId,
+      p_action: input.action,
+      p_actor_user_id: input.actorUserId,
+      p_rejection_reason: rejectionReason,
+      p_expected_status: input.expectedStatus,
+      p_expected_validated_at: input.expectedValidatedAt,
+    }));
+  }
 
   if (error) {
     const msg = rpcErrorMessage(error);

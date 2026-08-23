@@ -76,7 +76,7 @@ function securityHeaders() {
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: resolveAllowedDevOrigins(),
-  serverExternalPackages: ["pdf-lib"],
+  serverExternalPackages: ["pdf-lib", "pg"],
   experimental: {
     // O limite continua previsível, mas deixa de serializar todo build em
     // ambientes com CPU e memória disponíveis. Hospedagens restritas podem
