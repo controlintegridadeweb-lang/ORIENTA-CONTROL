@@ -81,6 +81,32 @@ describe("buildPendingDecisions", () => {
     ]);
   });
 
+  it("mantém o aceite vigente junto das pendências", () => {
+    const items = buildPendingDecisions({
+      notes: [
+        note({
+          id: "aceite",
+          noteType: "approval",
+          lifecycleStatus: "effective",
+          createdAt: "2026-08-12T12:00:00Z",
+        }),
+        note({
+          id: "superado",
+          noteType: "approval",
+          lifecycleStatus: "superseded",
+          createdAt: "2026-08-11T12:00:00Z",
+        }),
+      ],
+      deadlineRequests: [],
+    });
+
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({
+      kind: "supervision",
+      note: { id: "aceite", noteType: "approval", lifecycleStatus: "effective" },
+    });
+  });
+
   it("usa o timestamp real, não o texto formatado", () => {
     expect(
       compareMonitoringTimestamps(

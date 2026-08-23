@@ -14,6 +14,15 @@ export function isPendingSupervisionNote(note: SupervisionNoteEntry): boolean {
   );
 }
 
+/** Aceite vigente da revisão atual — decisão exibida em "Pendências e decisões". */
+export function isEffectiveApprovalNote(note: SupervisionNoteEntry): boolean {
+  return note.noteType === "approval" && note.lifecycleStatus === "effective";
+}
+
+export function isMonitoringDecisionNote(note: SupervisionNoteEntry): boolean {
+  return isPendingSupervisionNote(note) || isEffectiveApprovalNote(note);
+}
+
 export function isPendingDeadlineRequest(
   request: ActionPlanDeadlineChangeRequest,
 ): boolean {
@@ -45,7 +54,7 @@ export function buildPendingDecisions(sources: {
     items.push({ kind: "deadline", occurredAt: request.requestedAt, request });
   }
   for (const note of sources.notes) {
-    if (!isPendingSupervisionNote(note)) continue;
+    if (!isMonitoringDecisionNote(note)) continue;
     items.push({ kind: "supervision", occurredAt: note.createdAt, note });
   }
   items.sort((left, right) =>

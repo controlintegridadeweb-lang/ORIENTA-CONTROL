@@ -85,7 +85,10 @@ export function ActionMonitoringWorkspace({ role }: Props) {
           openRequestActionIds={data.openRequestActionIds}
           checkingOpenRequests={data.supervisionLoading}
           openRequestCheckError={data.supervisionError}
-          onCreated={data.prependNote}
+          onCreated={(created) => {
+            data.prependNote(created);
+            void context.refetch();
+          }}
         />
       ) : null}
 

@@ -23,6 +23,7 @@ import type {
 import type { AuditFeedItem } from "@/features/improvement-management/recommendations/components/hub/action-plan-audit-feed";
 import {
   buildPendingDecisions,
+  isMonitoringDecisionNote,
   isPendingSupervisionNote,
 } from "@/features/improvement-management/action-plans/monitoring/build-monitoring-history";
 
@@ -53,11 +54,11 @@ async function loadPendingSupervisionNotes(
   while (true) {
     const page = await loader(recommendationId, {
       actionPlanId,
-      lifecycleStatuses: ["open", "acknowledged"],
+      lifecycleStatuses: ["open", "acknowledged", "effective"],
       limit: SUPERVISION_PAGE_SIZE,
       offset,
     });
-    items.push(...page.items.filter(isPendingSupervisionNote));
+    items.push(...page.items.filter(isMonitoringDecisionNote));
     if (!page.hasMore || page.items.length === 0) return items;
     offset += page.items.length;
   }
@@ -325,10 +326,10 @@ export function useActionMonitoringWorkspace({
       })),
     replaceNote: (updated: SupervisionNoteEntry) => {
       patchState((current) => {
-        const notes = isPendingSupervisionNote(updated)
+        const notes = isMonitoringDecisionNote(updated)
           ? current.notes.map((note) => (note.id === updated.id ? updated : note))
           : current.notes.filter((note) => note.id !== updated.id);
-        if (isPendingSupervisionNote(updated) && !notes.some((note) => note.id === updated.id)) {
+        if (isMonitoringDecisionNote(updated) && !notes.some((note) => note.id === updated.id)) {
           notes.unshift(updated);
         }
         return {
@@ -338,7 +339,7 @@ export function useActionMonitoringWorkspace({
       });
     },
     prependNote: (created: SupervisionNoteEntry) => {
-      if (!isPendingSupervisionNote(created)) return;
+      if (!isMonitoringDecisionNote(created)) return;
       patchState((current) => {
         const notes = [created, ...current.notes.filter((note) => note.id !== created.id)];
         return {
