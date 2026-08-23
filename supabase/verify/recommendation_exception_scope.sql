@@ -1,5 +1,7 @@
 -- Garante que uma exceção institucional não possa apontar para organização ou
 -- critério diferentes daqueles congelados na recomendação.
+-- A recomendação precisa ser a oficial do processamento concluído
+-- (recommendation_exception_not_current).
 -- Pré: _seed_minimal.sql. Fixtures locais (ciclo/recomendação) — não depende de
 -- outros verifies; action_plans_cycle_editability limpa os próprios ids.
 
@@ -16,14 +18,17 @@ values (
 )
 on conflict (id) do update set state = excluded.state, period_id = excluded.period_id;
 
-insert into public.cycle_processings(id, cycle_id, processing_version, status)
+insert into public.cycle_processings(id, cycle_id, processing_version, status, completed_at)
 values (
   '00000000-0000-0000-0000-00000000a251',
   '00000000-0000-0000-0000-00000000c251',
   1,
-  'working'
+  'completed',
+  now()
 )
-on conflict (id) do nothing;
+on conflict (id) do update
+set status = excluded.status,
+    completed_at = excluded.completed_at;
 
 insert into public.recommendations(
   id, cycle_id, cycle_processing_id, question_version_id, tipo, text

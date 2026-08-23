@@ -11,6 +11,28 @@ function requireEnv(key: string): string {
   return value;
 }
 
+/**
+ * Kong/PostgREST local reutiliza o socket keep-alive do Node e, no CI, o
+ * segundo hop REST da mesma mutação fica preso até o timeout do Kong (~60s)
+ * sem o PostgreSQL ter começado a RPC. Fecha a conexão após cada resposta.
+ */
+function fetchWithoutStaleKeepAlive(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+): Promise<Response> {
+  const headers = new Headers(init?.headers);
+  const target =
+    typeof input === "string"
+      ? input
+      : input instanceof URL
+        ? input.href
+        : input.url;
+  if (/^https?:\/\/(127\.0\.0\.1|localhost)[:/]/i.test(target)) {
+    headers.set("Connection", "close");
+  }
+  return fetch(input, { ...init, headers, cache: "no-store" });
+}
+
 export function createSupabaseServiceRoleClient() {
   const url = requireEnv("NEXT_PUBLIC_SUPABASE_URL");
   const serviceRole = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
@@ -19,6 +41,9 @@ export function createSupabaseServiceRoleClient() {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
+    },
+    global: {
+      fetch: fetchWithoutStaleKeepAlive,
     },
   });
 }
@@ -33,6 +58,7 @@ export function createSupabaseUserClient(accessToken: string) {
       persistSession: false,
     },
     global: {
+      fetch: fetchWithoutStaleKeepAlive,
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },

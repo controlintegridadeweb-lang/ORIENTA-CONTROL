@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireUuid, withRoute } from "@/infrastructure/api/with-route";
+import { logError } from "@/infrastructure/observability/logger";
 import { createSupabaseServiceRoleClient } from "@/infrastructure/supabase/server";
 import { resolveAuthorizedCycleScope, validateNotApplicableResponse } from "@/features/cycles/server";
 
@@ -22,13 +23,30 @@ export const POST = withRoute<{ cycleId: string; responseId: string }>(
     const responseId = requireUuid(params.responseId, "responseId");
     const body = schema.parse(await request.json());
     const supabase = createSupabaseServiceRoleClient();
-    const authorized = await resolveAuthorizedCycleScope(supabase, auth, cycleId);
+    let authorized;
+    try {
+      authorized = await resolveAuthorizedCycleScope(supabase, auth, cycleId);
+    } catch (error) {
+      logError("Failed to validate not-applicable response", error, {
+        route: "/api/admin/cycles/[cycleId]/validation/not-applicable/[responseId]",
+        phase: "cycle_scope",
+      });
+      throw error;
+    }
     if (authorized.error) return authorized.error;
 
-    const result = await validateNotApplicableResponse(supabase, cycleId, responseId, {
-      ...body,
-      actorUserId: auth.userId,
-    });
-    return NextResponse.json(result);
+    try {
+      const result = await validateNotApplicableResponse(supabase, cycleId, responseId, {
+        ...body,
+        actorUserId: auth.userId,
+      });
+      return NextResponse.json(result);
+    } catch (error) {
+      logError("Failed to validate not-applicable response", error, {
+        route: "/api/admin/cycles/[cycleId]/validation/not-applicable/[responseId]",
+        phase: "validate_rpc",
+      });
+      throw error;
+    }
   },
 );
