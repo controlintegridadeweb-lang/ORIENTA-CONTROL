@@ -116,5 +116,8 @@ describe("contrato das rotas críticas", () => {
       expect(content).toContain("createSignedUrl");
       expect(content).not.toMatch(/\.download\s*\(/);
     }
+    expect(reportDownload).toContain("NextResponse.redirect");
+    expect(reportDownload).toContain("NextResponse.json");
+    expect(reportDownload).toContain("application/json");
   });
 });

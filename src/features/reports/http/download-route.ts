@@ -40,6 +40,18 @@ type ReportDownloadRow = {
     | null;
 };
 
+function applyReportDownloadHeaders(
+  response: NextResponse,
+  reportId: string,
+  integrity: string,
+): void {
+  response.headers.set("Cache-Control", "private, no-store, max-age=0");
+  response.headers.set("Referrer-Policy", "no-referrer");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("X-Report-Id", reportId);
+  response.headers.set("X-Report-Integrity", integrity);
+}
+
 function safeFilenamePart(value: string): string {
   return value
     .normalize("NFD")
@@ -120,15 +132,17 @@ export const GET = withRoute<{ reportId: string }>(
       throw new Error("invalid_signed_report_url_protocol");
     }
 
+    const integrity = report.status === "completed" ? "persisted-and-hashed" : "legacy-unverified";
+    // O browser não expõe Location de 307 no fetch (opaqueredirect). O cliente
+    // pede application/json para receber a URL assinada e baixar sem credentials.
+    if (request.headers.get("Accept")?.toLowerCase().includes("application/json")) {
+      const json = NextResponse.json({ url: signedUrl.toString(), filename });
+      applyReportDownloadHeaders(json, reportId, integrity);
+      return json;
+    }
+
     const response = NextResponse.redirect(signedUrl, 307);
-    response.headers.set("Cache-Control", "private, no-store, max-age=0");
-    response.headers.set("Referrer-Policy", "no-referrer");
-    response.headers.set("X-Content-Type-Options", "nosniff");
-    response.headers.set("X-Report-Id", reportId);
-    response.headers.set(
-      "X-Report-Integrity",
-      report.status === "completed" ? "persisted-and-hashed" : "legacy-unverified",
-    );
+    applyReportDownloadHeaders(response, reportId, integrity);
     return response;
   },
 );

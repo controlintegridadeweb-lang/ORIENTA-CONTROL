@@ -243,30 +243,29 @@ async function generateOfficialReportPdf(payload: {
   return { blob: await response.blob(), filename };
 }
 
+const persistedReportDownloadSchema = apiResponseSchema({
+  url: z.string().url(),
+  filename: z.string().min(1),
+});
+
 /** Busca um PDF já persistido por uma rota autenticada, sem emitir nova versão. */
 export async function fetchPersistedReportPdf(downloadPath: string): Promise<Blob> {
-  // A rota responde 307 para URL assinada no Storage. `fetch` com credentials/headers
-  // não pode seguir esse redirect: o pedido cross-origin quebra ou trava no CORS.
+  // A navegação direta ainda recebe 307. O fetch do browser não lê Location
+  // desse redirect (opaqueredirect), então o cliente pede a URL assinada em JSON.
   const signed = await fetch(downloadPath, {
     credentials: "include",
-    redirect: "manual",
+    headers: buildHeaders({ Accept: "application/json" }),
   });
-  if (signed.status >= 300 && signed.status < 400) {
-    const location = signed.headers.get("Location");
-    if (!location) {
-      throw new Error("Não foi possível obter o PDF oficial.");
-    }
-    const fileResponse = await fetch(location);
-    if (!fileResponse.ok) {
-      throw new Error("Não foi possível obter o PDF oficial.");
-    }
-    return fileResponse.blob();
-  }
   if (!signed.ok) {
     const body = await parseErrorResponse(signed);
     throw new Error(formatError(body, "Não foi possível obter o PDF oficial."));
   }
-  return signed.blob();
+  const payload = await parseJson(signed, persistedReportDownloadSchema);
+  const fileResponse = await fetch(payload.url);
+  if (!fileResponse.ok) {
+    throw new Error("Não foi possível obter o PDF oficial.");
+  }
+  return fileResponse.blob();
 }
 
 export function downloadPdfBlob(blob: Blob, filename = "relatorio-orienta.pdf"): void {

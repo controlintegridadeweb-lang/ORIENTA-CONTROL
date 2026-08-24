@@ -9,14 +9,15 @@ afterEach(() => {
 });
 
 describe("fetchPersistedReportPdf", () => {
-  it("segue a URL assinada sem credentials nem Content-Type", async () => {
+  it("pede a URL assinada em JSON e baixa o arquivo sem credentials", async () => {
+    const signedUrl = "http://127.0.0.1:54321/storage/v1/object/sign/relatorios/a.pdf?token=x";
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(
-        new Response(null, {
-          status: 307,
-          headers: { Location: "http://127.0.0.1:54321/storage/v1/object/sign/relatorios/a.pdf?token=x" },
-        }),
+        new Response(
+          JSON.stringify({ url: signedUrl, filename: "relatorio-orienta-diagnostico-emissao-1.pdf" }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
       )
       .mockResolvedValueOnce(
         new Response(new Uint8Array([37, 80, 68, 70]), {
@@ -31,13 +32,12 @@ describe("fetchPersistedReportPdf", () => {
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
       "/api/reports/report-1/download",
-      expect.objectContaining({ credentials: "include", redirect: "manual" }),
+      expect.objectContaining({
+        credentials: "include",
+        headers: expect.objectContaining({ Accept: "application/json" }),
+      }),
     );
-    expect(fetchMock.mock.calls[0]?.[1]?.headers).toBeUndefined();
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      2,
-      "http://127.0.0.1:54321/storage/v1/object/sign/relatorios/a.pdf?token=x",
-    );
+    expect(fetchMock).toHaveBeenNthCalledWith(2, signedUrl);
     expect(fetchMock.mock.calls[1]?.[1]).toBeUndefined();
   });
 });
