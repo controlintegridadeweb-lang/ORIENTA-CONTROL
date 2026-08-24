@@ -15,7 +15,6 @@ import { PanelSection } from "@/shared/ui/components/panel-section";
 import { LoadingButton } from "@/shared/ui/components/loading";
 import { formSurface } from "@/shared/layout/form-surface";
 import { notify } from "@/infrastructure/notifications/notify";
-import { hasValidExecutionEvidence } from "@/features/improvement-management/action-plans/execution-evidence-policy";
 
 type Props = {
   recommendationId: string;
@@ -45,9 +44,6 @@ export function MonitoringComposer({
     if (plan.status !== "completed") {
       return "Conclua a ação antes de registrar o aceite da execução.";
     }
-    if (!hasValidExecutionEvidence(plan.documents)) {
-      return "Adicione ao menos uma comprovação válida da revisão atual antes de registrar o aceite.";
-    }
     if (checkingOpenRequests) {
       return "Verificando solicitações e pendências abertas antes de liberar o aceite.";
     }
@@ -63,7 +59,6 @@ export function MonitoringComposer({
     noteType,
     openRequestActionIds,
     openRequestCheckError,
-    plan.documents,
     plan.id,
     plan.status,
   ]);

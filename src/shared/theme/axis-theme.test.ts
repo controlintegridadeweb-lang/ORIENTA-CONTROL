@@ -28,8 +28,12 @@ describe("getAxisTheme", () => {
   it("expõe fundos e bordas sólidos (sem rgba nem gradiente)", () => {
     for (const name of ["Governança", "Ambiental", "Social"] as const) {
       const theme = getAxisTheme(name);
+      expect(theme.strong).toMatch(/^#[0-9A-Fa-f]{6}$/);
+      expect(theme.tint).toMatch(/^#[0-9A-Fa-f]{6}$/);
       expect(theme.softBackground).toMatch(/^#[0-9A-Fa-f]{6}$/);
       expect(theme.border).toMatch(/^#[0-9A-Fa-f]{6}$/);
+      expect(theme.strong).not.toMatch(/rgba|gradient/i);
+      expect(theme.tint).not.toMatch(/rgba|gradient/i);
       expect(theme.softBackground).not.toMatch(/rgba|gradient/i);
       expect(theme.border).not.toMatch(/rgba|gradient/i);
     }

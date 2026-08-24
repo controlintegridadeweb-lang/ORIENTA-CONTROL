@@ -137,7 +137,12 @@ export class CycleClosureService {
       );
     }
 
-    const currentStatus = await this.reportStatus(cycleId);
+    let currentStatus: ReportLifecycleStatus;
+    try {
+      currentStatus = await this.reportStatus(cycleId);
+    } catch (error) {
+      return this.recordFailure(cycleId, actorUserId, error);
+    }
     if (currentStatus === "available" || currentStatus === "emitting") {
       return {
         status: currentStatus,

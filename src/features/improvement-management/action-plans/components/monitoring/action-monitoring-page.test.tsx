@@ -188,7 +188,7 @@ describe("MonitoringComposer", () => {
     expect(typeSelect.textContent).toContain("Decisão / aceite");
   });
 
-  it("bloqueia o aceite antecipadamente quando falta comprovação válida", () => {
+  it("permite o aceite sem comprovação, que permanece opcional", () => {
     render(
       <MonitoringComposer
         recommendationId="rec-1"
@@ -203,14 +203,14 @@ describe("MonitoringComposer", () => {
     fireEvent.change(screen.getByLabelText("Registro"), { target: { value: "Execução aceita." } });
 
     expect(
-      screen.getByText(
+      screen.queryByText(
         "Adicione ao menos uma comprovação válida da revisão atual antes de registrar o aceite.",
       ),
-    ).toBeTruthy();
+    ).toBeNull();
     expect(
       (screen.getByRole("button", { name: "Publicar acompanhamento" }) as HTMLButtonElement)
         .disabled,
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it("mantém o aceite bloqueado enquanto verifica pendências abertas", () => {

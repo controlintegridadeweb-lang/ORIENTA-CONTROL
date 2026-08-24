@@ -64,6 +64,19 @@ describe("handleDomainError", () => {
     });
   });
 
+  it("mapeia tabela ausente no schema cache -> 503", async () => {
+    const res = handleDomainError({
+      code: "PGRST205",
+      message:
+        "Could not find the table 'public.action_plan_deadline_change_requests' in the schema cache",
+    });
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({
+      error:
+        "Este recurso está temporariamente indisponível. Tente novamente ou contate a equipe responsável.",
+    });
+  });
+
   it("subclasses ainda satisfazem instanceof da base (cobertura de Fragmento 1.b)", () => {
     class FooValidation extends DomainValidationError {}
     const e = new FooValidation([], "x");

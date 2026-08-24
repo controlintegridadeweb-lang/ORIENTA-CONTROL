@@ -3,9 +3,10 @@ import { AdminCycleDetail } from "@/features/cycles/components/admin-cycle-detai
 import { getCycleDetail } from "@/features/cycles/cycle-queries";
 import { firstSearchParam } from "@/features/admin/search-params";
 import { loadActionPlanCompletionReadiness } from "@/features/improvement-management/action-plans/completion-readiness";
+import { CycleClosureService } from "@/application/reporting/cycle-closure-service";
+import { isMissingSchemaCacheError } from "@/infrastructure/api/domain-errors";
 import { createSupabaseServiceRoleClient } from "@/infrastructure/supabase/server";
 import { parseUuidParam } from "@/shared/validation/uuid";
-import { reportLifecycleStatusSchema } from "@/shared/domain/report-lifecycle";
 
 type Props = {
   params: Promise<{ cycleId: string }>;
@@ -28,11 +29,11 @@ export default async function AdminCicloDetailPage({ params, searchParams }: Pro
       : null;
   let reportLifecycleStatus = null;
   if (cycle.state === "completed") {
-    const { data, error } = await supabase.rpc("cycle_report_lifecycle_status", {
-      p_cycle_id: cycle.id,
-    });
-    if (error) throw error;
-    reportLifecycleStatus = reportLifecycleStatusSchema.parse(data);
+    try {
+      reportLifecycleStatus = await new CycleClosureService(supabase).reportStatus(cycle.id);
+    } catch (error) {
+      if (!isMissingSchemaCacheError(error)) throw error;
+    }
   }
 
   return (

@@ -119,7 +119,7 @@ describe("MonitoringOrganogram", () => {
     expect(screen.getByText("Próxima do vencimento.")).toBeTruthy();
   });
 
-  it("quebra conjuntos maiores de ações em grade responsiva", () => {
+  it("ramifica as ações em linha sob a recomendação", () => {
     render(
       <MonitoringOrganogram
         axisName="Governança"
@@ -136,8 +136,44 @@ describe("MonitoringOrganogram", () => {
       />,
     );
 
-    expect(screen.getByText("5 ações vinculadas")).toBeTruthy();
-    expect(document.querySelector('[data-layout="wrapped-actions"]')).toBeTruthy();
+    expect(document.querySelector('[data-layout="organogram-tree"]')).toBeTruthy();
+    expect(document.querySelector('[data-node="eixo"]')).toBeTruthy();
+    expect(document.querySelector('[data-node="secao"]')).toBeTruthy();
+    expect(document.querySelector('[data-node="recomendacao"]')).toBeTruthy();
+    expect(screen.queryByText("5 ações vinculadas")).toBeNull();
     expect(screen.getAllByText("Ação")).toHaveLength(5);
+    const actionNodes = [...document.querySelectorAll("[data-node='acao']")];
+    expect(actionNodes).toHaveLength(5);
+    expect(new Set(actionNodes.map((node) => node.className)).size).toBe(1);
+    expect(actionNodes[0]?.className).toContain("w-44");
+    expect(actionNodes[0]?.className).toContain("h-full");
+    expect(
+      actionNodes.every((node) => node.querySelector(".min-h-10")),
+    ).toBe(true);
+  });
+
+  it("pinta o fluxo com a paleta do eixo", () => {
+    render(
+      <MonitoringOrganogram
+        axisName="Ambiental"
+        sectionName="A3P"
+        recommendationText="Formalizar o acompanhamento institucional"
+        plans={[plan()]}
+        selectedPlanId="plan-1"
+        onSelectAction={vi.fn()}
+      />,
+    );
+
+    const eixo = document.querySelector("[data-node='eixo']") as HTMLElement;
+    const secao = document.querySelector("[data-node='secao']") as HTMLElement;
+    const recomendacao = document.querySelector("[data-node='recomendacao']") as HTMLElement;
+
+    expect(eixo.className).toContain("rounded-full");
+    expect(secao.className).toContain("rounded-xl");
+    expect(eixo.style.backgroundColor.replaceAll(" ", "")).toMatch(/#15803[Dd]|rgb\(21,128,61\)/i);
+    expect(secao.style.backgroundColor.replaceAll(" ", "")).toMatch(/#16[Aa]34[Aa]|rgb\(22,163,74\)/i);
+    expect(recomendacao.style.backgroundColor.replaceAll(" ", "")).toMatch(
+      /#B5[Ee]4[Cc]6|rgb\(181,228,198\)/i,
+    );
   });
 });

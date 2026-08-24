@@ -23,10 +23,26 @@ describe("contrato canônico da supervisão do plano de ação", () => {
 
   it("exige ação concluída, sem solicitação aberta e com aceite vigente", () => {
     expect(functions).toContain("supervision_approval_requires_completed_action");
-    expect(functions).toContain("supervision_approval_requires_execution_evidence");
-    expect(functions).toContain("missing_execution_evidence");
+    expect(functions).toContain("supervision_approval_has_open_request");
     expect(functions).toContain("close_requires_completed_and_approved_action_plans");
     expect(functions).toContain("functionpublic.cycle_action_plan_supervision_blockers");
+  });
+
+  it("mantém a comprovação da execução opcional no aceite, no encerramento e na situação da recomendação", () => {
+    const optionalEvidence = compactSql(
+      read("20260824120000_optional_action_plan_execution_evidence.sql"),
+    );
+    const recommendationStatus = compactSql(
+      read("20260824143000_recommendation_status_optional_execution_evidence.sql"),
+    );
+    expect(optionalEvidence).toContain("functionpublic.enforce_action_plan_supervision_note");
+    expect(optionalEvidence).toContain("functionpublic.cycle_action_plan_supervision_blockers");
+    expect(optionalEvidence).not.toContain("supervision_approval_requires_execution_evidence");
+    expect(optionalEvidence).not.toContain("missing_execution_evidence");
+    expect(optionalEvidence).toContain("action_not_approved");
+    expect(recommendationStatus).toContain("current_recommendation_read_model");
+    expect(recommendationStatus).toContain("all_completed_approved");
+    expect(recommendationStatus).not.toContain("file_validation_status='valid'");
   });
 
   it("promove uploads diretos por RPC atômica, idempotente e com limpeza durável", () => {

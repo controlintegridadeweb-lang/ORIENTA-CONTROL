@@ -56,3 +56,6 @@ data/bootstrap-2026/private/*
 !data/bootstrap-2026/private/.gitkeep
 
 # Relatórios/credenciais locais do bootstrap
+
+.vercel
+.env*

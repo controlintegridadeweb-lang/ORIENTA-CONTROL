@@ -81,7 +81,7 @@ export function OverviewSoftPanel({
     <div
       className={[
         OVERVIEW_SOFT_BG,
-        "rounded-xl border border-transparent",
+        "rounded-xl border border-slate-200",
         padded ? "px-4 py-4 sm:px-5 sm:py-5" : "",
         className,
       ]

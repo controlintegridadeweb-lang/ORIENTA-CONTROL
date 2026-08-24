@@ -64,14 +64,17 @@ export class DomainUnavailableError extends Error {
   }
 }
 
-/** PostgREST: RPC ausente no schema cache (migrations não aplicadas). */
-function isMissingRpcError(error: unknown): boolean {
+/** PostgREST: tabela ou RPC ausente no schema cache (migrations não aplicadas). */
+export function isMissingSchemaCacheError(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   const code = (error as { code?: unknown }).code;
   const message = String((error as { message?: unknown }).message ?? "");
   return (
     code === "PGRST202" ||
-    (message.includes("Could not find the function") && message.includes("schema cache"))
+    code === "PGRST205" ||
+    (message.includes("schema cache") &&
+      (message.includes("Could not find the function") ||
+        message.includes("Could not find the table")))
   );
 }
 
@@ -119,7 +122,7 @@ export function handleDomainError(
   if (error instanceof DomainUnavailableError) {
     return NextResponse.json({ error: error.message }, { status: 501 });
   }
-  if (isMissingRpcError(error)) {
+  if (isMissingSchemaCacheError(error)) {
     return NextResponse.json({ error: MISSING_RPC_USER_MESSAGE }, { status: 503 });
   }
 

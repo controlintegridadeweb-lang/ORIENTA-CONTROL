@@ -1,12 +1,90 @@
 import { Download, FileText } from "lucide-react";
 import { AsyncErrorState } from "@/shared/ui/components/async-error-state";
+import { EmptyState } from "@/shared/ui/components/empty-state";
 import { PanelSection } from "@/shared/ui/components/panel-section";
 import { formSurface } from "@/shared/layout/form-surface";
+import { typography } from "@/shared/layout/design-system";
+import type { ReportHistoryOption } from "@/features/reports/ui/client";
 import { formatReportDate } from "./report-shell-display";
-import {
-  REPORT_HISTORY_PAGE_SIZE,
-} from "./reports-controller-model";
+import { REPORT_HISTORY_PAGE_SIZE } from "./reports-controller-model";
 import type { ReportsController } from "./use-reports-controller";
+
+function ReportHistoryItem({
+  report,
+  onDownload,
+}: {
+  report: ReportHistoryOption;
+  onDownload: (report: ReportHistoryOption) => void;
+}) {
+  return (
+    <li className={`${formSurface.entityListCard} p-4 sm:p-5`}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 flex-1 items-start gap-4">
+          <span
+            className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800"
+            aria-hidden
+          >
+            <FileText className="h-5 w-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className={typography.cardTitle}>{report.formName}</h3>
+              <span className={`${formSurface.badge.base} ${formSurface.badge.brand}`}>
+                Emissão v{report.emissionVersion}
+              </span>
+              {!report.isCurrent ? (
+                <span className={`${formSurface.badge.base} ${formSurface.badge.warning}`}>
+                  Versão anterior
+                </span>
+              ) : null}
+            </div>
+            <p className={`mt-1 ${typography.cardDescription}`}>
+              {report.periodLabel || "Sem período"}
+              {" · "}
+              <time dateTime={report.generatedAt}>{formatReportDate(report.generatedAt)}</time>
+              {" · "}
+              {report.generatedByLabel}
+            </p>
+            <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
+              <div>
+                <dt className={typography.meta}>Processamento</dt>
+                <dd className="mt-0.5 text-slate-700">nº {report.processingVersion}</dd>
+              </div>
+              <div>
+                <dt className={typography.meta}>Política FAMI</dt>
+                <dd className="mt-0.5 text-slate-700">{report.policyVersion}</dd>
+              </div>
+              {report.fileSha256 ? (
+                <div className="min-w-0 sm:col-span-2 lg:col-span-1">
+                  <dt className={typography.meta}>SHA-256</dt>
+                  <dd className="mt-0.5 truncate font-mono text-slate-700" title={report.fileSha256}>
+                    {report.fileSha256.slice(0, 16)}…
+                  </dd>
+                </div>
+              ) : null}
+            </dl>
+            {report.reissueReason ? (
+              <p className={`mt-3 ${typography.auxiliary}`}>
+                Motivo da reemissão: {report.reissueReason}
+              </p>
+            ) : null}
+            {report.outdatedReason ? (
+              <p className="mt-3 text-sm font-medium text-amber-800">{report.outdatedReason}</p>
+            ) : null}
+          </div>
+        </div>
+        <button
+          type="button"
+          className={`${formSurface.secondaryButtonSm} w-full shrink-0 sm:w-auto`}
+          onClick={() => onDownload(report)}
+        >
+          <Download className="h-4 w-4" aria-hidden />
+          Baixar
+        </button>
+      </div>
+    </li>
+  );
+}
 
 export function ReportHistorySection({ controller }: { controller: ReportsController }) {
   const { state, loadHistory, changeHistoryPage, download } = controller;
@@ -15,7 +93,7 @@ export function ReportHistorySection({ controller }: { controller: ReportsContro
     <PanelSection
       title="Histórico de emissões"
       description="Cada versão mantém arquivo, data, autor e motivo próprios. Emissões de diagnósticos reabertos continuam disponíveis apenas como histórico."
-      variant="card"
+      variant="plain"
     >
       {state.historyError ? (
         <AsyncErrorState
@@ -32,62 +110,24 @@ export function ReportHistorySection({ controller }: { controller: ReportsContro
         />
       ) : null}
       {!state.organizationId ? (
-        <p className="text-sm text-slate-500">Selecione uma organização para consultar o histórico.</p>
+        <p className={typography.auxiliary}>Selecione uma organização para consultar o histórico.</p>
       ) : state.loadingHistory ? (
-        <p className="text-sm text-slate-500">Carregando histórico...</p>
+        <p className={typography.auxiliary}>Carregando histórico...</p>
       ) : state.history.length === 0 ? (
-        <p className="text-sm text-slate-500">Nenhuma emissão registrada para este filtro.</p>
+        <EmptyState
+          icon={FileText}
+          title="Nenhuma emissão registrada"
+          description="Não há PDF oficial para o filtro atual. A primeira emissão ocorre no encerramento do diagnóstico."
+        />
       ) : (
         <>
-          <ul className="divide-y divide-slate-100" role="list" aria-label="Histórico de emissões">
+          <ul className="space-y-3" role="list" aria-label="Histórico de emissões">
             {state.history.map((report) => (
-              <li
+              <ReportHistoryItem
                 key={report.id}
-                className="flex flex-col gap-3 py-4 first:pt-0 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="min-w-0">
-                  <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-900">
-                    <FileText className="h-4 w-4 text-slate-400" aria-hidden />
-                    {report.formName}
-                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-2xs font-semibold text-slate-600">
-                      Emissão v{report.emissionVersion}
-                    </span>
-                    <span className="rounded bg-slate-50 px-1.5 py-0.5 text-2xs text-slate-500">
-                      Processamento nº {report.processingVersion}
-                    </span>
-                    <span className="rounded bg-slate-50 px-1.5 py-0.5 text-2xs text-slate-500">
-                      Política FAMI {report.policyVersion}
-                    </span>
-                    {!report.isCurrent ? (
-                      <span className="rounded bg-amber-50 px-1.5 py-0.5 text-2xs font-semibold text-amber-700">
-                        Versão anterior
-                      </span>
-                    ) : null}
-                  </p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    {report.periodLabel || "Sem período"} · {formatReportDate(report.generatedAt)} · {report.generatedByLabel}
-                  </p>
-                  {report.reissueReason ? (
-                    <p className="mt-1 text-xs text-slate-600">Motivo da reemissão: {report.reissueReason}</p>
-                  ) : null}
-                  {report.outdatedReason ? (
-                    <p className="mt-1 text-xs font-medium text-amber-700">{report.outdatedReason}</p>
-                  ) : null}
-                  {report.fileSha256 ? (
-                    <p className="mt-1 font-mono text-2xs text-slate-400" title={report.fileSha256}>
-                      Integridade SHA-256: {report.fileSha256.slice(0, 16)}…
-                    </p>
-                  ) : null}
-                </div>
-                <button
-                  type="button"
-                  className={`${formSurface.secondaryButtonSm} shrink-0`}
-                  onClick={() => void download(report)}
-                >
-                  <Download className="h-3.5 w-3.5" aria-hidden />
-                  Baixar
-                </button>
-              </li>
+                report={report}
+                onDownload={(item) => void download(item)}
+              />
             ))}
           </ul>
           {state.historyTotal > REPORT_HISTORY_PAGE_SIZE ? (
@@ -95,7 +135,7 @@ export function ReportHistorySection({ controller }: { controller: ReportsContro
               className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4"
               aria-label="Paginação do histórico de emissões"
             >
-              <p className="text-xs text-slate-500">
+              <p className={typography.meta}>
                 Exibindo {Math.min(state.historyOffset + 1, state.historyTotal)}–{Math.min(state.historyOffset + REPORT_HISTORY_PAGE_SIZE, state.historyTotal)} de {state.historyTotal} emissões
               </p>
               <div className="flex gap-2">

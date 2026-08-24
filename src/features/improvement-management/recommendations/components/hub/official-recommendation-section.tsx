@@ -2,6 +2,7 @@
 
 import { ClipboardCopy } from "lucide-react";
 import { notify } from "@/infrastructure/notifications/notify";
+import { copyTextToClipboard } from "@/shared/browser/clipboard";
 import { getAxisTheme } from "@/shared/theme/axis-theme";
 import {
   OverviewBlockTitle,
@@ -23,12 +24,12 @@ export function OfficialRecommendationSection({
   const theme = getAxisTheme(axisName);
 
   async function copyRecommendation() {
-    try {
-      await navigator.clipboard.writeText(recommendationText);
+    const copied = await copyTextToClipboard(text);
+    if (copied) {
       notify.success("Texto copiado.");
-    } catch {
-      notify.error("Não foi possível copiar.");
+      return;
     }
+    notify.error("Não foi possível copiar.");
   }
 
   return (

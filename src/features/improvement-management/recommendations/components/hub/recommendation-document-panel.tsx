@@ -6,6 +6,7 @@ import { PanelSection } from "@/shared/ui/components/panel-section";
 import { formSurface } from "@/shared/layout/form-surface";
 import { layout } from "@/shared/layout/design-system";
 import { notify } from "@/infrastructure/notifications/notify";
+import { copyTextToClipboard } from "@/shared/browser/clipboard";
 import { recommendationTypeLabel } from "@/shared/ui/status-registry";
 import { OverviewContentBlock } from "./overview-content-block";
 import { useRecommendationDetailContext } from "./recommendation-detail-context";
@@ -22,12 +23,12 @@ export function RecommendationDocumentPanel() {
   if (!row) return null;
 
   async function copyRecommendation() {
-    try {
-      await navigator.clipboard.writeText(row?.recommendationText ?? "");
+    const copied = await copyTextToClipboard(row?.recommendationText?.trim() || "");
+    if (copied) {
       notify.success("Texto copiado.");
-    } catch {
-      notify.error("Não foi possível copiar.");
+      return;
     }
+    notify.error("Não foi possível copiar.");
   }
 
   return (

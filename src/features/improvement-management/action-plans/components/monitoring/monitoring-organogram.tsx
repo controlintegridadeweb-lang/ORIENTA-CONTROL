@@ -1,57 +1,103 @@
 "use client";
 
+import type { ReactNode } from "react";
 import type { ActionPlanAction } from "@/features/improvement-management/action-plans/domain-model";
 import { PLAN_STATUS_LABELS } from "@/features/improvement-management/action-plans/components/shared/plan-status-badge";
-import { getAxisTheme } from "@/shared/theme/axis-theme";
+import { getAxisTheme, type AxisTheme } from "@/shared/theme/axis-theme";
 import { PanelSection } from "@/shared/ui/components/panel-section";
-import { typography } from "@/shared/layout/design-system";
 
-function Connector() {
+const CONNECTOR = "#94a3b8";
+const ACTION_BORDER = "#334155";
+
+function Stem() {
   return (
-    <div className="flex h-7 justify-center" aria-hidden>
-      <span className="w-px bg-slate-300" />
-    </div>
+    <div
+      className="h-8 w-px shrink-0"
+      style={{ backgroundColor: CONNECTOR }}
+      aria-hidden
+    />
   );
 }
 
-function HierarchyNode({
+function ChartNode({
+  node,
   label,
   title,
-  accentColor,
-  backgroundColor = "#ffffff",
-  borderColor = "#e2e8f0",
+  shape,
+  backgroundColor,
+  inverse,
 }: {
+  node: "eixo" | "secao" | "recomendacao";
   label: string;
   title: string;
-  accentColor: string;
-  backgroundColor?: string;
-  borderColor?: string;
+  shape: "capsule" | "rounded";
+  backgroundColor: string;
+  inverse: boolean;
 }) {
   return (
     <article
-      className="relative mx-auto w-full max-w-3xl overflow-hidden rounded-xl border px-5 py-4 text-left sm:px-6"
-      style={{ backgroundColor, borderColor }}
+      data-node={node}
+      title={title}
+      className={`px-6 py-3 text-center ${
+        shape === "capsule"
+          ? "w-fit min-w-[11rem] max-w-xs rounded-full"
+          : "w-80 rounded-xl sm:w-96"
+      } ${inverse ? "text-white" : "text-slate-800"}`}
+      style={{ backgroundColor }}
     >
+      <p className={`text-xs font-medium leading-snug ${inverse ? "text-white" : "text-slate-500"}`}>
+        {label}
+      </p>
+      <p className="mt-0.5 truncate text-base font-semibold leading-snug">{title}</p>
+    </article>
+  );
+}
+
+function BranchItem({
+  index,
+  total,
+  children,
+}: {
+  index: number;
+  total: number;
+  children: ReactNode;
+}) {
+  const isFirst = index === 0;
+  const isLast = index === total - 1;
+  const isOnly = total === 1;
+
+  return (
+    <li className="relative flex shrink-0 flex-col px-3 pt-8">
       <span
-        className="absolute inset-y-0 left-0 w-1"
-        style={{ backgroundColor: accentColor }}
+        className="absolute left-1/2 top-0 h-8 w-px -translate-x-1/2"
+        style={{ backgroundColor: CONNECTOR }}
         aria-hidden
       />
-      <p className={typography.contextLabel}>{label}</p>
-      <p className={`mt-1 ${typography.cardTitle}`} title={title}>
-        {title}
-      </p>
-    </article>
+      {isOnly ? null : (
+        <span
+          className="absolute top-0 h-px"
+          style={{
+            backgroundColor: CONNECTOR,
+            left: isFirst ? "50%" : 0,
+            right: isLast ? "50%" : 0,
+          }}
+          aria-hidden
+        />
+      )}
+      {children}
+    </li>
   );
 }
 
 function ActionNode({
   plan,
   selected,
+  accentColor,
   onSelect,
 }: {
   plan: ActionPlanAction;
   selected: boolean;
+  accentColor: string;
   onSelect: (planId: string) => void;
 }) {
   const overdue = plan.slaLabel === "overdue" && plan.status !== "cancelled";
@@ -61,30 +107,131 @@ function ActionNode({
   return (
     <button
       type="button"
+      data-node="acao"
       aria-pressed={selected}
       onClick={() => onSelect(plan.id)}
       title={plan.actionText}
-      className={`w-full rounded-xl border p-4 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
-        selected
-          ? "border-brand-300 bg-brand-50/70 ring-2 ring-brand/15"
-          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60"
-      }`}
+      className="flex h-full w-44 flex-col rounded-xl border bg-white p-3.5 text-left transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+      style={{ borderColor: selected ? accentColor : ACTION_BORDER }}
     >
-      <span className={typography.contextLabel}>Ação</span>
-      <span className={`mt-1.5 block line-clamp-3 ${typography.cardTitle}`}>
+      <span className="block text-xs font-medium leading-snug text-slate-500">Ação</span>
+      <span className="mt-1.5 line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-slate-800">
         {plan.actionText}
       </span>
-      <span className="mt-3 block text-xs font-medium tabular-nums text-slate-600">
+      <span className="mt-auto block pt-2.5 text-xs font-medium tabular-nums text-slate-600">
         {plan.progressPercentage}% · {PLAN_STATUS_LABELS[plan.status]}
       </span>
       {sla ? (
-        <span className={`mt-1 block text-xs ${overdue ? "font-medium text-rose-700" : "text-amber-700"}`}>
+        <span className={`mt-1 block min-h-4 text-xs ${overdue ? "font-medium text-rose-700" : "text-amber-700"}`}>
           {sla}
         </span>
       ) : (
-        <span className="mt-1 block text-xs text-slate-400">Prazo regular</span>
+        <span className="mt-1 block min-h-4 text-xs text-slate-400">Prazo regular</span>
       )}
     </button>
+  );
+}
+
+function ActionBranch({
+  plans,
+  selectedPlanId,
+  accentColor,
+  onSelectAction,
+}: {
+  plans: ActionPlanAction[];
+  selectedPlanId: string | null;
+  accentColor: string;
+  onSelectAction: (planId: string) => void;
+}) {
+  return (
+    <ul className="flex items-stretch justify-center" role="list">
+      {plans.map((plan, index) => (
+        <BranchItem key={plan.id} index={index} total={plans.length}>
+          <ActionNode
+            plan={plan}
+            selected={plan.id === selectedPlanId}
+            accentColor={accentColor}
+            onSelect={onSelectAction}
+          />
+        </BranchItem>
+      ))}
+    </ul>
+  );
+}
+
+function OrganogramTree({
+  axis,
+  section,
+  recommendation,
+  theme,
+  plans,
+  selectedPlanId,
+  onSelectAction,
+}: {
+  axis: string;
+  section: string;
+  recommendation: string;
+  theme: AxisTheme;
+  plans: ActionPlanAction[];
+  selectedPlanId: string | null;
+  onSelectAction: (planId: string) => void;
+}) {
+  return (
+    <div
+      className="mx-auto flex w-max min-w-full flex-col items-center"
+      data-layout="organogram-tree"
+    >
+      {axis ? (
+        <>
+          <ChartNode
+            node="eixo"
+            label="Eixo"
+            title={axis}
+            shape="capsule"
+            backgroundColor={theme.strong}
+            inverse
+          />
+          {section || recommendation ? <Stem /> : null}
+        </>
+      ) : null}
+
+      {section ? (
+        <>
+          <ChartNode
+            node="secao"
+            label="Seção"
+            title={section}
+            shape="rounded"
+            backgroundColor={theme.primary}
+            inverse
+          />
+          <Stem />
+        </>
+      ) : null}
+
+      <ChartNode
+        node="recomendacao"
+        label="Recomendação"
+        title={recommendation}
+        shape="rounded"
+        backgroundColor={theme.tint}
+        inverse={false}
+      />
+
+      {plans.length > 0 ? (
+        <>
+          <Stem />
+          <ActionBranch
+            plans={plans}
+            selectedPlanId={selectedPlanId}
+            accentColor={theme.primary}
+            onSelectAction={onSelectAction}
+          />
+        </>
+      ) : (
+        <p className="mt-5 text-center text-sm text-slate-500">Nenhuma ação vinculada.</p>
+      )}
+    </div>
   );
 }
 
@@ -118,66 +265,17 @@ export function MonitoringOrganogram({
     >
       <figure
         aria-label={`Árvore de problemas e soluções: ${[axis, section, recommendation].filter(Boolean).join(" → ")} → ${plans.length} ação(ões)`}
-        className="rounded-xl bg-slate-50/50 px-3 py-5 sm:px-5 sm:py-6"
+        className="overflow-x-auto rounded-xl bg-slate-50/50 px-3 py-6 sm:px-5 sm:py-8"
       >
-        <div className="mx-auto max-w-5xl">
-          {axis ? (
-            <>
-              <HierarchyNode
-                label="Eixo"
-                title={axis}
-                accentColor={theme.primary}
-                backgroundColor={theme.softBackground}
-                borderColor={theme.border}
-              />
-              <Connector />
-            </>
-          ) : null}
-
-          {section ? (
-            <>
-              <HierarchyNode
-                label="Seção"
-                title={section}
-                accentColor={theme.primary}
-                backgroundColor="#ffffff"
-              />
-              <Connector />
-            </>
-          ) : null}
-
-          <HierarchyNode
-            label="Recomendação"
-            title={recommendation}
-            accentColor={theme.primary}
-            backgroundColor="#ffffff"
-          />
-
-          {plans.length > 0 ? (
-            <>
-              <Connector />
-              <div data-layout={plans.length > 2 ? "wrapped-actions" : "actions"}>
-                {plans.length > 2 ? (
-                  <p className="mb-3 text-center text-xs font-medium text-slate-500">
-                    {plans.length} ações vinculadas
-                  </p>
-                ) : null}
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                  {plans.map((plan) => (
-                    <ActionNode
-                      key={plan.id}
-                      plan={plan}
-                      selected={plan.id === selectedPlanId}
-                      onSelect={onSelectAction}
-                    />
-                  ))}
-                </div>
-              </div>
-            </>
-          ) : (
-            <p className="mt-5 text-center text-sm text-slate-500">Nenhuma ação vinculada.</p>
-          )}
-        </div>
+        <OrganogramTree
+          axis={axis}
+          section={section}
+          recommendation={recommendation}
+          theme={theme}
+          plans={plans}
+          selectedPlanId={selectedPlanId}
+          onSelectAction={onSelectAction}
+        />
       </figure>
     </PanelSection>
   );
