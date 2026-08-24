@@ -67,7 +67,8 @@ describe("ReportHistorySection", () => {
 
     expect(screen.getByRole("heading", { name: "Histórico de emissões" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "teste" })).toBeTruthy();
-    expect(screen.getByText("Emissão v1")).toBeTruthy();
+    expect(screen.getByText("Emissão")).toBeTruthy();
+    expect(screen.getByText("v1")).toBeTruthy();
     expect(screen.getByText("Processamento")).toBeTruthy();
     expect(screen.getByText("nº 1")).toBeTruthy();
     expect(screen.getByText("Política FAMI")).toBeTruthy();

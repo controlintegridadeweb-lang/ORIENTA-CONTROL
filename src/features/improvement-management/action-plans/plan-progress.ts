@@ -1,8 +1,12 @@
 import type { PlanStatus } from "./schemas";
 
 /** Texto institucional que explica o cálculo consolidado do progresso. */
-export const PLAN_PROGRESS_CALCULATION_HINT =
-  "O progresso do plano corresponde à média dos percentuais informados nas ações ativas. A situação de cada ação é definida automaticamente: 0% não iniciada, de 1% a 99% em andamento e 100% concluída. O percentual de cada ação só avança. Ações canceladas não entram no cálculo.";
+export const PLAN_PROGRESS_CALCULATION_LEAD = "Como interpretar o progresso";
+
+export const PLAN_PROGRESS_CALCULATION_BODY =
+  "O percentual geral é a média do progresso das ações ativas. Cada ação é classificada automaticamente como não iniciada (0%), em andamento (1% a 99%) ou concluída (100%). O progresso não pode diminuir, e ações canceladas não entram no cálculo.";
+
+export const PLAN_PROGRESS_CALCULATION_HINT = `${PLAN_PROGRESS_CALCULATION_LEAD}: ${PLAN_PROGRESS_CALCULATION_BODY}`;
 
 export const PROGRESS_PERCENTAGE_CANNOT_DECREASE = "progress_percentage_cannot_decrease";
 

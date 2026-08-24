@@ -161,6 +161,8 @@ export function toRespondentItem(row: ActionPlanListItem): RespondentRecommendat
 }
 
 export {
+  PLAN_PROGRESS_CALCULATION_BODY,
   PLAN_PROGRESS_CALCULATION_HINT,
+  PLAN_PROGRESS_CALCULATION_LEAD,
   progressFromPlan,
 } from "@/features/improvement-management/action-plans/plan-progress";

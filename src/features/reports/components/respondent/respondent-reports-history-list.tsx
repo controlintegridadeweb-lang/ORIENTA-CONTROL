@@ -1,12 +1,11 @@
 "use client";
 
-import { typography } from "@/shared/layout/design-system";
-
 import { formatPlatformDateTime } from "@/shared/datetime/platform-date-time";
 import Link from "next/link";
 import { Download, Eye, FileText, History, Share2 } from "lucide-react";
 import type { RespondentReportHistoryRow } from "@/features/reports/ui/respondent-presentation";
-import { REPORT_KIND_META } from "@/features/reports/ui/respondent-presentation";
+import { formSurface } from "@/shared/layout/form-surface";
+import { typography } from "@/shared/layout/design-system";
 import { RespondentReportsEmptyState } from "./respondent-reports-empty-state";
 
 const ACTION_BTN =
@@ -16,18 +15,6 @@ function formatWhen(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Data não informada";
   return formatPlatformDateTime(date, { dateStyle: "medium", timeStyle: "short" });
-}
-
-function HistoryStatusBadge({ outdated }: { outdated: boolean }) {
-  return outdated ? (
-    <span className="rounded-md bg-amber-50 px-2 py-0.5 text-2xs font-semibold uppercase tracking-wide text-amber-700 ring-1 ring-amber-100">
-      Versão anterior
-    </span>
-  ) : (
-    <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-2xs font-semibold uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-100">
-      Atual
-    </span>
-  );
 }
 
 type Props = {
@@ -50,53 +37,68 @@ function HistoryReportRow({
   onPreview: () => void;
   onShare: () => void;
 }) {
-  const kindLabel = REPORT_KIND_META[row.reportKind].label;
-
   return (
-    <li className="group rounded-xl border border-slate-200/80 bg-white p-4 shadow-card transition-[border-color,box-shadow] hover:border-slate-300/90 hover:shadow-card-hover sm:p-5">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-5">
-        <div className="min-w-0 flex-1 space-y-2">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-            <FileText className="h-4 w-4 text-slate-400" aria-hidden />
-            <h3 className={typography.cardTitle}>{row.formName}</h3>
-            <span className="rounded-md bg-slate-100 px-2 py-0.5 text-2xs font-semibold uppercase tracking-wide text-slate-600">
-              {kindLabel}
-            </span>
-            <span className="rounded-md bg-slate-50 px-2 py-0.5 text-2xs font-medium text-slate-500 ring-1 ring-slate-200/80">
-              PDF
-            </span>
-            <HistoryStatusBadge outdated={outdated} />
-          </div>
-
-          <p className="text-xs leading-relaxed text-slate-500">
-            <time dateTime={row.generatedAt} className="font-medium text-slate-600">
-              {formatWhen(row.generatedAt)}
-            </time>
-            <span className="mx-1.5 text-slate-300" aria-hidden>·</span>
-            {row.periodLabel}
-            <span className="mx-1.5 text-slate-300" aria-hidden>·</span>
-            Emissão v{row.emissionVersion} · Processamento nº {row.processingVersion} · Política FAMI {row.policyVersion}
-            {row.formTemplateVersion != null ? (
-              <>
-                <span className="mx-1.5 text-slate-300" aria-hidden>·</span>
-                Template v{row.formTemplateVersion}
-              </>
-            ) : null}
-            <span className="mx-1.5 text-slate-300" aria-hidden>·</span>
-            {row.generatedByLabel}
-          </p>
-          {row.outdatedReason ? (
-            <p className="text-xs font-medium text-amber-700">{row.outdatedReason}</p>
-          ) : null}
-          {row.fileSha256 ? (
-            <p className="font-mono text-2xs text-slate-400" title={row.fileSha256}>
-              SHA-256: {row.fileSha256.slice(0, 16)}…
+    <li className={`${formSurface.entityListCard} p-4 sm:p-5`}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 flex-1 items-start gap-4">
+          <span
+            className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800"
+            aria-hidden
+          >
+            <FileText className="h-5 w-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className={typography.cardTitle}>{row.formName}</h3>
+              {outdated ? (
+                <span className={`${formSurface.badge.base} ${formSurface.badge.warning}`}>
+                  Versão anterior
+                </span>
+              ) : null}
+            </div>
+            <p className={`mt-1 ${typography.cardDescription}`}>
+              <time dateTime={row.generatedAt}>{formatWhen(row.generatedAt)}</time>
+              {" · "}
+              {row.periodLabel}
+              {" · "}
+              {row.generatedByLabel}
             </p>
-          ) : null}
+            <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <dt className={typography.meta}>Emissão</dt>
+                <dd className="mt-0.5 text-slate-700">v{row.emissionVersion}</dd>
+              </div>
+              <div>
+                <dt className={typography.meta}>Processamento</dt>
+                <dd className="mt-0.5 text-slate-700">nº {row.processingVersion}</dd>
+              </div>
+              <div>
+                <dt className={typography.meta}>Política FAMI</dt>
+                <dd className="mt-0.5 text-slate-700">{row.policyVersion}</dd>
+              </div>
+              {row.formTemplateVersion != null ? (
+                <div>
+                  <dt className={typography.meta}>Template</dt>
+                  <dd className="mt-0.5 text-slate-700">v{row.formTemplateVersion}</dd>
+                </div>
+              ) : null}
+              {row.fileSha256 ? (
+                <div className="min-w-0 sm:col-span-2 lg:col-span-4">
+                  <dt className={typography.meta}>SHA-256</dt>
+                  <dd className="mt-0.5 truncate font-mono text-slate-700" title={row.fileSha256}>
+                    {row.fileSha256.slice(0, 16)}…
+                  </dd>
+                </div>
+              ) : null}
+            </dl>
+            {row.outdatedReason ? (
+              <p className="mt-3 text-sm font-medium text-amber-800">{row.outdatedReason}</p>
+            ) : null}
+          </div>
         </div>
 
         <div
-          className="flex shrink-0 flex-wrap items-center gap-1 border-t border-slate-100 pt-3 lg:border-t-0 lg:pt-0"
+          className="flex shrink-0 flex-wrap items-center gap-1 sm:pt-1"
           role="toolbar"
           aria-label={`Ações para ${row.formName}`}
         >
@@ -114,14 +116,18 @@ function HistoryReportRow({
           </button>
         </div>
       </div>
-      <nav className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-3" aria-label={`Abrir versão do relatório ${row.formName}`}>
+
+      <nav
+        className="mt-4 border-t border-slate-100 pt-3"
+        aria-label={`Abrir versão do relatório ${row.formName}`}
+      >
         <Link
           href={`/respondente/relatorios/${encodeURIComponent(row.id)}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-700 hover:underline"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-800 hover:underline"
         >
-          <History className="h-3.5 w-3.5" aria-hidden />
+          <History className="h-4 w-4" aria-hidden />
           Abrir emissão imutável em nova aba
         </Link>
       </nav>

@@ -29,9 +29,6 @@ function ReportHistoryItem({
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className={typography.cardTitle}>{report.formName}</h3>
-              <span className={`${formSurface.badge.base} ${formSurface.badge.brand}`}>
-                Emissão v{report.emissionVersion}
-              </span>
               {!report.isCurrent ? (
                 <span className={`${formSurface.badge.base} ${formSurface.badge.warning}`}>
                   Versão anterior
@@ -45,7 +42,11 @@ function ReportHistoryItem({
               {" · "}
               {report.generatedByLabel}
             </p>
-            <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
+            <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <dt className={typography.meta}>Emissão</dt>
+                <dd className="mt-0.5 text-slate-700">v{report.emissionVersion}</dd>
+              </div>
               <div>
                 <dt className={typography.meta}>Processamento</dt>
                 <dd className="mt-0.5 text-slate-700">nº {report.processingVersion}</dd>

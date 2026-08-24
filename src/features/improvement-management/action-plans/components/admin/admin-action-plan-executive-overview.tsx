@@ -2,18 +2,22 @@
 
 import Link from "next/link";
 import { countLabel } from "@/shared/format/count-label";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import { AlertTriangle, ChevronRight, RefreshCw } from "lucide-react";
 import { MetricCard } from "@/shared/ui/components/metric-card";
 import { PanelSection } from "@/shared/ui/components/panel-section";
 import { AdminActionPlanProgress } from "@/features/improvement-management/action-plans/components/admin/admin-action-plan-progress";
 import { computeActionPlanMetrics } from "@/features/improvement-management/action-plans/plan-metrics";
-import { PLAN_PROGRESS_CALCULATION_HINT } from "@/features/improvement-management/recommendations/respondent-presentation";
+import {
+  PLAN_PROGRESS_CALCULATION_BODY,
+  PLAN_PROGRESS_CALCULATION_LEAD,
+} from "@/features/improvement-management/recommendations/respondent-presentation";
 import { recommendationTypeLabel } from "@/shared/ui/status-registry";
 import { adminPlanoAcaoDetailHref } from "@/shared/navigation/admin-paths";
 import { formSurface } from "@/shared/layout/form-surface";
 import { layout, typography } from "@/shared/layout/design-system";
+import { AxisBadge } from "@/shared/ui/components/axis-badge";
 import { useRecommendationDetailContext } from "@/features/improvement-management/recommendations/components/hub/recommendation-detail-context";
 import { formatLocalDate } from "@/shared/datetime/business-date";
 import { describeError } from "@/infrastructure/notifications/notify";
@@ -28,6 +32,15 @@ import {
 } from "@/shared/navigation/admin-navigation-context";
 
 const PANEL = `${formSurface.dashboardPanel} ${formSurface.dashboardPanelPadding}`;
+
+function OverviewField({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="min-w-0">
+      <dt className={formSurface.label}>{label}</dt>
+      <dd className="mt-1.5 text-sm leading-relaxed text-slate-800">{value}</dd>
+    </div>
+  );
+}
 
 function completionBlockLabel(block: ActionPlanCompletionBlock): string {
   const base = (() => {
@@ -133,7 +146,6 @@ export function AdminActionPlanExecutiveOverview() {
 
   const summaryText = buildInstitutionalSummary(progress, stats, adminItem.hasPlan);
   const pendingCount = Math.max(0, stats.active - stats.completed);
-  const fieldLabel = typography.fieldLabel;
 
   return (
     <div className={layout.panelStack}>
@@ -141,54 +153,50 @@ export function AdminActionPlanExecutiveOverview() {
         title="Resumo do plano"
         description="Progresso consolidado e dados institucionais da execução."
         variant="plain"
-        actions={
-          <div className="text-right">
-            <p className={typography.metricLabel}>Progresso consolidado</p>
-            <p className={`mt-1.5 ${typography.metricValueCompact}`}>{progress}%</p>
-          </div>
-        }
       >
-        <div className={`${PANEL} space-y-4`}>
-          <AdminActionPlanProgress value={progress} overdue={overdue} size="sm" showLabel={false} />
-          <p className="text-xs leading-relaxed text-slate-600">{PLAN_PROGRESS_CALCULATION_HINT}</p>
+        <div className={`${PANEL} space-y-5`}>
+          <div className="space-y-3">
+            <div>
+              <p className={typography.metricLabel}>Progresso consolidado</p>
+              <p className={`mt-1 ${typography.metricValueCompact}`}>{progress}%</p>
+            </div>
+            <AdminActionPlanProgress value={progress} overdue={overdue} size="sm" showLabel={false} />
+            <p className="text-sm leading-relaxed text-slate-600">
+              <span className="font-medium text-slate-800">{PLAN_PROGRESS_CALCULATION_LEAD}: </span>
+              {PLAN_PROGRESS_CALCULATION_BODY}
+            </p>
+          </div>
 
-          <dl className="grid gap-3 border-t border-slate-200 pt-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
-            <div>
-              <dt className={fieldLabel}>Organização</dt>
-              <dd className="mt-0.5 text-slate-800">{row.organizationName}</dd>
-            </div>
-            <div>
-              <dt className={fieldLabel}>Formulário</dt>
-              <dd className="mt-0.5 text-slate-800">
-                {row.formName}
-                <span className="tabular-nums text-slate-400"> v{adminItem.formVersion}</span>
-              </dd>
-            </div>
-            <div>
-              <dt className={fieldLabel}>Eixo</dt>
-              <dd className="mt-0.5 text-slate-800">{row.axisName || "—"}</dd>
-            </div>
-            <div>
-              <dt className={fieldLabel}>Início</dt>
-              <dd className="mt-0.5 text-slate-800">
-                {formatLocalDate(adminItem.startDate)}
-              </dd>
-            </div>
-            <div>
-              <dt className={fieldLabel}>Final</dt>
-              <dd className="mt-0.5 text-slate-800">
-                {formatLocalDate(adminItem.dueDate)}
-                {overdue ? (
-                  <span className="ml-1.5 text-xs font-semibold text-rose-700">Atrasado</span>
-                ) : null}
-              </dd>
-            </div>
-            <div>
-              <dt className={fieldLabel}>Responsável</dt>
-              <dd className="mt-0.5 text-slate-800">
-                {adminItem.responsibleName || "Não definido"}
-              </dd>
-            </div>
+          <dl className="grid gap-x-8 gap-y-6 border-t border-slate-200/80 pt-5 sm:grid-cols-2 lg:grid-cols-3">
+            <OverviewField label="Organização" value={row.organizationName} />
+            <OverviewField
+              label="Formulário"
+              value={
+                <>
+                  {row.formName}
+                  <span className="tabular-nums text-slate-500"> v{adminItem.formVersion}</span>
+                </>
+              }
+            />
+            <OverviewField
+              label="Eixo"
+              value={
+                row.axisName ? (
+                  <AxisBadge axisName={row.axisName} prefix={false} />
+                ) : (
+                  "—"
+                )
+              }
+            />
+            <OverviewField label="Início" value={formatLocalDate(adminItem.startDate)} />
+            <OverviewField
+              label="Final"
+              value={<span className="tabular-nums">{formatLocalDate(adminItem.dueDate)}</span>}
+            />
+            <OverviewField
+              label="Responsável"
+              value={adminItem.responsibleName || "Não definido"}
+            />
           </dl>
         </div>
       </PanelSection>

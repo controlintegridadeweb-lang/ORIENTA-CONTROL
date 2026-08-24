@@ -8,11 +8,17 @@ type TableFrameProps = {
   children: ReactNode;
 };
 
-/** Tabela operacional neutra: a cor comunica status/eixo nos dados, não na moldura. */
+/** Células de texto longo com limite visual para não invadir colunas vizinhas. */
+export const adminMonitoringTableTextCell = `${formSurface.brandTable.cell} max-w-56 align-middle`;
+
+export const adminMonitoringTableClamp =
+  "line-clamp-2 break-words [overflow-wrap:anywhere]";
+
+/** Tabela institucional de monitoramento (mesmo desenho de formulários/evidências). */
 export function AdminMonitoringTableFrame({ minWidthClassName, children }: TableFrameProps) {
   return (
-    <div className={formSurface.table.wrapper}>
-      <table className={`${formSurface.table.table} ${minWidthClassName}`}>{children}</table>
+    <div className={formSurface.brandTable.wrapper}>
+      <table className={`${formSurface.brandTable.table} ${minWidthClassName}`}>{children}</table>
     </div>
   );
 }
