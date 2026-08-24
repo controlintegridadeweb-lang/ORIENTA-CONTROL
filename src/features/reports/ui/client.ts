@@ -245,15 +245,28 @@ async function generateOfficialReportPdf(payload: {
 
 /** Busca um PDF já persistido por uma rota autenticada, sem emitir nova versão. */
 export async function fetchPersistedReportPdf(downloadPath: string): Promise<Blob> {
-  const response = await fetch(downloadPath, {
+  // A rota responde 307 para URL assinada no Storage. `fetch` com credentials/headers
+  // não pode seguir esse redirect: o pedido cross-origin quebra ou trava no CORS.
+  const signed = await fetch(downloadPath, {
     credentials: "include",
-    headers: buildHeaders(),
+    redirect: "manual",
   });
-  if (!response.ok) {
-    const body = await parseErrorResponse(response);
+  if (signed.status >= 300 && signed.status < 400) {
+    const location = signed.headers.get("Location");
+    if (!location) {
+      throw new Error("Não foi possível obter o PDF oficial.");
+    }
+    const fileResponse = await fetch(location);
+    if (!fileResponse.ok) {
+      throw new Error("Não foi possível obter o PDF oficial.");
+    }
+    return fileResponse.blob();
+  }
+  if (!signed.ok) {
+    const body = await parseErrorResponse(signed);
     throw new Error(formatError(body, "Não foi possível obter o PDF oficial."));
   }
-  return response.blob();
+  return signed.blob();
 }
 
 export function downloadPdfBlob(blob: Blob, filename = "relatorio-orienta.pdf"): void {
@@ -265,7 +278,8 @@ export function downloadPdfBlob(blob: Blob, filename = "relatorio-orienta.pdf"):
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-  window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 0);
+  // O navegador precisa da blob URL até iniciar o download; revogar no próximo tick abortava o evento.
+  window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 60_000);
 }
 
 export async function generateAndDownloadOfficialReport(payload: {
