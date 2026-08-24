@@ -77,14 +77,14 @@
     "data:repair-2026-manual-validation": "node scripts/maintenance/repair-2026-manual-validation.mjs"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.10.2",
+    "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.103.3",
     "geist": "^1.7.2",
     "lucide-react": "^1.8.0",
     "next": "16.3.2",
     "pdf-lib": "^1.17.1",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "server-only": "0.0.1",
     "sonner": "^2.0.7",
     "write-excel-file": "^4.1.1",
