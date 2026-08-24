@@ -517,7 +517,10 @@ export async function respondentCorrectsAndAdminCloses(
   await expect(page.getByText(/Relatório disponível/i).first()).toBeVisible();
   await expect(page.getByText(/Emissão v1/i).first()).toBeVisible();
   const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Baixar" }).first().click();
+  await page
+    .getByRole("list", { name: "Histórico de emissões" })
+    .getByRole("button", { name: "Baixar", exact: true })
+    .click();
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toMatch(/^relatorio-orienta-.*-emissao-1-.*\.pdf$/);
   await logout(page);
