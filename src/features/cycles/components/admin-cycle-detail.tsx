@@ -14,6 +14,7 @@ import {
 import { adminFamiPath } from "@/shared/navigation/fami-paths";
 import { queryPath } from "@/shared/navigation/query-path";
 import { PageHeader } from "@/shared/ui/components/page-header";
+import { countLabel } from "@/shared/format/count-label";
 import type { ReportLifecycleStatus } from "@/shared/domain/report-lifecycle";
 
 function validationNotice(flag: string | undefined): string | null {
@@ -72,6 +73,12 @@ export function AdminCycleDetail({
         <ContextItem label="Diagnóstico" value={cycle.formName} />
         <ContextItem label="Período" value={cycle.periodLabel} />
         <ContextItem label="Situação" value={ADMIN_CYCLE_STATE_LABEL[cycle.state]} />
+        {cycle.reopenCount > 0 ? (
+          <ContextItem
+            label="Reaberturas"
+            value={countLabel(cycle.reopenCount, "reabertura", "reaberturas")}
+          />
+        ) : null}
       </dl>
 
       {cycle.responseDeadlineAt ? (

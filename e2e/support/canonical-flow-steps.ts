@@ -533,7 +533,10 @@ export async function completedCycleBlocksAndReopens(
   await page.getByLabel("Novo prazo de resposta").fill(futureFortalezaDateTimeInput(7));
   await clickWithPlatformConfirm(page, "Reabrir diagnóstico");
   await expectAdminCycleState(page, /Em preenchimento|Em resposta/);
-  await expect(page.getByText(/Reaberturas/i)).toBeVisible();
+  const reopenField = page.locator("dl > div").filter({
+    has: page.locator("dt", { hasText: /^Reaberturas$/ }),
+  });
+  await expect(reopenField.locator("dd")).toHaveText("1 reabertura");
   await logout(page);
 
   await loginAs(page, "respondent");
