@@ -1,5 +1,9 @@
 import { hasDatabaseErrorCode } from "@/infrastructure/supabase/database-error";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  canInvokeLocalDatabaseRpc,
+  invokeLocalDatabaseRpc,
+} from "@/infrastructure/supabase/local-database-rpc";
 import { z } from "zod";
 import { adminProofStatusSchema } from "@/shared/domain/admin-proof-status";
 import { isEvidenceRequired } from "@/shared/domain/evidence-parameter";
@@ -143,15 +147,11 @@ const QUESTION_NOT_IN_REOPEN_SCOPE_MESSAGE =
  * Não chamar a função privada via `supabase.rpc`: ela não existe no schema público e o
  * PostgREST responde PGRST202, mascarado na UI como “recurso temporariamente indisponível”.
  */
-export function mapApplyWorkbenchResponseError(error: {
-  message?: string | null;
-  details?: string | null;
-}): SaveFailure | null {
-  const message = `${error.message ?? ""} ${error.details ?? ""}`;
-  if (hasDatabaseErrorCode(message, "response_revision_conflict")) {
+export function mapApplyWorkbenchResponseError(error: unknown): SaveFailure | null {
+  if (hasDatabaseErrorCode(error, "response_revision_conflict")) {
     return { ok: false, status: 409, error: RESPONSE_REVISION_CONFLICT_MESSAGE };
   }
-  if (hasDatabaseErrorCode(message, "question_not_in_reopen_scope")) {
+  if (hasDatabaseErrorCode(error, "question_not_in_reopen_scope")) {
     return { ok: false, status: 409, error: QUESTION_NOT_IN_REOPEN_SCOPE_MESSAGE };
   }
   return null;
@@ -283,6 +283,56 @@ function linkReasonFromRequest(
   >,
 ): string {
   return evidence.description.trim() || evidence.title.trim() || EVIDENCE_LINK_REASON_FALLBACK;
+}
+
+type ApplyWorkbenchRpcResult = {
+  data: unknown;
+  error: unknown;
+};
+
+async function invokeApplyWorkbenchResponse(
+  supabase: SupabaseClient,
+  args: {
+    cycleId: string;
+    actorUserId: string;
+    questionVersionId: string;
+    answer: WorkbenchResponseBody["answer"];
+    notes: string | null;
+    expectedRevision: number | null | undefined;
+    evidence: ReturnType<typeof evidencePayload>[] | null;
+  },
+): Promise<ApplyWorkbenchRpcResult> {
+  if (canInvokeLocalDatabaseRpc()) {
+    try {
+      const row = await invokeLocalDatabaseRpc<{ result: unknown }>(
+        `select public.apply_workbench_response(
+           $1::uuid, $2::uuid, $3::uuid, $4::public.answer_value, $5::text, $6::bigint, $7::jsonb
+         ) as result`,
+        [
+          args.cycleId,
+          args.actorUserId,
+          args.questionVersionId,
+          args.answer,
+          args.notes,
+          args.expectedRevision ?? null,
+          args.evidence ? JSON.stringify(args.evidence) : null,
+        ],
+      );
+      return { data: row.result, error: null };
+    } catch (caught) {
+      return { data: null, error: caught };
+    }
+  }
+
+  return supabase.rpc("apply_workbench_response", {
+    p_cycle_id: args.cycleId,
+    p_actor_user_id: args.actorUserId,
+    p_question_version_id: args.questionVersionId,
+    p_answer: args.answer,
+    p_notes: args.notes,
+    p_expected_revision: args.expectedRevision ?? undefined,
+    p_evidence: args.evidence,
+  });
 }
 
 export function isUnchangedRequestedLinkEvidence(
@@ -495,16 +545,16 @@ export async function saveWorkbenchResponseWithEvidence(
     }
   }
 
-  const { data: transactionData, error: transactionError } = await supabase.rpc(
-    "apply_workbench_response",
+  const { data: transactionData, error: transactionError } = await invokeApplyWorkbenchResponse(
+    supabase,
     {
-      p_cycle_id: cycle.id,
-      p_actor_user_id: userId,
-      p_question_version_id: questionVersionId,
-      p_answer: answer,
-      p_notes: notes ?? null,
-      p_expected_revision: expectedRevision ?? undefined,
-      p_evidence:
+      cycleId: cycle.id,
+      actorUserId: userId,
+      questionVersionId,
+      answer,
+      notes: notes ?? null,
+      expectedRevision,
+      evidence:
         requestedEvidences.length > 0
           ? requestedEvidences.map(evidencePayload)
           : null,

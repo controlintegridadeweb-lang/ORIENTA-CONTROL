@@ -540,8 +540,14 @@ export async function completedCycleBlocksAndReopens(
   await logout(page);
 
   await loginAs(page, "respondent");
+  const reopenedPayload = await fetchWorkbenchPayload(page, state.cycleId);
+  expect(reopenedPayload.status).toBe(200);
+  const reopenedRow = reopenedPayload.body.rows.find(
+    (row) => row.questionId === state.evidenceQuestionId,
+  );
+  expect(reopenedRow?.responseRevision).toEqual(expect.any(Number));
   const reopened = await page.evaluate(
-    async ({ cycle, question }) => {
+    async ({ cycle, question, expectedRevision }) => {
       const response = await fetch("/api/workbench/response", {
         method: "POST",
         credentials: "include",
@@ -551,11 +557,16 @@ export async function completedCycleBlocksAndReopens(
           questionId: question,
           answer: "yes",
           notes: "Edição autorizada após reabertura.",
+          expectedRevision,
         }),
       });
       return { status: response.status, body: await response.json() };
     },
-    { cycle: state.cycleId, question: state.evidenceQuestionId },
+    {
+      cycle: state.cycleId,
+      question: state.evidenceQuestionId,
+      expectedRevision: reopenedRow?.responseRevision ?? null,
+    },
   );
-  expect(reopened.status).toBe(200);
+  expect(reopened.status, JSON.stringify(reopened.body)).toBe(200);
 }

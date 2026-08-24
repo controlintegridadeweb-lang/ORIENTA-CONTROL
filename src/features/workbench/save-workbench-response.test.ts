@@ -199,6 +199,7 @@ describe("contrato de persistência do workbench", () => {
       /rpc\(\s*["']is_cycle_question_collection_editable["']/,
     );
     expect(source).toContain("apply_workbench_response");
+    expect(source).toContain("canInvokeLocalDatabaseRpc");
     expect(source).toContain("question_not_in_reopen_scope");
   });
 });

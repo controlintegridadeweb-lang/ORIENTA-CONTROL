@@ -1,7 +1,12 @@
 import { expect, type Page } from "@playwright/test";
 
 type WorkbenchPayload = {
-  rows: Array<{ questionId: string; prompt: string; storagePath: string | null }>;
+  rows: Array<{
+    questionId: string;
+    prompt: string;
+    storagePath: string | null;
+    responseRevision: number | null;
+  }>;
 };
 
 type NotificationsPayload = {
