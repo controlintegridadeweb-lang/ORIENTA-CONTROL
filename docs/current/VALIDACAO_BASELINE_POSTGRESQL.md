@@ -4,7 +4,7 @@
 
 A baseline greenfield de 10 migrations (`20260812000100` a `20260812001000`) foi aplicada e validada em PostgreSQL real em **12/08/2026**. Essa prova confirma que a instalação limpa nasce diretamente no estado estrutural consolidado, sem depender da sequência legada de migrations.
 
-As **8 evoluções pós-baseline** existentes no repositório atual foram adicionadas depois dessa prova específica. Elas permanecem cobertas pelos gates de migrations e pelo job `Database integration (Supabase local)` do CI; portanto, esta página não deve ser interpretada como evidência de execução remota dessas evoluções.
+As **10 evoluções pós-baseline** existentes no repositório atual foram adicionadas depois dessa prova específica. Elas permanecem cobertas pelos gates de migrations e pelo job `Database integration (Supabase local)` do CI; portanto, esta página não deve ser interpretada como evidência de execução remota dessas evoluções.
 
 ## O que foi comprovado na baseline
 
@@ -27,4 +27,4 @@ Os números e contratos atuais do schema **não** devem ser copiados desta evid�
 - `npm run db:audit:migrations`;
 - `npm run check:generated-types` contra Supabase local limpo.
 
-O estado atual possui 10 migrations de baseline + 8 evoluções pós-baseline. Consulte `docs/current/BANCO.md` para o inventário vigente.
+O estado atual possui 10 migrations de baseline + 10 evoluções pós-baseline. Consulte `docs/current/BANCO.md` para o inventário vigente.

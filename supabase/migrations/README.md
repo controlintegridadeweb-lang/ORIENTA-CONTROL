@@ -1,8 +1,8 @@
 # Migrations do ORIENTA
 
-Este diretório contém **18 migrations SQL timestampadas**: as 10 primeiras formam a baseline canônica validada da primeira implantação e permanecem imutáveis; as seguintes são evoluções pós-baseline.
+Este diretório contém **20 migrations SQL timestampadas**: as 10 primeiras formam a baseline canônica validada da primeira implantação e permanecem imutáveis; as seguintes são evoluções pós-baseline.
 
-Não há migrations corretivas, backfills históricos ou dados reais neste diretório. A sequência atual vai de `20260812000100` a `20260822190000`.
+Não há migrations corretivas, backfills históricos ou dados reais neste diretório. A sequência atual vai de `20260812000100` a `20260824143000`.
 
 ## Ordem canônica
 
@@ -26,6 +26,8 @@ Não há migrations corretivas, backfills históricos ou dados reais neste diret
 | `20260820120000_action_plan_progress_monotonic.sql` | Impede redução do percentual persistido da ação; o andamento só avança. |
 | `20260821190000_report_closure_emission_integrity.sql` | Coordena encerramento, emissão oficial, falhas auditáveis e bloqueio de reabertura sem documento preservado. |
 | `20260822190000_validation_draft_reads_cycle_state.sql` | O rascunho de validação lê ciclo e alvo sem `FOR UPDATE`, para o autosave não serializar com o veredito. |
+| `20260824120000_optional_action_plan_execution_evidence.sql` | Torna a comprovação da execução opcional: aceite e encerramento não dependem do anexo. |
+| `20260824143000_recommendation_status_optional_execution_evidence.sql` | Situação `completed` da recomendação segue o aceite vigente, não a comprovação da execução. |
 
 ## Regras
 

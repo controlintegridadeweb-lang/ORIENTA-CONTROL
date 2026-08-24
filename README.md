@@ -39,7 +39,8 @@ Next.js, TypeScript e Supabase. O fluxo oficial é:
   backend registra o upload em `pending_action_plan_document_uploads`, verifica
   tamanho, assinatura e estrutura e o consome por RPC atômica e idempotente. Depois disso, o
   arquivo fica disponível apenas com `file_validation_status = valid` e pertence à revisão da
-  ação. O aceite exige comprovação válida; o conjunto aprovado é imutável.
+  ação. A comprovação da execução é opcional e não bloqueia o aceite nem o
+  encerramento; quando anexada e aprovada, o conjunto da revisão permanece imutável.
 - Exceções institucionais só podem ser solicitadas sem ações ativas. Aprovação
   dispensa a recomendação sem recalcular o FAMI; solicitação pendente bloqueia o
   encerramento do ciclo.
@@ -105,7 +106,7 @@ ajustes no Supabase Auth estão em
 
 ## Banco de dados
 
-Há **18 migrations timestampadas** em `supabase/migrations/`: 10 migrations imutáveis da baseline greenfield, já validadas em PostgreSQL 17 real, mais 8 evoluções pós-baseline para alteração de prazo, FAMI preliminar, exportação/monitoramento, reparo controlado da carga 2026, listagem de respondentes, progresso monotônico do plano de ação, integridade do encerramento com emissão oficial automática e leitura do estado do ciclo no rascunho de validação — ver
+Há **20 migrations timestampadas** em `supabase/migrations/`: 10 migrations imutáveis da baseline greenfield, já validadas em PostgreSQL 17 real, mais 10 evoluções pós-baseline para alteração de prazo, FAMI preliminar, exportação/monitoramento, reparo controlado da carga 2026, listagem de respondentes, progresso monotônico do plano de ação, integridade do encerramento com emissão oficial automática, leitura do estado do ciclo no rascunho de validação e comprovação opcional da execução no aceite/encerramento — ver
 [`docs/current/BANCO.md`](docs/current/BANCO.md) e
 [`docs/current/BASELINE_PRIMEIRA_IMPLANTACAO.md`](docs/current/BASELINE_PRIMEIRA_IMPLANTACAO.md). A validação da baseline em PostgreSQL real está documentada em [`docs/current/VALIDACAO_BASELINE_POSTGRESQL.md`](docs/current/VALIDACAO_BASELINE_POSTGRESQL.md).
 A sequência antiga `0001`–`0054` foi aposentada como fonte executável antes da primeira implantação. A baseline atual nasce diretamente no estado final, em ordem de dependências, sem patches, backfills históricos ou migrations corretivas intermediárias.

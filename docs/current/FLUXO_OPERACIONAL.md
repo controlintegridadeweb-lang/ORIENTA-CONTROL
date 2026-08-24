@@ -16,10 +16,11 @@
 7. Conclui a validação, gerando o processamento, o FAMI e as recomendações. No painel em lote, “Em validação” representa todos os diagnósticos nessa etapa, enquanto “Prontos para concluir” inclui somente os que passaram por todas as pré-condições do banco.
 8. Supervisiona cada ação do plano, com comentários, pareceres, pendências,
    encaminhamentos, solicitações de ajuste e aceites vinculados à ação e à sua
-   revisão congelada. O aceite exige ao menos uma comprovação válida da revisão
-   atual: arquivo aprovado pela varredura de segurança ou link HTTPS. Ao final de
-   cada quadrimestre, pode congelar um FAMI preliminar de acompanhamento; esse
-   checkpoint usa o progresso histórico das ações e nunca reescreve o FAMI oficial.
+   revisão congelada. A comprovação da execução é opcional e não bloqueia o
+   aceite nem o encerramento; quando anexada, usa arquivo aprovado pela
+   varredura de segurança ou link HTTPS. Ao final de cada quadrimestre, pode
+   congelar um FAMI preliminar de acompanhamento; esse checkpoint usa o
+   progresso histórico das ações e nunca reescreve o FAMI oficial.
 9. Analisa solicitações de exceção institucional. Uma exceção só pode ser
    solicitada sem ações ativas; quando aprovada, dispensa o plano daquela
    recomendação sem alterar o FAMI. Solicitações pendentes bloqueiam o encerramento.

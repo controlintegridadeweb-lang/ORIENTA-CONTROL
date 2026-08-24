@@ -20,7 +20,7 @@ describe("baseline greenfield em PGlite", () => {
       });
       expect(existsSync(reportPath)).toBe(true);
       const report = JSON.parse(readFileSync(reportPath, "utf8"));
-      expect(report.appliedCount).toBe(18);
+      expect(report.appliedCount).toBe(20);
       expect(report.failures).toEqual([]);
       expect([
         "PASS_BASELINE_APPLIED",
