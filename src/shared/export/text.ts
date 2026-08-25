@@ -3,6 +3,7 @@ const WINANSI_SUBSTITUTIONS: Record<string, string> = {
   "\u2019": "'",
   "\u201C": '"',
   "\u201D": '"',
+  "\u2192": "->",
   "\u2026": "...",
   "\u2022": "-",
   "\u00A0": " ",

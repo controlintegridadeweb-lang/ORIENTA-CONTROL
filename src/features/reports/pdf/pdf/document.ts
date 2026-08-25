@@ -1,4 +1,5 @@
 import { formatPlatformDate, formatPlatformDateTime } from "@/shared/datetime/platform-date-time";
+import { latinPdfSafe } from "@/shared/export/text";
 import fs from "node:fs/promises";
 import path from "node:path";
 import {
@@ -26,11 +27,34 @@ export type TocEntry = {
   level: number;
 };
 
+export type ReportCoverAssets = {
+  brandMark: PDFImage | null;
+  decoTop: PDFImage | null;
+  decoBottom: PDFImage | null;
+};
+
+async function tryEmbedPng(
+  pdf: PDFDocument,
+  relativePath: string,
+): Promise<PDFImage | null> {
+  try {
+    const bytes = await fs.readFile(path.join(process.cwd(), relativePath));
+    return pdf.embedPng(bytes);
+  } catch {
+    return null;
+  }
+}
+
 export class OrientaPdfDocument {
   readonly pdf: PDFDocument;
   readonly fonts: ReportFonts;
   readonly data: OfficialReportData;
   logo: PDFImage | null = null;
+  coverAssets: ReportCoverAssets = {
+    brandMark: null,
+    decoTop: null,
+    decoBottom: null,
+  };
   private pageIndex = -1;
   readonly coverPageIndex = 0;
   tocPageIndex = 1;
@@ -49,13 +73,18 @@ export class OrientaPdfDocument {
       bold: await pdf.embedFont(StandardFonts.HelveticaBold),
     };
     const doc = new OrientaPdfDocument(pdf, fonts, data);
-    try {
-      const logoPath = path.join(process.cwd(), "public", "assets", "logo-orienta.png");
-      const bytes = await fs.readFile(logoPath);
-      doc.logo = await pdf.embedPng(bytes);
-    } catch {
-      doc.logo = null;
-    }
+    doc.logo = await tryEmbedPng(pdf, path.join("public", "assets", "logo-orienta.png"));
+    doc.coverAssets = {
+      brandMark: await tryEmbedPng(pdf, path.join("public", "assets", "capa relatorio.png")),
+      decoTop: await tryEmbedPng(
+        pdf,
+        path.join("public", "assets", "decoracao inferior relatorio (2).png"),
+      ),
+      decoBottom: await tryEmbedPng(
+        pdf,
+        path.join("public", "assets", "decoracao inferior relatorio (1).png"),
+      ),
+    };
     return doc;
   }
 
@@ -87,6 +116,10 @@ export class OrientaPdfDocument {
 
   getPage(index: number): PDFPage {
     return this.pdf.getPages()[index]!;
+  }
+
+  get pageCount(): number {
+    return this.pdf.getPageCount();
   }
 
   registerTocEntry(id: string, title: string, level = 0): void {
@@ -122,15 +155,9 @@ export class OrientaPdfDocument {
     return this.ensureSpace(c, blockHeight + reportTheme.sectionGap);
   }
 
-  drawFooter(page: PDFPage, pageNum: number): void {
+  drawFooter(page: PDFPage, pageNum: number, totalPages: number): void {
     const y = 22;
-    const gen = this.formatDateShort(this.data.generatedAtIso);
-    const org =
-      this.data.organizationName.length > 42
-        ? `${this.data.organizationName.slice(0, 40)}…`
-        : this.data.organizationName;
-    const left = `Plataforma Orienta · ${org}`;
-    const right = `Período ${this.data.referencePeriodLabel} · ${gen} · pág. ${pageNum}`;
+    const label = `Página ${pageNum} de ${totalPages}`;
 
     page.drawLine({
       start: { x: reportTheme.margin, y: y + 12 },
@@ -138,18 +165,11 @@ export class OrientaPdfDocument {
       thickness: 0.4,
       color: reportTheme.slate200,
     });
-    page.drawText(left, {
-      x: reportTheme.margin,
+    const labelW = this.fonts.regular.widthOfTextAtSize(label, 8);
+    page.drawText(label, {
+      x: (reportTheme.page.w - labelW) / 2,
       y,
-      size: 7,
-      font: this.fonts.regular,
-      color: reportTheme.slate500,
-    });
-    const rightW = this.fonts.regular.widthOfTextAtSize(right, 7);
-    page.drawText(right, {
-      x: reportTheme.page.w - reportTheme.margin - rightW,
-      y,
-      size: 7,
+      size: 8,
       font: this.fonts.regular,
       color: reportTheme.slate500,
     });
@@ -157,9 +177,10 @@ export class OrientaPdfDocument {
 
   applyFooters(): void {
     const pages = this.pdf.getPages();
+    const total = pages.length;
     pages.forEach((page, i) => {
       if (i === this.coverPageIndex) return;
-      this.drawFooter(page, i + 1);
+      this.drawFooter(page, i + 1, total);
     });
   }
 
@@ -172,7 +193,7 @@ export class OrientaPdfDocument {
   }
 
   chunkText(text: string, maxChars: number): string[] {
-    const t = text.replace(/\s+/g, " ").trim();
+    const t = latinPdfSafe(text).replace(/\s+/g, " ").trim();
     if (!t) return [];
     if (t.length <= maxChars) return [t];
     const out: string[] = [];
@@ -192,14 +213,22 @@ export class OrientaPdfDocument {
   drawParagraph(
     c: Cursor,
     text: string,
-    opts: { size?: number; bold?: boolean; color?: ReturnType<typeof rgb>; indent?: number; gap?: number } = {},
+    opts: {
+      size?: number;
+      bold?: boolean;
+      color?: ReturnType<typeof rgb>;
+      indent?: number;
+      gap?: number;
+      maxWidth?: number;
+    } = {},
   ): Cursor {
     const size = opts.size ?? 10;
     const font = opts.bold ? this.fonts.bold : this.fonts.regular;
     const color = opts.color ?? reportTheme.slate700;
     const indent = opts.indent ?? 0;
     const gap = opts.gap ?? 0;
-    const maxChars = Math.floor((contentWidth() - indent) / (size * 0.52));
+    const usable = (opts.maxWidth ?? contentWidth()) - indent;
+    const maxChars = Math.floor(usable / (size * 0.52));
     let cur = { ...c, y: c.y - gap };
     for (const line of this.chunkText(text, maxChars)) {
       cur = this.ensureSpace(cur, reportTheme.line);
@@ -209,7 +238,7 @@ export class OrientaPdfDocument {
         size,
         font,
         color,
-        maxWidth: contentWidth() - indent,
+        maxWidth: usable,
       });
       cur = { ...cur, y: cur.y - reportTheme.line };
     }
@@ -245,7 +274,7 @@ export class OrientaPdfDocument {
       height: 26,
       color: reportTheme.brand,
     });
-    cur.page.drawText(title, {
+    cur.page.drawText(latinPdfSafe(title), {
       x: reportTheme.margin + 14,
       y: barY - 4,
       size: 17,
@@ -275,7 +304,7 @@ export class OrientaPdfDocument {
   ): Cursor {
     const needed = 48 + (subtitle ? 24 : 0);
     let cur = this.ensureSpace(c, needed + 40);
-    cur.page.drawText(title, {
+    cur.page.drawText(latinPdfSafe(title), {
       x: reportTheme.margin,
       y: cur.y,
       size: 12,

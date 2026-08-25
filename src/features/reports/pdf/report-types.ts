@@ -165,11 +165,17 @@ export type ReportMovementView = {
   createdAtIso: string;
 };
 
+export type ReportActionDocumentView = {
+  line: string;
+};
+
 export type ReportActionView = {
   id: string;
   numberLabel: string;
   title: string;
   responsibleLabel: string;
+  responsibleSectorLabel: string;
+  responsibleNameLabel: string;
   startLabel: string;
   endLabel: string;
   progressPercentage: number;
@@ -181,6 +187,7 @@ export type ReportActionView = {
   originRecommendationNumberLabel: string;
   originRecommendationText: string;
   originCriterion: string;
+  documents: ReportActionDocumentView[];
   movements: ReportMovementView[];
 };
 
@@ -196,6 +203,8 @@ export type ReportRecommendationView = {
   reasonLabel: string;
   recommendationText: string;
   statusLabel: string;
+  /** Ações vinculadas a esta recomendação (hierarquia guarda-chuva). */
+  actions: ReportActionView[];
 };
 
 export type ReportSectionActionPlanSummaryView = {

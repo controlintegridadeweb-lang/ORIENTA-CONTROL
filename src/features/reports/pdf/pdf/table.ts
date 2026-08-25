@@ -1,3 +1,4 @@
+import { latinPdfSafe } from "@/shared/export/text";
 import type { Cursor, OrientaPdfDocument } from "./document";
 import { contentWidth, reportTheme } from "./theme";
 
@@ -54,7 +55,7 @@ function drawHeader(
     borderWidth: 0.5,
   });
   for (const column of columns) {
-    cur.page.drawText(column.header, {
+    cur.page.drawText(latinPdfSafe(column.header), {
       x: x + CELL_PAD,
       y: cur.y - 12,
       size: 8,

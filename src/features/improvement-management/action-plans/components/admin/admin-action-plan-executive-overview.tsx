@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { countLabel } from "@/shared/format/count-label";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AlertTriangle, ChevronRight, RefreshCw } from "lucide-react";
 import { MetricCard } from "@/shared/ui/components/metric-card";

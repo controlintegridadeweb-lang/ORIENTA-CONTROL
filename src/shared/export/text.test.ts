@@ -11,6 +11,10 @@ describe("latinPdfSafe", () => {
     expect(latinPdfSafe("Ação específica")).toBe("Ação específica");
   });
 
+  it("substitui setas tipográficas incompatíveis com Helvetica", () => {
+    expect(latinPdfSafe("Eixo → Seção")).toBe("Eixo -> Seção");
+  });
+
   it("substitui aspas curvas e reticências sem remover o restante do texto", () => {
     expect(latinPdfSafe("“texto”…")).toBe('"texto"...');
   });

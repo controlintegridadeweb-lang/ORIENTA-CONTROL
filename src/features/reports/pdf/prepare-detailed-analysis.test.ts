@@ -346,6 +346,10 @@ describe("prepareDetailedAnalysis", () => {
     expect(planning?.recommendations[0]?.originCriterion).toBe("Há planejamento formal?");
     expect(planning?.recommendations[0]?.reasonLabel).toBe("Não implementado");
     expect(planning?.recommendations[0]?.numberLabel).toBe("5.1.1.1");
+    expect(planning?.recommendations[0]?.actions.map((action) => action.id)).toEqual([
+      "action-1",
+      "action-2",
+    ]);
     expect(planning?.actionPlan.actions.map((action) => action.id)).toEqual([
       "action-1",
       "action-2",
@@ -353,6 +357,8 @@ describe("prepareDetailedAnalysis", () => {
     expect(planning?.actionPlan.actions[0]?.numberLabel).toBe("5.1.1-A1");
     expect(planning?.actionPlan.actions[0]?.originRecommendationNumberLabel).toBe("5.1.1.1");
     expect(planning?.actionPlan.actions[0]?.isOverdue).toBe(true);
+    expect(planning?.actionPlan.actions[0]?.responsibleSectorLabel).toBe("Planejamento");
+    expect(planning?.actionPlan.actions[0]?.responsibleNameLabel).toBe("Ana");
     expect(planning?.actionPlan.actions[0]?.movements.map((m) => m.id)).toEqual([
       "mov-1",
       "mov-2",
@@ -369,6 +375,7 @@ describe("prepareDetailedAnalysis", () => {
 
     const integrity = view.axes[0]?.sections[1];
     expect(integrity?.recommendations[0]?.id).toBe("rec-b");
+    expect(integrity?.recommendations[0]?.actions).toHaveLength(0);
     expect(integrity?.actionPlan.actions).toHaveLength(0);
     expect(integrity?.recommendations[0]?.statusLabel).toBe("Aguardando cadastro de ações");
 

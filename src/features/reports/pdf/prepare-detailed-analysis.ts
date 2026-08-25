@@ -1,14 +1,22 @@
 import { structuralAxisOrderIndex } from "@/shared/domain/axis";
-import type { ActionPlanAction, ActionPlanRecommendationNode } from "@/features/improvement-management";
+import type {
+  ActionPlanAction,
+  ActionPlanRecommendationNode,
+} from "@/features/improvement-management";
+import type { ActionPlanDocument } from "@/features/improvement-management/action-plans/domain-model";
 import { calculatePlanProgress } from "@/features/improvement-management";
+import { ACTION_DOCUMENT_STATUS_LABEL } from "@/features/improvement-management/action-plans/monitoring/summarize-action-documents";
 import { levelMeta } from "@/features/fami";
 import {
   recommendationTypeLabel,
   RECOMMENDATION_REGISTRY,
   ACTION_PLAN_REGISTRY,
 } from "@/shared/ui/status-registry";
+import { formatPlatformDateTime } from "@/shared/datetime/platform-date-time";
+import { documentDisplayLine } from "@/features/reports/pdf/pdf/formatters";
 import type {
   OfficialReportData,
+  ReportActionDocumentView,
   ReportActionMovementSource,
   ReportActionView,
   ReportAxisView,
@@ -28,6 +36,12 @@ export const REPORT_EMPTY_SECTION_RECOMMENDATIONS =
 
 export const REPORT_EMPTY_SECTION_ACTIONS =
   "Ainda não há ações cadastradas para o plano desta seção.";
+
+export const REPORT_EMPTY_RECOMMENDATION_ACTIONS =
+  "Nenhuma ação cadastrada para esta recomendação.";
+
+export const REPORT_EMPTY_ACTION_DOCUMENTS =
+  "Nenhum comprovante registrado.";
 
 export const REPORT_EMPTY_ACTION_MOVEMENTS =
   "Nenhuma movimentação registrada para esta ação.";
@@ -66,6 +80,33 @@ function formatDateLabel(iso: string): string {
     return `${d}/${m}/${y}`;
   }
   return iso;
+}
+
+function formatDateTimeLabel(iso: string): string {
+  try {
+    return formatPlatformDateTime(
+      iso,
+      { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" },
+      formatDateLabel(iso),
+    );
+  } catch {
+    return formatDateLabel(iso);
+  }
+}
+
+function buildDocumentViews(documents: ActionPlanDocument[]): ReportActionDocumentView[] {
+  return documents
+    .filter((document) => document.isCurrentRevision)
+    .slice()
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+    .map((document) => ({
+      line: documentDisplayLine({
+        title: document.title,
+        kind: document.kind,
+        statusLabel: ACTION_DOCUMENT_STATUS_LABEL[document.fileValidationStatus],
+        filename: document.originalFilename,
+      }),
+    }));
 }
 
 function formatProgressTransition(previous: number, next: number): string {
@@ -139,7 +180,7 @@ function buildMovementsView(
     seen.add(movement.id);
     views.push({
       id: movement.id,
-      dateLabel: formatDateLabel(movement.createdAt),
+      dateLabel: formatDateTimeLabel(movement.createdAt),
       actionTitle: action.actionText,
       progressLabel: formatProgressTransition(
         movement.previousPercentage,
@@ -163,14 +204,16 @@ function buildActionView(
   },
   movementsByActionId: Record<string, ReportActionMovementSource[]>,
 ): ReportActionView {
-  const responsible = [action.responsibleName, action.responsibleSector]
-    .filter(Boolean)
-    .join(" · ");
+  const sector = action.responsibleSector.trim();
+  const name = action.responsibleName.trim();
+  const responsible = [name, sector].filter(Boolean).join(" · ");
   return {
     id: action.id,
     numberLabel,
     title: action.actionText,
     responsibleLabel: responsible || "Responsável não informado",
+    responsibleSectorLabel: sector || "Área não informada",
+    responsibleNameLabel: name || "Responsável não informado",
     startLabel: action.startDate ? formatDateLabel(action.startDate) : "não informado",
     endLabel: action.dueDate ? formatDateLabel(action.dueDate) : "não informado",
     progressPercentage: action.progressPercentage,
@@ -181,6 +224,7 @@ function buildActionView(
     originRecommendationNumberLabel: origin.recommendationNumberLabel,
     originRecommendationText: origin.recommendation.recommendationText,
     originCriterion: origin.criterion?.prompt ?? origin.recommendation.questionPrompt,
+    documents: buildDocumentViews(action.documents),
     movements: buildMovementsView(action, movementsByActionId[action.id] ?? []),
   };
 }
@@ -191,6 +235,7 @@ function buildRecommendationView(
   numberLabel: string,
   axisName: string,
   sectionName: string,
+  actions: ReportActionView[],
 ): ReportRecommendationView {
   return {
     id: recommendation.recommendationId,
@@ -204,6 +249,7 @@ function buildRecommendationView(
     reasonLabel: reasonLabelFor(recommendation, criterion),
     recommendationText: recommendation.recommendationText,
     statusLabel: recommendationStatusLabel(recommendation),
+    actions,
   };
 }
 
@@ -416,22 +462,14 @@ export function prepareDetailedAnalysis(
         uniqueEntries.push(entry);
       }
 
-      const recommendationViews = uniqueEntries.map((entry, recIndex) =>
-        buildRecommendationView(
-          entry.recommendation,
-          entry.criterion,
-          `${sectionNumber}.${recIndex + 1}`,
-          axis.title,
-          section.title,
-        ),
-      );
-
+      const recommendationViews: ReportRecommendationView[] = [];
       const actions: ReportActionView[] = [];
+
       uniqueEntries.forEach((entry, recIndex) => {
         const recommendationNumber = `${sectionNumber}.${recIndex + 1}`;
-        for (const action of sortActionsForReport(entry.recommendation.actions)) {
-          actions.push(
-            buildActionView(
+        const recommendationActions = sortActionsForReport(entry.recommendation.actions).map(
+          (action) => {
+            const view = buildActionView(
               action,
               `${sectionNumber}-A${actions.length + 1}`,
               {
@@ -440,9 +478,21 @@ export function prepareDetailedAnalysis(
                 criterion: entry.criterion,
               },
               data.actionMovementsByActionId,
-            ),
-          );
-        }
+            );
+            actions.push(view);
+            return view;
+          },
+        );
+        recommendationViews.push(
+          buildRecommendationView(
+            entry.recommendation,
+            entry.criterion,
+            recommendationNumber,
+            axis.title,
+            section.title,
+            recommendationActions,
+          ),
+        );
       });
       const actionPlanSummary = buildSectionActionPlanSummary(actions);
 

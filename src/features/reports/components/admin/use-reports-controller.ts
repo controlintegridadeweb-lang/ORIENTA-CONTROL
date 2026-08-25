@@ -75,29 +75,24 @@ export function useReportsController({
     const organizationId = searchParams.get("organizationId") ?? "";
     const cycleId = searchParams.get("cycleId") ?? "";
     const historyOffset = reportOffsetFromSearchParams(searchParams);
-    if (
-      organizationId === state.organizationId &&
-      cycleId === state.cycleId &&
-      historyOffset === state.historyOffset
-    ) return;
 
-    patch({ organizationId, cycleId, historyOffset, cycles: [] });
+    // Sincroniza só a partir da URL. Não depende do state local: depender de
+    // cycleId/organizationId reentrava o efeito no meio do router.push e apagava
+    // a seleção do diagnóstico (botão "Emitir" ficava permanentemente desabilitado).
+    patch({ organizationId, cycleId, historyOffset });
+
+    let cancelled = false;
     void loadCycles(organizationId, cycleId).then((resolvedCycleId) => {
-      if (resolvedCycleId !== cycleId) {
-        router.replace(reportsHref(organizationId, resolvedCycleId, historyOffset), {
-          scroll: false,
-        });
-      }
+      if (cancelled || resolvedCycleId === cycleId) return;
+      router.replace(reportsHref(organizationId, resolvedCycleId, historyOffset), {
+        scroll: false,
+      });
     });
-  }, [
-    loadCycles,
-    patch,
-    router,
-    searchParams,
-    state.cycleId,
-    state.historyOffset,
-    state.organizationId,
-  ]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loadCycles, patch, router, searchParams]);
 
   useEffect(() => {
     patch({ reissueReason: "" });

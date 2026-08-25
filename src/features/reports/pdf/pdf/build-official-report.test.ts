@@ -12,10 +12,11 @@ import {
 } from "../prepare-detailed-analysis";
 
 describe("relatório oficial", () => {
-  it("mantém a sequência executiva com análise linear por eixo", () => {
+  it("mantém a sequência do modelo institucional com hierarquia por eixo", () => {
     expect(OFFICIAL_REPORT_SECTION_ORDER).toEqual([
-      "executive_summary",
-      "fami",
+      "fami_summary",
+      "detailed_analysis",
+      "diagnostic_summary",
       "detailed_axis_analysis",
       "conclusion",
       "metadata_audit",
@@ -256,6 +257,9 @@ describe("relatório oficial", () => {
     const flat = flattenDetailedAnalysisIds(analysis);
     expect(analysis.axes[0]?.sections[0]?.recommendations[0]?.originCriterion).toBe(
       longCriterion.trim(),
+    );
+    expect(analysis.axes[0]?.sections[0]?.recommendations[0]?.actions[0]?.id).toBe(
+      "action-1",
     );
     expect(analysis.axes[0]?.sections[0]?.actionPlan.actions[0]?.id).toBe("action-1");
     expect(analysis.axes[0]?.sections[0]?.actionPlan.actions[0]?.movements[0]?.id).toBe(

@@ -1,30 +1,40 @@
 import { describe, expect, it } from "vitest";
 import { FAMI_SCORING_GROUPS } from "@/features/fami";
 import { conclusionPriorityActions } from "./conclusion-section";
-import { EXECUTIVE_SUMMARY_KPI_LABELS } from "./executive-summary";
+import { DIAGNOSTIC_SUMMARY_INDICATORS } from "./diagnostic-summary-section";
 import { OFFICIAL_REPORT_COVER_FIELD_LABELS } from "./cover-page";
 import { hasComparableFamiEvolution } from "./evolution-section";
 import { reportPeriodMetadataLines } from "./annexes-section";
+import { OFFICIAL_REPORT_SECTION_ORDER } from "../build-official-report";
 
 describe("coesão textual do relatório oficial", () => {
-  it("usa indicadores compatíveis com os valores exibidos", () => {
-    expect(EXECUTIVE_SUMMARY_KPI_LABELS).toEqual({
-      evaluated: "Critérios avaliados",
-      attended: "Atendidos",
-      notAttended: "Não atendidos",
-      insufficientEvidence: "Evidência insuficiente",
-      recommendations: "Recomendações",
-      actions: "Ações registradas",
+  it("usa indicadores do resumo do diagnóstico", () => {
+    expect(DIAGNOSTIC_SUMMARY_INDICATORS).toEqual({
+      evaluatedQuestions: "Total de perguntas avaliadas",
+      totalRecommendations: "Total de recomendações identificadas",
+      evaluatedSections: "Total de seções avaliadas",
+      sectionsWithRecommendations: "Seções que tiveram recomendações",
     });
   });
 
-
-  it("mantém a capa executiva sem metadados técnicos duplicados", () => {
+  it("mantém a capa executiva com campos institucionais", () => {
     expect(OFFICIAL_REPORT_COVER_FIELD_LABELS).toEqual([
+      "Período de referência",
       "Formulário",
-      "Organização",
       "Resultado FAMI",
-      "Data da emissão",
+      "Organização",
+      "Data de emissão",
+    ]);
+  });
+
+  it("segue a ordem estrutural do novo modelo", () => {
+    expect(OFFICIAL_REPORT_SECTION_ORDER).toEqual([
+      "fami_summary",
+      "detailed_analysis",
+      "diagnostic_summary",
+      "detailed_axis_analysis",
+      "conclusion",
+      "metadata_audit",
     ]);
   });
 

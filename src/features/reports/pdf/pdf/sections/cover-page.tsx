@@ -1,22 +1,22 @@
 import { formatPlatformDate } from "@/shared/datetime/platform-date-time";
+import { latinPdfSafe } from "@/shared/export/text";
 /**
- * Capa institucional — apenas identificação executiva do relatório.
- * Metadados técnicos ficam concentrados no anexo de auditoria.
+ * Capa institucional — marca ORIENTA, decoração geométrica e identificação executiva.
  */
 
-import type { PDFPage } from "pdf-lib";
+import type { PDFImage, PDFPage } from "pdf-lib";
 import { levelMeta } from "@/features/fami";
 import type { OfficialReportData } from "@/features/reports/pdf/report-types";
+import { formatReportPercentage } from "../formatters";
 import type { OrientaPdfDocument, ReportFonts } from "../document";
 import { reportTheme } from "../theme";
-import { drawCoverGeometricPanel } from "./cover-geometric-panel";
-
 
 export const OFFICIAL_REPORT_COVER_FIELD_LABELS = [
+  "Período de referência",
   "Formulário",
-  "Organização",
   "Resultado FAMI",
-  "Data da emissão",
+  "Organização",
+  "Data de emissão",
 ] as const;
 
 type CoverPageProps = {
@@ -30,8 +30,12 @@ type CoverPageProps = {
 function buildCoverPageProps(data: OfficialReportData): CoverPageProps {
   const lvl = data.fami.global.maturityLevel;
   const meta = lvl == null ? null : levelMeta(lvl);
-  const levelLabel = lvl == null ? "N/A — sem pergunta aplicável" : `N${lvl} — ${meta!.shortLabel}`;
-  const percentageLabel = lvl == null ? "N/A" : `${data.fami.global.percentage.toFixed(1)}%`;
+  const levelLabel =
+    lvl == null
+      ? "N/A — sem pergunta aplicável"
+      : `Nível ${lvl} — ${meta!.shortLabel}`;
+  const percentageLabel =
+    lvl == null ? "N/A" : formatReportPercentage(data.fami.global.percentage);
 
   return {
     organizationName: data.organizationName,
@@ -45,11 +49,6 @@ function buildCoverPageProps(data: OfficialReportData): CoverPageProps {
     referencePeriodLabel: data.referencePeriodLabel,
   };
 }
-
-const LEFT_X: number = reportTheme.margin;
-const TEXT_W = reportTheme.page.w * 0.56 - reportTheme.margin;
-
-type FieldRow = { label: string; value: string };
 
 function wrapLines(
   fonts: ReportFonts,
@@ -73,54 +72,58 @@ function wrapLines(
   return lines;
 }
 
-function drawSeal(page: PDFPage, fonts: ReportFonts, x: number, topY: number): void {
-  const w = 112;
-  const h = 26;
-  page.drawRectangle({
-    x,
-    y: topY - h,
-    width: w,
-    height: h,
-    borderColor: reportTheme.coverGeoDark,
-    borderWidth: 0.6,
-    color: reportTheme.white,
-  });
-  page.drawText("DOCUMENTO OFICIAL", {
-    x: x + 8,
-    y: topY - h + 8,
-    size: 6.5,
-    font: fonts.bold,
-    color: reportTheme.coverGeoDark,
-  });
+function drawCornerImage(
+  page: PDFPage,
+  image: PDFImage,
+  opts: { anchor: "top-left" | "bottom-right"; maxW: number; maxH: number },
+): void {
+  const { w: W, h: H } = reportTheme.page;
+  const scale = Math.min(opts.maxW / image.width, opts.maxH / image.height);
+  const width = image.width * scale;
+  const height = image.height * scale;
+  if (opts.anchor === "top-left") {
+    page.drawImage(image, { x: 0, y: H - height, width, height });
+    return;
+  }
+  page.drawImage(image, { x: W - width, y: 0, width, height });
+}
+
+function measureFieldHeight(
+  fonts: ReportFonts,
+  value: string,
+  maxW: number,
+): number {
+  const lines = Math.max(1, wrapLines(fonts, latinPdfSafe(value), 11, maxW).length);
+  return 12 + lines * 14 + 8;
 }
 
 function drawField(
   page: PDFPage,
   fonts: ReportFonts,
   x: number,
-  y: number,
-  field: FieldRow,
-  valueMaxW: number,
-): number {
-  page.drawText(field.label.toUpperCase(), {
+  topY: number,
+  label: string,
+  value: string,
+  maxW: number,
+): void {
+  page.drawText(latinPdfSafe(label.toUpperCase()), {
     x,
-    y,
-    size: 8,
+    y: topY,
+    size: 7.5,
     font: fonts.bold,
-    color: reportTheme.coverInk,
+    color: reportTheme.coverInkMuted,
   });
-  let cy = y - 14;
-  for (const line of wrapLines(fonts, field.value, 10, valueMaxW)) {
+  let cy = topY - 14;
+  for (const line of wrapLines(fonts, latinPdfSafe(value), 11, maxW)) {
     page.drawText(line, {
       x,
       y: cy,
-      size: 10,
-      font: fonts.regular,
-      color: reportTheme.coverInkMuted,
+      size: 11,
+      font: fonts.bold,
+      color: reportTheme.coverInk,
     });
-    cy -= 13;
+    cy -= 14;
   }
-  return cy - 18;
 }
 
 function renderCoverPageContent(
@@ -129,81 +132,155 @@ function renderCoverPageContent(
   props: CoverPageProps,
 ): void {
   const fonts = doc.fonts;
-  const H = reportTheme.page.h;
+  const { w: W, h: H } = reportTheme.page;
+  const margin = 56;
 
   page.drawRectangle({
     x: 0,
     y: 0,
-    width: reportTheme.page.w,
+    width: W,
     height: H,
-    color: reportTheme.coverBg,
+    color: reportTheme.white,
   });
-  drawCoverGeometricPanel(page);
 
-  const topY = H - reportTheme.margin;
+  const { brandMark, decoTop, decoBottom } = doc.coverAssets;
 
-  if (doc.logo) {
-    const logoH = 30;
+  if (decoTop) {
+    drawCornerImage(page, decoTop, {
+      anchor: "top-left",
+      maxW: 168,
+      maxH: 168,
+    });
+  }
+  if (decoBottom) {
+    drawCornerImage(page, decoBottom, {
+      anchor: "bottom-right",
+      maxW: 176,
+      maxH: 176,
+    });
+  }
+
+  // Marca: centro visual da metade superior.
+  const brandCenterY = H * 0.62;
+  if (brandMark) {
+    const maxW = 340;
+    const maxH = 100;
+    const scale = Math.min(maxW / brandMark.width, maxH / brandMark.height);
+    const bw = brandMark.width * scale;
+    const bh = brandMark.height * scale;
+    page.drawImage(brandMark, {
+      x: (W - bw) / 2,
+      y: brandCenterY - bh / 2,
+      width: bw,
+      height: bh,
+    });
+  } else if (doc.logo) {
+    const logoH = 40;
     const logoW = (doc.logo.width / doc.logo.height) * logoH;
     page.drawImage(doc.logo, {
-      x: LEFT_X,
-      y: topY - logoH,
+      x: (W - logoW) / 2,
+      y: brandCenterY,
       width: logoW,
       height: logoH,
     });
-    drawSeal(page, fonts, LEFT_X + logoW + 14, topY);
-  } else {
-    page.drawText("Plataforma Orienta", {
-      x: LEFT_X,
-      y: topY - 20,
+    page.drawText("Relatório oficial", {
+      x: (W - fonts.regular.widthOfTextAtSize("Relatório oficial", 13)) / 2,
+      y: brandCenterY - 28,
       size: 13,
-      font: fonts.bold,
-      color: reportTheme.coverGeoDark,
+      font: fonts.regular,
+      color: reportTheme.coverInk,
     });
-    drawSeal(page, fonts, LEFT_X + 210, topY);
+  } else {
+    page.drawText("orienta", {
+      x: (W - fonts.bold.widthOfTextAtSize("orienta", 34)) / 2,
+      y: brandCenterY + 8,
+      size: 34,
+      font: fonts.bold,
+      color: reportTheme.coverInk,
+    });
+    page.drawText("Relatório oficial", {
+      x: (W - fonts.regular.widthOfTextAtSize("Relatório oficial", 13)) / 2,
+      y: brandCenterY - 20,
+      size: 13,
+      font: fonts.regular,
+      color: reportTheme.coverInk,
+    });
   }
 
-  const titleBlockY = H * 0.55;
-  page.drawText("PERÍODO DE REFERÊNCIA", {
-    x: LEFT_X,
-    y: titleBlockY,
-    size: 10,
-    font: fonts.bold,
-    color: reportTheme.coverInk,
-  });
-  page.drawText(props.referencePeriodLabel, {
-    x: LEFT_X,
-    y: titleBlockY - 26,
-    size: 30,
-    font: fonts.bold,
-    color: reportTheme.coverInk,
-  });
-  page.drawText("RELATÓRIO", {
-    x: LEFT_X,
-    y: titleBlockY - 92,
-    size: 44,
-    font: fonts.bold,
-    color: reportTheme.coverInk,
-  });
+  // Bloco de dados: grade 2 colunas com linhas alinhadas (sem zigzag).
+  const gap = 36;
+  const colW = (W - margin * 2 - gap) / 2;
+  const leftX = margin;
+  const rightX = margin + colW + gap;
 
-  const fields: FieldRow[] = [
-    { label: OFFICIAL_REPORT_COVER_FIELD_LABELS[0], value: props.formName },
-    { label: OFFICIAL_REPORT_COVER_FIELD_LABELS[1], value: props.organizationName },
-    { label: OFFICIAL_REPORT_COVER_FIELD_LABELS[2], value: props.famiResultLabel },
-    { label: OFFICIAL_REPORT_COVER_FIELD_LABELS[3], value: props.generatedAt },
+  const rows: Array<{
+    left: { label: string; value: string } | null;
+    right: { label: string; value: string } | null;
+  }> = [
+    {
+      left: {
+        label: OFFICIAL_REPORT_COVER_FIELD_LABELS[0],
+        value: props.referencePeriodLabel,
+      },
+      right: {
+        label: OFFICIAL_REPORT_COVER_FIELD_LABELS[1],
+        value: props.formName,
+      },
+    },
+    {
+      left: {
+        label: OFFICIAL_REPORT_COVER_FIELD_LABELS[2],
+        value: props.famiResultLabel,
+      },
+      right: {
+        label: OFFICIAL_REPORT_COVER_FIELD_LABELS[3],
+        value: props.organizationName,
+      },
+    },
+    {
+      left: {
+        label: OFFICIAL_REPORT_COVER_FIELD_LABELS[4],
+        value: props.generatedAt,
+      },
+      right: null,
+    },
   ];
 
-  const colGap = 32;
-  const colW = (TEXT_W - colGap) / 2;
-  const fieldsTop = H * 0.34;
-  let leftY = fieldsTop;
-  let rightY = fieldsTop;
+  const rowHeights = rows.map((row) => {
+    const leftH = row.left
+      ? measureFieldHeight(fonts, row.left.value, colW)
+      : 0;
+    const rightH = row.right
+      ? measureFieldHeight(fonts, row.right.value, colW)
+      : 0;
+    return Math.max(leftH, rightH, 36);
+  });
+  const blockH = rowHeights.reduce((sum, height) => sum + height, 0);
+  let y = Math.min(H * 0.38, brandCenterY - 90) - 8;
 
-  const leftColumnSize = 2;
-  for (let i = 0; i < fields.length; i++) {
-    const field = fields[i]!;
-    if (i < leftColumnSize) leftY = drawField(page, fonts, LEFT_X, leftY, field, colW);
-    else rightY = drawField(page, fonts, LEFT_X + colW + colGap, rightY, field, colW);
+  // Linha discreta separando marca e dados.
+  page.drawLine({
+    start: { x: margin, y: y + 18 },
+    end: { x: W - margin, y: y + 18 },
+    thickness: 0.6,
+    color: reportTheme.slate200,
+  });
+
+  // Garante que o bloco não invade a decoração inferior.
+  const minBottom = 120;
+  if (y - blockH < minBottom) {
+    y = minBottom + blockH;
+  }
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i]!;
+    if (row.left) {
+      drawField(page, fonts, leftX, y, row.left.label, row.left.value, colW);
+    }
+    if (row.right) {
+      drawField(page, fonts, rightX, y, row.right.label, row.right.value, colW);
+    }
+    y -= rowHeights[i]!;
   }
 }
 

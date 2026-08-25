@@ -96,29 +96,6 @@ export function ReportEmissionSection({ controller }: { controller: ReportsContr
           />
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm leading-relaxed text-slate-500">
-            Formato: PDF oficial.
-          </p>
-          <button
-            type="button"
-            className={`${formSurface.primaryButton} w-full sm:w-auto`}
-            onClick={() => void generate()}
-            disabled={state.generating || state.loadingScopes || !canGenerate}
-          >
-            <Download className="h-4 w-4" aria-hidden />
-            {state.generating
-              ? "Emitindo..."
-              : selectedCycle?.reportStatus === "emission_failed"
-                ? "Tentar emitir novamente e baixar"
-                : selectedCycle?.reportStatus === "emitting"
-                  ? "Emissão em andamento…"
-                  : isReissue
-                    ? "Emitir nova versão e baixar"
-                    : "Emitir agora e baixar"}
-          </button>
-        </div>
-
         {selectedCycle ? (
           <div
             className={`rounded-lg border px-3.5 py-2.5 text-sm ${
@@ -187,10 +164,38 @@ export function ReportEmissionSection({ controller }: { controller: ReportsContr
               {(selectedCycle?.emissionCount ?? 0) === 1
                 ? "Já existe 1 emissão para este processamento."
                 : `Já existem ${countLabel(selectedCycle?.emissionCount ?? 0, "emissão", "emissões")} para este processamento.`}{" "}
-              A nova versão não substitui os arquivos anteriores.
+              A nova versão não substitui os arquivos anteriores. Informe pelo menos 3 caracteres para habilitar a emissão.
             </p>
           </div>
         ) : null}
+
+        <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm leading-relaxed text-slate-500">
+            Formato: PDF oficial.
+            {!state.cycleId
+              ? " Selecione o diagnóstico para emitir."
+              : isReissue && state.reissueReason.trim().length < 3
+                ? " Preencha o motivo da reemissão para continuar."
+                : null}
+          </p>
+          <button
+            type="button"
+            className={`${formSurface.primaryButton} w-full sm:w-auto`}
+            onClick={() => void generate()}
+            disabled={state.generating || state.loadingScopes || !canGenerate}
+          >
+            <Download className="h-4 w-4" aria-hidden />
+            {state.generating
+              ? "Emitindo..."
+              : selectedCycle?.reportStatus === "emission_failed"
+                ? "Tentar emitir novamente e baixar"
+                : selectedCycle?.reportStatus === "emitting"
+                  ? "Emissão em andamento…"
+                  : isReissue
+                    ? "Emitir nova versão e baixar"
+                    : "Emitir agora e baixar"}
+          </button>
+        </div>
       </PanelSection>
     </>
   );

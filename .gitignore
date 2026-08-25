@@ -59,3 +59,7 @@ data/bootstrap-2026/private/*
 
 .vercel
 .env*
+
+tmp-official-report-sample.pdf
+.tmp-layout-ref/
+

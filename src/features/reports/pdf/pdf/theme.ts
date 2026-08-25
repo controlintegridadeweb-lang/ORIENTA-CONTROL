@@ -1,19 +1,20 @@
 import { rgb, type RGB } from "pdf-lib";
 import { getAxisTheme } from "@/shared/theme/axis-theme";
 
-/** Identidade visual Orienta — tons suaves para PDF institucional. */
+/** Identidade visual Orienta — tons institucionais para PDF. */
 export const reportTheme = {
   page: { w: 595, h: 842 },
-  margin: 56,
-  footerH: 32,
+  margin: 52,
+  footerH: 36,
   line: 16,
   sectionGap: 22,
   /** Altura mínima reservada após título de seção (evita órfãos). */
   titleBlockH: 78,
   minContentAfterTitle: 100,
-  brand: rgb(0.39, 0.67, 0.58),
-  brandDark: rgb(0.04, 0.48, 0.44),
+  brand: rgb(0.18, 0.55, 0.5),
+  brandDark: rgb(0.12, 0.42, 0.4),
   brandLight: rgb(0.94, 0.98, 0.96),
+  brandAccent: rgb(0.91, 0.59, 0.43),
   slate900: rgb(0.06, 0.09, 0.16),
   slate700: rgb(0.2, 0.27, 0.33),
   slate600: rgb(0.28, 0.33, 0.41),
@@ -29,14 +30,8 @@ export const reportTheme = {
   amberBg: rgb(1, 0.97, 0.92),
   rose: rgb(0.78, 0.22, 0.28),
   roseBg: rgb(1, 0.95, 0.95),
-  /** Fundo editorial da capa */
-  coverBg: rgb(0.97, 0.98, 0.98),
-  coverInk: rgb(0.12, 0.14, 0.16),
-  coverInkMuted: rgb(0.42, 0.46, 0.5),
-  coverGeoDark: rgb(0.06, 0.32, 0.36),
-  coverGeoMid: rgb(0.12, 0.55, 0.52),
-  coverGeoLight: rgb(0.62, 0.72, 0.66),
-  coverGeoAccent: rgb(0.22, 0.68, 0.62),
+  coverInk: rgb(0.12, 0.35, 0.33),
+  coverInkMuted: rgb(0.35, 0.42, 0.42),
 } as const;
 
 function pdfRgbFromHex(hex: string): RGB {
