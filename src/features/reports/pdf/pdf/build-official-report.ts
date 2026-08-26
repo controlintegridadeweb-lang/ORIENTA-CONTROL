@@ -4,7 +4,6 @@ import { OrientaPdfDocument } from "./document";
 import { renderCoverPage } from "./sections/cover-page";
 import { fillTableOfContents } from "./sections/table-of-contents";
 import { renderFamiSummarySection } from "./sections/fami-summary-section";
-import { renderDetailedAnalysisOverviewSection } from "./sections/detailed-analysis-overview-section";
 import { renderDiagnosticSummarySection } from "./sections/diagnostic-summary-section";
 import { renderDetailedAxisAnalysisSection } from "./sections/detailed-axis-analysis-section";
 import { renderConclusionSection } from "./sections/conclusion-section";
@@ -12,11 +11,11 @@ import { renderAnnexesSection } from "./sections/annexes-section";
 
 /**
  * Ordem oficial do relatório institucional (apresentação).
- * Portfólio, plano de ação e monitoramento ficam aninhados na análise por eixo.
+ * FAMI + análise detalhada (eixos/seções) compartilham a mesma composição inicial.
+ * Portfólio, plano e monitoramento ficam aninhados na análise por eixo.
  */
 export const OFFICIAL_REPORT_SECTION_ORDER = [
   "fami_summary",
-  "detailed_analysis",
   "diagnostic_summary",
   "detailed_axis_analysis",
   "conclusion",
@@ -27,7 +26,7 @@ type OfficialReportSection = (typeof OFFICIAL_REPORT_SECTION_ORDER)[number];
 type SectionRenderer = (doc: OrientaPdfDocument) => void;
 
 /**
- * PDF institucional: capa → sumário → FAMI → análise → diagnóstico →
+ * PDF institucional: capa → sumário → FAMI/análise → diagnóstico →
  * detalhamento hierárquico por eixo → conclusão → metadados.
  */
 export async function buildOfficialReportPdfDocument(
@@ -38,7 +37,6 @@ export async function buildOfficialReportPdfDocument(
 
   const sectionRenderers: Record<OfficialReportSection, SectionRenderer> = {
     fami_summary: renderFamiSummarySection,
-    detailed_analysis: renderDetailedAnalysisOverviewSection,
     diagnostic_summary: renderDiagnosticSummarySection,
     detailed_axis_analysis: (pdfDoc) => {
       renderDetailedAxisAnalysisSection(pdfDoc, detailedAnalysis);

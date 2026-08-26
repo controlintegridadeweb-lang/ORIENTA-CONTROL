@@ -3,9 +3,14 @@ import { FAMI_SCORING_GROUPS } from "@/features/fami";
 import { conclusionPriorityActions } from "./conclusion-section";
 import { DIAGNOSTIC_SUMMARY_INDICATORS } from "./diagnostic-summary-section";
 import { OFFICIAL_REPORT_COVER_FIELD_LABELS } from "./cover-page";
+import { OFFICIAL_REPORT_TOC_TITLE } from "./table-of-contents";
 import { hasComparableFamiEvolution } from "./evolution-section";
 import { reportPeriodMetadataLines } from "./annexes-section";
 import { OFFICIAL_REPORT_SECTION_ORDER } from "../build-official-report";
+import {
+  axisAnalysisHeading,
+  sectionAnalysisHeading,
+} from "./detailed-axis-analysis-section";
 
 describe("coesão textual do relatório oficial", () => {
   it("usa indicadores do resumo do diagnóstico", () => {
@@ -27,10 +32,70 @@ describe("coesão textual do relatório oficial", () => {
     ]);
   });
 
+  it("mantém o título institucional do sumário", () => {
+    expect(OFFICIAL_REPORT_TOC_TITLE).toBe("Sumário");
+  });
+
+  it("numera eixos e seções no modelo da análise detalhada", () => {
+    expect(
+      axisAnalysisHeading({
+        id: "gov",
+        numberLabel: "5.1",
+        title: "Governança",
+        order: 0,
+        summary: {
+          name: "Governança",
+          pointsObtained: 0,
+          pointsPossible: 1,
+          percentage: 0,
+          maturityLabel: null,
+          applicableCriteriaCount: 1,
+          sectionsCount: 1,
+          sectionsWithActionPlan: 1,
+          recommendationsCount: 1,
+          actionsCount: 1,
+          averageActionProgress: 100,
+        },
+        sections: [],
+      }),
+    ).toBe("5.1 - Eixo Governança");
+    expect(
+      sectionAnalysisHeading({
+        id: "sec",
+        numberLabel: "5.1.1",
+        title: "Governança e estrutura de Integridade",
+        order: 0,
+        summary: {
+          name: "Governança e estrutura de Integridade",
+          pointsObtained: 0,
+          pointsPossible: 1,
+          percentage: 0,
+          criteriaCount: 1,
+          recommendationsCount: 1,
+          actionsCount: 1,
+        },
+        recommendations: [],
+        actionPlan: {
+          summary: {
+            totalActions: 0,
+            activeActions: 0,
+            notStartedActions: 0,
+            inProgressActions: 0,
+            completedActions: 0,
+            cancelledActions: 0,
+            overdueActions: 0,
+            progressPercentage: 0,
+            statusLabel: "Sem ações ativas",
+          },
+          actions: [],
+        },
+      }),
+    ).toBe("5.1.1 - Governança e estrutura de Integridade");
+  });
+
   it("segue a ordem estrutural do novo modelo", () => {
     expect(OFFICIAL_REPORT_SECTION_ORDER).toEqual([
       "fami_summary",
-      "detailed_analysis",
       "diagnostic_summary",
       "detailed_axis_analysis",
       "conclusion",

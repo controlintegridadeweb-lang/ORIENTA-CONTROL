@@ -7,31 +7,50 @@ import type {
 } from "@/features/reports/pdf/report-types";
 import {
   prepareDetailedAnalysis,
-  REPORT_EMPTY_ACTION_DOCUMENTS,
-  REPORT_EMPTY_ACTION_MOVEMENTS,
   REPORT_EMPTY_RECOMMENDATION_ACTIONS,
   REPORT_EMPTY_SECTION_RECOMMENDATIONS,
 } from "@/features/reports/pdf/prepare-detailed-analysis";
+import { latinPdfSafe } from "@/shared/export/text";
 import { formatReportPercentage, formatReportPoints } from "../formatters";
 import type { Cursor, OrientaPdfDocument } from "../document";
-import { contentWidth, reportAxisTheme, reportTheme } from "../theme";
-import { drawBadge, drawProgressBar } from "../helpers";
+import { contentWidth, reportTheme } from "../theme";
+import { drawRoundedRectFill } from "../helpers";
+import {
+  drawGridRow,
+  headerRow,
+  labelValueRow,
+  quadRow,
+} from "../primitives/bordered-grid";
 import { drawReportTable } from "../table";
 
-function drawSummaryTable(
+export function axisAnalysisHeading(axis: ReportAxisView): string {
+  return `${axis.numberLabel} - Eixo ${axis.title}`;
+}
+
+export function sectionAnalysisHeading(section: ReportSectionView): string {
+  return `${section.numberLabel} - ${section.title}`;
+}
+
+function dash(value: string | null | undefined): string {
+  const trimmed = value?.trim() ?? "";
+  return trimmed.length > 0 ? trimmed : "—";
+}
+
+function drawPlainHeading(
   doc: OrientaPdfDocument,
   cursor: Cursor,
-  rows: Array<{ indicator: string; value: string }>,
+  title: string,
 ): Cursor {
-  return drawReportTable(
-    doc,
-    cursor,
-    [
-      { key: "indicator", header: "Indicador", width: contentWidth() * 0.55 },
-      { key: "value", header: "Valor", width: contentWidth() * 0.45 },
-    ],
-    rows,
-  );
+  let cur = { ...cursor, y: cursor.y - 16 };
+  cur = doc.ensureSpace(cur, 48);
+  cur.page.drawText(latinPdfSafe(title), {
+    x: reportTheme.margin,
+    y: cur.y,
+    size: 13,
+    font: doc.fonts.bold,
+    color: reportTheme.slate900,
+  });
+  return { ...cur, y: cur.y - 20 };
 }
 
 function renderAxisSummary(
@@ -40,344 +59,175 @@ function renderAxisSummary(
   axis: ReportAxisView,
 ): Cursor {
   const s = axis.summary;
-  return drawSummaryTable(doc, cursor, [
-    {
-      indicator: "Pontuação obtida / máxima aplicável",
-      value: formatReportPoints(s.pointsObtained, s.pointsPossible),
-    },
-    { indicator: "Critérios aplicáveis", value: String(s.applicableCriteriaCount) },
-    { indicator: "Seções do eixo", value: String(s.sectionsCount) },
-    { indicator: "Seções com plano de ação", value: String(s.sectionsWithActionPlan) },
-    { indicator: "Recomendações", value: String(s.recommendationsCount) },
-    { indicator: "Ações cadastradas", value: String(s.actionsCount) },
-    {
-      indicator: "Progresso médio das ações",
-      value: s.averageActionProgress == null ? "—" : `${s.averageActionProgress}%`,
-    },
-  ]);
+  const w = contentWidth();
+  return drawReportTable(
+    doc,
+    cursor,
+    [
+      { key: "indicator", header: "Indicador", width: w * 0.68 },
+      { key: "value", header: "Valor", width: w * 0.32, align: "right" },
+    ],
+    [
+      {
+        indicator: "Pontuação obtida / máxima aplicável",
+        value: formatReportPoints(s.pointsObtained, s.pointsPossible),
+      },
+      { indicator: "Critérios aplicáveis", value: String(s.applicableCriteriaCount) },
+      { indicator: "Seções do eixo", value: String(s.sectionsCount) },
+      { indicator: "Seções com plano de ação", value: String(s.sectionsWithActionPlan) },
+      { indicator: "Recomendações", value: String(s.recommendationsCount) },
+      { indicator: "Ações cadastradas", value: String(s.actionsCount) },
+      {
+        indicator: "Progresso médio das ações",
+        value: s.averageActionProgress == null ? "—" : `${s.averageActionProgress}%`,
+      },
+    ],
+    { zebra: true },
+  );
 }
 
-function renderSectionSummary(
+function compactPoints(obtained: number | null, possible: number | null): string {
+  return formatReportPoints(obtained, possible).replace(/ /g, "");
+}
+
+function renderSectionSummaryCard(
   doc: OrientaPdfDocument,
   cursor: Cursor,
   section: ReportSectionView,
 ): Cursor {
   const s = section.summary;
-  const score = formatReportPoints(s.pointsObtained, s.pointsPossible);
-  const percentage = formatReportPercentage(s.percentage);
-  return doc.drawParagraph(
-    cursor,
-    `Pontuação: ${score} · ${percentage} · Recomendações: ${s.recommendationsCount} · Ações: ${s.actionsCount}`,
-    { size: 8.5, color: reportTheme.slate500, gap: 0 },
+  const cardH = 64;
+  const cur = doc.ensureBlock(cursor, cardH);
+  const w = contentWidth();
+  const bottom = cur.y - cardH;
+  drawRoundedRectFill(
+    cur.page,
+    reportTheme.margin,
+    bottom,
+    w,
+    cardH,
+    8,
+    reportTheme.sectionSummaryCard,
   );
+
+  const cols = [
+    {
+      label: "Pontuação do critério",
+      value: `${compactPoints(s.pointsObtained, s.pointsPossible)} - ${formatReportPercentage(s.percentage, 0)}`,
+    },
+    { label: "Recomendações", value: String(s.recommendationsCount) },
+    { label: "Ações vinculadas", value: String(s.actionsCount) },
+  ];
+  const colW = w / 3;
+  const midY = bottom + cardH / 2;
+  cols.forEach((col, index) => {
+    const cx = reportTheme.margin + colW * index + colW / 2;
+    const label = latinPdfSafe(col.label);
+    const value = latinPdfSafe(col.value);
+    cur.page.drawText(label, {
+      x: cx - doc.fonts.bold.widthOfTextAtSize(label, 8) / 2,
+      y: midY + 8,
+      size: 8,
+      font: doc.fonts.bold,
+      color: reportTheme.slate900,
+    });
+    cur.page.drawText(value, {
+      x: cx - doc.fonts.regular.widthOfTextAtSize(value, 9) / 2,
+      y: midY - 12,
+      size: 9,
+      font: doc.fonts.regular,
+      color: reportTheme.slate900,
+    });
+  });
+
+  return { page: cur.page, y: bottom - 18 };
 }
 
-function renderMovements(
+function latestUpdate(action: ReportActionView): string {
+  const last = action.movements[action.movements.length - 1];
+  if (!last) return "—";
+  return `${last.dateLabel}\n${last.updateText}`;
+}
+
+function documentsLabel(action: ReportActionView): string {
+  if (action.documents.length === 0) return "";
+  return action.documents.map((document) => document.line).join("\n");
+}
+
+function renderActionGrid(
   doc: OrientaPdfDocument,
   cursor: Cursor,
   action: ReportActionView,
+  index: number,
 ): Cursor {
-  let cur = doc.drawParagraph(cursor, "Histórico de acompanhamento", {
-    size: 8,
-    bold: true,
-    color: reportTheme.slate500,
-    gap: 2,
-  });
-
-  if (action.movements.length === 0) {
-    return doc.drawParagraph(cur, REPORT_EMPTY_ACTION_MOVEMENTS, {
-      size: 8,
-      color: reportTheme.slate500,
-      gap: 4,
-    });
-  }
-
-  for (const movement of action.movements) {
-    cur = doc.ensureSpace(cur, 48);
-    cur = doc.drawParagraph(cur, movement.dateLabel, {
-      size: 8,
-      bold: true,
-      color: reportTheme.slate600,
-      gap: 0,
-      indent: 8,
-    });
-    cur = doc.drawParagraph(cur, movement.updateText, {
-      size: 8.5,
-      color: reportTheme.slate700,
-      gap: 0,
-      indent: 8,
-    });
-    cur = doc.drawParagraph(
-      cur,
-      `Progresso registrado: ${movement.progressLabel} · Responsável: ${movement.responsibleLabel}`,
-      { size: 8, color: reportTheme.slate500, gap: 2, indent: 8 },
-    );
-  }
-  return cur;
-}
-
-function renderActionBlock(
-  doc: OrientaPdfDocument,
-  cursor: Cursor,
-  action: ReportActionView,
-): Cursor {
-  let cur = doc.ensureSpace(cursor, 120);
-  cur.page.drawRectangle({
-    x: reportTheme.margin,
-    y: cur.y - 2,
-    width: 3,
-    height: 14,
-    color: reportTheme.brand,
-  });
-  cur = doc.drawParagraph(cur, `Ação ou compromisso · ${action.numberLabel}`, {
-    size: 9,
-    bold: true,
-    color: reportTheme.slate900,
-    gap: 0,
-    indent: 10,
-  });
-  cur = doc.drawParagraph(cur, action.title, {
-    size: 9,
-    color: reportTheme.slate700,
-    gap: 2,
-    indent: 10,
-  });
-
   const status =
     action.isOverdue && !action.isCancelled
       ? `${action.statusLabel} · Atrasada`
       : action.statusLabel;
-  cur = doc.drawParagraph(cur, `Situação: ${status}`, {
-    size: 8.5,
-    color: reportTheme.slate600,
-    gap: 1,
-    indent: 10,
-  });
-
-  cur = doc.ensureSpace(cur, 22);
-  cur.page.drawText(`Progresso: ${action.progressPercentage}%`, {
-    x: reportTheme.margin + 10,
-    y: cur.y,
-    size: 8.5,
-    font: doc.fonts.regular,
-    color: reportTheme.slate600,
-  });
-  drawProgressBar(
-    cur.page,
-    reportTheme.margin + 120,
-    cur.y + 4,
-    contentWidth() - 130,
-    action.progressPercentage,
-  );
-  cur = { ...cur, y: cur.y - 16 };
-
-  cur = doc.drawParagraph(
+  let cur = labelValueRow(doc, cursor, `Ação ${index + 1}`, action.title);
+  cur = quadRow(doc, cur, "Prazo inicial", action.startLabel, "Prazo final", action.endLabel);
+  cur = quadRow(
+    doc,
     cur,
-    `Prazo — Início: ${action.startLabel} · Conclusão: ${action.endLabel}`,
-    { size: 8.5, color: reportTheme.slate600, gap: 1, indent: 10 },
+    "Situação atual",
+    status,
+    "Progresso",
+    `${action.progressPercentage}%`,
   );
-  cur = doc.drawParagraph(cur, `Área responsável: ${action.responsibleSectorLabel}`, {
-    size: 8.5,
-    color: reportTheme.slate600,
-    gap: 1,
-    indent: 10,
-  });
-  cur = doc.drawParagraph(
+  cur = quadRow(
+    doc,
     cur,
-    `Respondente responsável: ${action.responsibleNameLabel}`,
-    { size: 8.5, color: reportTheme.slate600, gap: 2, indent: 10 },
+    "Área responsável",
+    action.responsibleSectorLabel,
+    "Respondente responsável",
+    action.responsibleNameLabel,
   );
-
-  cur = doc.drawParagraph(cur, "Documentos e comprovantes", {
-    size: 8,
-    bold: true,
-    color: reportTheme.slate500,
-    gap: 0,
-    indent: 10,
-  });
-  if (action.documents.length === 0) {
-    cur = doc.drawParagraph(cur, REPORT_EMPTY_ACTION_DOCUMENTS, {
-      size: 8,
-      color: reportTheme.slate500,
-      gap: 4,
-      indent: 10,
-    });
-  } else {
-    for (const document of action.documents) {
-      cur = doc.drawParagraph(cur, `- ${document.line}`, {
-        size: 8,
-        color: reportTheme.slate600,
-        gap: 0,
-        indent: 10,
-      });
-    }
-    cur = { ...cur, y: cur.y - 6 };
-  }
-
-  return renderMovements(doc, cur, action);
+  cur = labelValueRow(doc, cur, "Documentos", documentsLabel(action));
+  cur = labelValueRow(doc, cur, "Última atualização", latestUpdate(action));
+  return cur;
 }
 
-function normalizedLabel(value: string | null): string {
-  return (value ?? "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .toLocaleLowerCase("pt-BR");
-}
-
-function hasDistinctFoundation(recommendation: ReportRecommendationView): boolean {
-  if (!recommendation.reasonLabel.trim()) return false;
-  if (!recommendation.adminAnalysisLabel) return true;
-  return (
-    normalizedLabel(recommendation.reasonLabel) !==
-    normalizedLabel(recommendation.adminAnalysisLabel)
-  );
-}
-
-function renderRecommendation(
+function renderRecommendationGrid(
   doc: OrientaPdfDocument,
   cursor: Cursor,
   recommendation: ReportRecommendationView,
+  recIndex: number,
 ): Cursor {
-  let cur = doc.ensureSpace(cursor, 140);
-  const axisTheme = reportAxisTheme(recommendation.axisName);
-
-  cur.page.drawRectangle({
-    x: reportTheme.margin,
-    y: cur.y - 28,
-    width: contentWidth(),
-    height: 32,
-    color: axisTheme.softBackground,
-    borderColor: axisTheme.border,
-    borderWidth: 0.75,
-  });
-  cur.page.drawRectangle({
-    x: reportTheme.margin,
-    y: cur.y - 28,
-    width: 3,
-    height: 32,
-    color: axisTheme.primary,
-  });
-  cur.page.drawText(recommendation.numberLabel, {
-    x: reportTheme.margin + 12,
-    y: cur.y - 12,
-    size: 10,
-    font: doc.fonts.bold,
-    color: reportTheme.slate900,
-  });
-  drawBadge(doc, cur.page, reportTheme.margin + 210, cur.y - 10, recommendation.statusLabel, {
-    bg: reportTheme.white,
-    text: axisTheme.primary,
-  });
-  cur = { ...cur, y: cur.y - 40 };
-
-  cur = doc.drawParagraph(cur, "Pergunta", {
-    size: 8,
-    bold: true,
-    color: reportTheme.slate500,
-    gap: 0,
-  });
-  cur = doc.drawParagraph(cur, recommendation.originCriterion, {
-    size: 9,
-    bold: true,
-    gap: 0,
-  });
-  cur = doc.drawParagraph(cur, `Resposta: ${recommendation.answerLabel}`, {
-    size: 8,
-    color: reportTheme.slate600,
-    gap: 0,
-  });
-
-  if (recommendation.adminAnalysisLabel) {
-    cur = doc.drawParagraph(cur, "Resultado da análise", {
-      size: 8,
-      bold: true,
-      color: reportTheme.slate500,
-      gap: 0,
-    });
-    cur = doc.drawParagraph(cur, recommendation.adminAnalysisLabel, {
-      size: 9,
-      color: reportTheme.slate700,
-      gap: 2,
-    });
-  }
-
-  if (hasDistinctFoundation(recommendation)) {
-    cur = doc.drawParagraph(cur, "Fundamentação", {
-      size: 8,
-      bold: true,
-      color: reportTheme.slate500,
-      gap: 0,
-    });
-    cur = doc.drawParagraph(cur, recommendation.reasonLabel, {
-      size: 9,
-      color: reportTheme.rose,
-      gap: 2,
-    });
-  }
-
-  cur = doc.drawParagraph(cur, "Recomendação", {
-    size: 8,
-    bold: true,
-    color: reportTheme.slate500,
-    gap: 0,
-  });
-  cur = doc.drawParagraph(cur, recommendation.recommendationText, {
-    size: 9,
-    gap: 2,
-  });
-
-  cur = doc.drawParagraph(cur, `Situação da recomendação: ${recommendation.statusLabel}`, {
-    size: 8.5,
-    color: reportTheme.slate600,
-    gap: 4,
-  });
-
-  cur = doc.drawParagraph(cur, "Plano de ação", {
-    size: 9,
-    bold: true,
-    color: reportTheme.slate900,
-    gap: 2,
-  });
+  let cur = doc.ensureSpace(cursor, 80);
+  cur = labelValueRow(doc, cur, "Critério", recommendation.originCriterion);
+  cur = quadRow(
+    doc,
+    cur,
+    "Resposta",
+    dash(recommendation.answerLabel),
+    "Resultado da análise",
+    dash(recommendation.adminAnalysisLabel),
+  );
+  cur = labelValueRow(doc, cur, "Fundamentação", dash(recommendation.reasonLabel));
+  cur = headerRow(doc, cur, `Recomendação ${recIndex + 1}`);
+  cur = drawGridRow(doc, cur, [
+    { text: recommendation.recommendationText, width: contentWidth() },
+  ]);
+  cur = headerRow(doc, cur, "Plano de ação");
 
   if (recommendation.actions.length === 0) {
-    cur = doc.drawParagraph(cur, REPORT_EMPTY_RECOMMENDATION_ACTIONS, {
-      size: 9,
-      color: reportTheme.slate500,
-      gap: 8,
-    });
-  } else {
-    for (const action of recommendation.actions) {
-      cur = renderActionBlock(doc, cur, action);
-      cur = { ...cur, y: cur.y - 8 };
-    }
+    cur = headerRow(doc, cur, REPORT_EMPTY_RECOMMENDATION_ACTIONS);
+    return { ...cur, y: cur.y - 16 };
   }
 
-  cur = doc.ensureSpace(cur, 12);
-  cur.page.drawLine({
-    start: { x: reportTheme.margin, y: cur.y },
-    end: { x: reportTheme.page.w - reportTheme.margin, y: cur.y },
-    thickness: 0.45,
-    color: reportTheme.slate200,
+  recommendation.actions.forEach((action, actionIndex) => {
+    cur = renderActionGrid(doc, cur, action, actionIndex);
   });
-  return { ...cur, y: cur.y - 14 };
+  return { ...cur, y: cur.y - 16 };
 }
 
 function renderSection(
   doc: OrientaPdfDocument,
   cursor: Cursor,
   section: ReportSectionView,
-  axisName: string,
 ): Cursor {
-  let cur = doc.ensureSpace(cursor, 72);
-  const axisTheme = reportAxisTheme(axisName);
-  cur = doc.drawSubsectionTitle(
-    cur,
-    `${section.numberLabel} — ${section.title}`,
-    undefined,
-    { accent: axisTheme.primary },
-  );
-  cur = renderSectionSummary(doc, cur, section);
+  let cur = drawPlainHeading(doc, cursor, sectionAnalysisHeading(section));
+  cur = renderSectionSummaryCard(doc, cur, section);
 
   if (section.recommendations.length === 0) {
     return doc.drawParagraph(cur, REPORT_EMPTY_SECTION_RECOMMENDATIONS, {
@@ -387,9 +237,9 @@ function renderSection(
     });
   }
 
-  for (const recommendation of section.recommendations) {
-    cur = renderRecommendation(doc, cur, recommendation);
-  }
+  section.recommendations.forEach((recommendation, index) => {
+    cur = renderRecommendationGrid(doc, cur, recommendation, index);
+  });
   return cur;
 }
 
@@ -398,19 +248,14 @@ function renderAxis(
   cursor: Cursor,
   axis: ReportAxisView,
 ): Cursor {
-  let cur = doc.ensureSpace(cursor, 90);
-  const axisTheme = reportAxisTheme(axis.title);
-  doc.registerTocEntry(`axis-${axis.id}`, `${axis.numberLabel} — Eixo ${axis.title}`, 1);
-  cur = doc.drawSubsectionTitle(
-    cur,
-    `${axis.numberLabel} — Eixo ${axis.title}`,
-    undefined,
-    { accent: axisTheme.primary },
-  );
+  const heading = axisAnalysisHeading(axis);
+  doc.registerTocEntry(`axis-${axis.id}`, heading, 1);
+  let cur = drawPlainHeading(doc, cursor, heading);
   cur = renderAxisSummary(doc, cur, axis);
+  cur = { ...cur, y: cur.y - 8 };
 
   for (const section of axis.sections) {
-    cur = renderSection(doc, cur, section, axis.title);
+    cur = renderSection(doc, cur, section);
   }
   return cur;
 }
@@ -421,7 +266,7 @@ export function renderDetailedAxisAnalysisSection(
 ): Cursor {
   let cur = doc.beginMajorSection(
     "Análise detalhada por eixo",
-    "Hierarquia Eixo -> Seção -> Pergunta -> Recomendação -> Plano de ação -> Monitoramento.",
+    undefined,
     "detailed-axis-analysis",
   );
 

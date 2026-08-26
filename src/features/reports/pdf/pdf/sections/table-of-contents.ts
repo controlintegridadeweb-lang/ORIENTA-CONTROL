@@ -1,70 +1,163 @@
-import type { OrientaPdfDocument, TocEntry } from "../document";
-import { contentWidth, reportTheme } from "../theme";
+import { latinPdfSafe } from "@/shared/export/text";
 
-/** Preenche a página de sumário reservada ao final da montagem. */
+import type { OrientaPdfDocument, TocEntry } from "../document";
+import { reportTheme } from "../theme";
+
+/**
+ * Página de sumário institucional.
+ *
+ * Moldura teal contínua + painel branco central, com o título
+ * “Sumário” centralizado no topo da área interna — conforme
+ * o layout de referência.
+ */
+
+export const OFFICIAL_REPORT_TOC_TITLE = "Sumário";
+
+const TOC_LAYOUT = {
+  /**
+   * Espessura da moldura em todos os lados.
+   * Na referência, ~9,4% da largura A4 ≈ 56 pt.
+   */
+  frame: 56,
+
+  titleSize: 22,
+
+  /**
+   * Distância do topo do painel branco até a baseline do título.
+   */
+  titleBaselineFromInnerTop: 104,
+
+  /**
+   * Espaço entre o título e a primeira entrada.
+   */
+  titleToEntriesGap: 48,
+
+  /**
+   * Recuo interno das entradas em relação à borda branca.
+   */
+  entryInset: 36,
+
+  entrySize: 11,
+  nestedEntrySize: 10,
+  rowGap: 22,
+  nestedRowGap: 18,
+} as const;
+
+/**
+ * Preenche a página de sumário reservada ao final da montagem.
+ */
 export function fillTableOfContents(doc: OrientaPdfDocument): void {
   const page = doc.getPage(doc.tocPageIndex);
   const fonts = doc.fonts;
-  const top = doc.contentTop;
+  const { w: pageWidth, h: pageHeight } = reportTheme.page;
+  const frame = TOC_LAYOUT.frame;
 
-  page.drawText("Sumário", {
-    x: reportTheme.margin,
-    y: top - 4,
-    size: 20,
+  page.drawRectangle({
+    x: 0,
+    y: 0,
+    width: pageWidth,
+    height: pageHeight,
+    color: reportTheme.tocFrame,
+  });
+
+  const innerX = frame;
+  const innerY = frame;
+  const innerW = pageWidth - frame * 2;
+  const innerH = pageHeight - frame * 2;
+
+  page.drawRectangle({
+    x: innerX,
+    y: innerY,
+    width: innerW,
+    height: innerH,
+    color: reportTheme.white,
+  });
+
+  const title = latinPdfSafe(OFFICIAL_REPORT_TOC_TITLE);
+  const titleWidth = fonts.bold.widthOfTextAtSize(
+    title,
+    TOC_LAYOUT.titleSize,
+  );
+  const innerTop = innerY + innerH;
+  const titleBaseline =
+    innerTop - TOC_LAYOUT.titleBaselineFromInnerTop;
+
+  page.drawText(title, {
+    x: innerX + (innerW - titleWidth) / 2,
+    y: titleBaseline,
+    size: TOC_LAYOUT.titleSize,
     font: fonts.bold,
     color: reportTheme.slate900,
   });
 
-  let y = top - 40;
-  page.drawLine({
-    start: { x: reportTheme.margin, y: y + 8 },
-    end: { x: reportTheme.page.w - reportTheme.margin, y: y + 8 },
-    thickness: 0.75,
-    color: reportTheme.slate200,
-  });
-  y -= 24;
-
   const entries: TocEntry[] = doc.tocEntries;
-  const w = contentWidth();
+  const listLeft = innerX + TOC_LAYOUT.entryInset;
+  const listRight = innerX + innerW - TOC_LAYOUT.entryInset;
+  const listWidth = listRight - listLeft;
+  const listBottom = innerY + TOC_LAYOUT.entryInset;
+
+  let y = titleBaseline - TOC_LAYOUT.titleToEntriesGap;
 
   for (const entry of entries) {
-    const indent = entry.level > 0 ? 14 * entry.level : 0;
-    const title = entry.title;
-    const pageLabel = String(entry.page);
-    const titleSize = entry.level > 0 ? 10 : 11;
-    const titleW = fonts.regular.widthOfTextAtSize(title, titleSize);
-    const pageW = fonts.bold.widthOfTextAtSize(pageLabel, titleSize);
-    const dotsW = Math.max(12, w - indent - titleW - pageW - 16);
-    const dotCount = Math.floor(dotsW / 4);
-    const dots = ".".repeat(Math.min(dotCount, 80));
+    const nested = entry.level > 0;
+    const titleSize = nested
+      ? TOC_LAYOUT.nestedEntrySize
+      : TOC_LAYOUT.entrySize;
+    const rowGap = nested
+      ? TOC_LAYOUT.nestedRowGap
+      : TOC_LAYOUT.rowGap;
 
-    page.drawText(title, {
-      x: reportTheme.margin + indent,
+    if (y - titleSize < listBottom) {
+      break;
+    }
+
+    const indent = nested ? 14 * entry.level : 0;
+    const entryTitle = latinPdfSafe(entry.title);
+    const pageLabel = String(entry.page);
+    const titleW = fonts.regular.widthOfTextAtSize(
+      entryTitle,
+      titleSize,
+    );
+    const pageW = fonts.bold.widthOfTextAtSize(
+      pageLabel,
+      titleSize,
+    );
+    const dotsW = Math.max(
+      12,
+      listWidth - indent - titleW - pageW - 16,
+    );
+    const dots = ".".repeat(
+      Math.min(Math.floor(dotsW / 4), 80),
+    );
+
+    page.drawText(entryTitle, {
+      x: listLeft + indent,
       y,
       size: titleSize,
       font: fonts.regular,
-      color: entry.level > 0 ? reportTheme.slate600 : reportTheme.slate700,
+      color: nested ? reportTheme.slate600 : reportTheme.slate700,
     });
     page.drawText(dots, {
-      x: reportTheme.margin + indent + titleW + 6,
+      x: listLeft + indent + titleW + 6,
       y,
       size: titleSize,
       font: fonts.regular,
       color: reportTheme.slate200,
     });
     page.drawText(pageLabel, {
-      x: reportTheme.page.w - reportTheme.margin - pageW,
+      x: listRight - pageW,
       y,
       size: titleSize,
       font: fonts.bold,
       color: reportTheme.brandDark,
     });
-    y -= entry.level > 0 ? 18 : 22;
+
+    y -= rowGap;
   }
 
   if (entries.length === 0) {
     page.drawText("Conteúdo do relatório nas seções a seguir.", {
-      x: reportTheme.margin,
+      x: listLeft,
       y,
       size: 10,
       font: fonts.regular,

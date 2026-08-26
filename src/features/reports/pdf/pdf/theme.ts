@@ -26,15 +26,30 @@ export const reportTheme = {
   emeraldBg: rgb(0.93, 0.99, 0.96),
   sky: rgb(0.12, 0.45, 0.78),
   skyBg: rgb(0.94, 0.97, 1),
+  /** Cabeçalho de tabela Indicador/Valor. */
+  tableHeader: rgb(240 / 255, 242 / 255, 245 / 255),
+  tableStripe: rgb(250 / 255, 250 / 255, 250 / 255),
+  /** Card de resumo da seção (referência “Pontuação do critério”). */
+  sectionSummaryCard: rgb(234 / 255, 246 / 255, 249 / 255),
+  gridInk: rgb(0, 0, 0),
+  /** Fundo das células-rótulo (negrito) da grade de critério. */
+  gridLabelBg: rgb(238 / 255, 247 / 255, 251 / 255),
   amber: rgb(0.75, 0.45, 0.1),
   amberBg: rgb(1, 0.97, 0.92),
   rose: rgb(0.78, 0.22, 0.28),
   roseBg: rgb(1, 0.95, 0.95),
   coverInk: rgb(0.12, 0.35, 0.33),
   coverInkMuted: rgb(0.35, 0.42, 0.42),
+  /** Moldura institucional da página de sumário (referência visual). */
+  tocFrame: rgb(19 / 255, 145 / 255, 133 / 255),
+  /** Badge “Nível N” do card FAMI — token `brand-400`. */
+  brandBadge: rgb(100 / 255, 172 / 255, 149 / 255),
+  /** Arco do anel percentual (emerald-500 da UI). */
+  scoreRing: rgb(16 / 255, 185 / 255, 129 / 255),
+  scoreRingTrack: rgb(226 / 255, 232 / 255, 240 / 255),
 } as const;
 
-function pdfRgbFromHex(hex: string): RGB {
+export function pdfRgbFromHex(hex: string): RGB {
   const normalized = hex.replace("#", "");
   const value = Number.parseInt(normalized, 16);
   return rgb(
@@ -52,13 +67,51 @@ export function reportAxisTheme(axisName: string): {
   primary: RGB;
   softBackground: RGB;
   border: RGB;
+  text: RGB;
 } {
   const theme = getAxisTheme(axisName);
   return {
     primary: pdfRgbFromHex(theme.primary),
     softBackground: pdfRgbFromHex(theme.softBackground),
     border: pdfRgbFromHex(theme.border),
+    text: pdfRgbFromHex(theme.text),
   };
+}
+
+const MATURITY_LEVEL_PDF: Record<
+  1 | 2 | 3 | 4 | 5,
+  { bg: RGB; text: RGB }
+> = {
+  1: {
+    bg: rgb(252 / 255, 233 / 255, 238 / 255),
+    text: rgb(176 / 255, 27 / 255, 68 / 255),
+  },
+  2: {
+    bg: rgb(249 / 255, 240 / 255, 232 / 255),
+    text: rgb(143 / 255, 75 / 255, 20 / 255),
+  },
+  3: {
+    bg: rgb(230 / 255, 242 / 255, 249 / 255),
+    text: rgb(0 / 255, 95 / 255, 151 / 255),
+  },
+  4: {
+    bg: rgb(240 / 255, 235 / 255, 230 / 255),
+    text: rgb(102 / 255, 51 / 255, 0 / 255),
+  },
+  5: {
+    bg: rgb(230 / 255, 245 / 255, 240 / 255),
+    text: rgb(0 / 255, 122 / 255, 85 / 255),
+  },
+};
+
+export function reportMaturityLevelTheme(level: number | null): {
+  bg: RGB;
+  text: RGB;
+} {
+  if (level === 1 || level === 2 || level === 3 || level === 4 || level === 5) {
+    return MATURITY_LEVEL_PDF[level];
+  }
+  return { bg: reportTheme.slate100, text: reportTheme.slate600 };
 }
 
 export function contentWidth(): number {

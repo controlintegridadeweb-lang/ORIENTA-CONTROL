@@ -15,6 +15,7 @@ import { contentWidth, reportTheme } from "./theme";
 export type ReportFonts = {
   regular: Awaited<ReturnType<PDFDocument["embedFont"]>>;
   bold: Awaited<ReturnType<PDFDocument["embedFont"]>>;
+  italic: Awaited<ReturnType<PDFDocument["embedFont"]>>;
 };
 
 export type Cursor = { page: PDFPage; y: number };
@@ -71,18 +72,20 @@ export class OrientaPdfDocument {
     const fonts: ReportFonts = {
       regular: await pdf.embedFont(StandardFonts.Helvetica),
       bold: await pdf.embedFont(StandardFonts.HelveticaBold),
+      italic: await pdf.embedFont(StandardFonts.HelveticaOblique),
     };
     const doc = new OrientaPdfDocument(pdf, fonts, data);
     doc.logo = await tryEmbedPng(pdf, path.join("public", "assets", "logo-orienta.png"));
+    // Versões cortadas (sem padding 2000²) — escala visual previsível na capa.
     doc.coverAssets = {
-      brandMark: await tryEmbedPng(pdf, path.join("public", "assets", "capa relatorio.png")),
+      brandMark: await tryEmbedPng(pdf, path.join("public", "assets", "cover", "brand.png")),
       decoTop: await tryEmbedPng(
         pdf,
-        path.join("public", "assets", "decoracao inferior relatorio (2).png"),
+        path.join("public", "assets", "cover", "deco-top-left.png"),
       ),
       decoBottom: await tryEmbedPng(
         pdf,
-        path.join("public", "assets", "decoracao inferior relatorio (1).png"),
+        path.join("public", "assets", "cover", "deco-bottom-right.png"),
       ),
     };
     return doc;
@@ -179,7 +182,7 @@ export class OrientaPdfDocument {
     const pages = this.pdf.getPages();
     const total = pages.length;
     pages.forEach((page, i) => {
-      if (i === this.coverPageIndex) return;
+      if (i === this.coverPageIndex || i === this.tocPageIndex) return;
       this.drawFooter(page, i + 1, total);
     });
   }
@@ -266,34 +269,53 @@ export class OrientaPdfDocument {
       if (cur.y - reportTheme.titleBlockH < this.contentBottom) cur = this.newPage();
     }
 
-    const barY = cur.y;
+    const titleSize = 17;
+    const titleAscent = 13;
+    const barH = 18;
+    const barTop = cur.y;
+    const titleBaseline = barTop - titleAscent;
     cur.page.drawRectangle({
       x: reportTheme.margin,
-      y: barY - 24,
+      y: titleBaseline - 4,
       width: 4,
-      height: 26,
+      height: barH,
       color: reportTheme.brand,
     });
     cur.page.drawText(latinPdfSafe(title), {
       x: reportTheme.margin + 14,
-      y: barY - 4,
-      size: 17,
+      y: titleBaseline,
+      size: titleSize,
       font: this.fonts.bold,
       color: reportTheme.slate900,
     });
-    cur = { ...cur, y: barY - 28 };
 
+    let y = titleBaseline - 20;
     if (subtitle) {
-      cur = this.drawParagraph(cur, subtitle, { size: 9, color: reportTheme.slate500, gap: 0 });
+      const usable = contentWidth() - 14;
+      const maxChars = Math.floor(usable / (9 * 0.52));
+      for (const line of this.chunkText(latinPdfSafe(subtitle), maxChars)) {
+        cur.page.drawText(line, {
+          x: reportTheme.margin + 14,
+          y,
+          size: 9,
+          font: this.fonts.regular,
+          color: reportTheme.slate500,
+          maxWidth: usable,
+        });
+        y -= 13;
+      }
+      y -= 4;
+    } else {
+      y = titleBaseline - 16;
     }
 
     cur.page.drawLine({
-      start: { x: reportTheme.margin, y: cur.y - 6 },
-      end: { x: reportTheme.page.w - reportTheme.margin, y: cur.y - 6 },
+      start: { x: reportTheme.margin, y },
+      end: { x: reportTheme.page.w - reportTheme.margin, y },
       thickness: 0.75,
       color: reportTheme.slate200,
     });
-    return { ...cur, y: cur.y - 20 };
+    return { ...cur, y: y - 18 };
   }
 
   drawSubsectionTitle(
@@ -329,25 +351,38 @@ export class OrientaPdfDocument {
     c: Cursor,
     height: number,
     opts: { fill?: ReturnType<typeof rgb>; border?: ReturnType<typeof rgb> } = {},
-  ): { cursor: Cursor; innerX: number; innerY: number; innerW: number } {
+  ): {
+    cursor: Cursor;
+    innerX: number;
+    innerY: number;
+    innerW: number;
+    innerH: number;
+    midY: number;
+  } {
+    const pad = 16;
     const cur = this.ensureBlock(c, height);
     const w = contentWidth();
     const fill = opts.fill ?? reportTheme.white;
     const border = opts.border ?? reportTheme.slate200;
+    const bottom = cur.y - height;
     cur.page.drawRectangle({
       x: reportTheme.margin,
-      y: cur.y - height,
+      y: bottom,
       width: w,
       height,
       color: fill,
       borderColor: border,
       borderWidth: 0.75,
     });
+    const innerY = cur.y - pad;
+    const innerBottom = bottom + pad;
     return {
-      cursor: { page: cur.page, y: cur.y - height },
-      innerX: reportTheme.margin + 16,
-      innerY: cur.y - 16,
-      innerW: w - 32,
+      cursor: { page: cur.page, y: bottom },
+      innerX: reportTheme.margin + pad,
+      innerY,
+      innerW: w - pad * 2,
+      innerH: height - pad * 2,
+      midY: (innerY + innerBottom) / 2,
     };
   }
 

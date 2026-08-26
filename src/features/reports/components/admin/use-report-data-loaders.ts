@@ -17,6 +17,9 @@ type ReportsRouter = {
   replace(href: string, options?: { scroll?: boolean }): void;
 };
 
+/** `null` = requisição obsoleta (não deve alterar URL nem sobrescrever seleção). */
+export type LoadCyclesResult = string | null;
+
 export function useReportDataLoaders({
   initialOrganizationId,
   initialCycleId,
@@ -48,7 +51,7 @@ export function useReportDataLoaders({
     preferredCycleId = "",
     offset = 0,
     search = "",
-  ): Promise<string> => {
+  ): Promise<LoadCyclesResult> => {
     if (!organizationId) {
       invalidateCyclesRequest();
       patch({
@@ -70,7 +73,7 @@ export function useReportDataLoaders({
         limit: REPORT_CYCLE_PAGE_SIZE,
         offset,
       });
-      if (!isLatestCyclesRequest(requestId)) return "";
+      if (!isLatestCyclesRequest(requestId)) return null;
 
       let cycles = page.cycles;
       if (preferredCycleId && !cycles.some((cycle) => cycle.cycleId === preferredCycleId)) {
@@ -80,24 +83,31 @@ export function useReportDataLoaders({
           limit: 1,
           offset: 0,
         });
-        if (!isLatestCyclesRequest(requestId)) return "";
+        if (!isLatestCyclesRequest(requestId)) return null;
         cycles = [
           ...exact.cycles,
           ...cycles.filter((cycle) => cycle.cycleId !== preferredCycleId),
         ];
       }
 
-      const cycleId = cycles.some((cycle) => cycle.cycleId === preferredCycleId)
-        ? preferredCycleId
-        : "";
+      const foundPreferred = Boolean(
+        preferredCycleId && cycles.some((cycle) => cycle.cycleId === preferredCycleId),
+      );
+      // Mantém o id da URL no state mesmo se a lista ainda não o trouxe —
+      // evita o <select> voltar para "Selecione" no meio da escolha.
+      const nextCycleId = preferredCycleId ? preferredCycleId : "";
+
       patch({
         cycles,
-        cycleId,
+        cycleId: nextCycleId,
         cycleOffset: offset,
         cycleTotal: page.totalCycles,
         cycleHasMore: page.hasMoreCycles,
       });
-      return cycleId;
+
+      // Só sinaliza “não encontrado” quando houve preferência e ela não existe.
+      if (preferredCycleId && !foundPreferred) return "";
+      return nextCycleId;
     } catch (error) {
       if (isLatestCyclesRequest(requestId)) {
         patch({
@@ -106,7 +116,7 @@ export function useReportDataLoaders({
             : "Não foi possível carregar os diagnósticos.",
         });
       }
-      return "";
+      return null;
     } finally {
       if (isLatestCyclesRequest(requestId)) patch({ loadingCycles: false });
     }
@@ -119,18 +129,23 @@ export function useReportDataLoaders({
       const { organizations } = await loadReportOptions({});
       if (!isLatestOrganizationsRequest(requestId)) return;
       patch({ organizations });
-      const organizationId =
-        initialOrganizationId && organizations.some((item) => item.id === initialOrganizationId)
-          ? initialOrganizationId
-          : organizations.length === 1
-            ? organizations[0]!.id
-            : "";
-      if (!organizationId) return;
 
-      patch({ organizationId });
-      const cycleId = await loadCycles(organizationId, initialCycleId ?? "");
-      if (!initialOrganizationId && organizations.length === 1) {
-        router.replace(reportsHref(organizationId, cycleId, 0), { scroll: false });
+      // Ciclos são carregados pelo efeito de searchParams (URL = fonte de verdade).
+      // Aqui só escolhemos organização automaticamente quando a URL ainda não tem uma.
+      if (initialOrganizationId) {
+        if (!organizations.some((item) => item.id === initialOrganizationId)) {
+          patch({
+            scopeError: "A organização indicada na URL não está disponível.",
+          });
+        }
+        return;
+      }
+
+      if (organizations.length === 1) {
+        router.replace(
+          reportsHref(organizations[0]!.id, initialCycleId ?? "", 0),
+          { scroll: false },
+        );
       }
     } catch (error) {
       if (isLatestOrganizationsRequest(requestId)) {
@@ -148,7 +163,6 @@ export function useReportDataLoaders({
     initialCycleId,
     initialOrganizationId,
     isLatestOrganizationsRequest,
-    loadCycles,
     patch,
     router,
   ]);

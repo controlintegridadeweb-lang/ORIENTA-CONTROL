@@ -1,9 +1,17 @@
-import type { PDFPage } from "pdf-lib";
+import { LineCapStyle, type PDFPage } from "pdf-lib";
 import type { OrientaPdfDocument } from "../document";
 import { reportTheme } from "../theme";
 
+function formatRingPercent(value: number): string {
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? `${rounded.toFixed(0)}%` : `${rounded.toFixed(1)}%`;
+}
+
+export const FAMI_SCORE_RING_STROKE = 9;
+
 /**
  * Indicador circular do percentual FAMI (apresentação; não recalcula o resultado).
+ * Anel de trilha cinza + arco verde, percentual preto no centro — como na UI.
  */
 export function drawFamiScoreRing(
   doc: OrientaPdfDocument,
@@ -16,15 +24,13 @@ export function drawFamiScoreRing(
   },
 ): void {
   const { cx, cy, radius, percentage } = opts;
-  const track = reportTheme.slate100;
-  const fill = reportTheme.brand;
-  const stroke = 10;
+  const stroke = FAMI_SCORE_RING_STROKE;
 
   page.drawCircle({
     x: cx,
     y: cy,
     size: radius,
-    borderColor: track,
+    borderColor: reportTheme.scoreRingTrack,
     borderWidth: stroke,
     color: reportTheme.white,
   });
@@ -41,32 +47,35 @@ export function drawFamiScoreRing(
   }
 
   const clamped = Math.max(0, Math.min(100, percentage));
-  // pdf-lib não oferece arco parcial simples; aproximamos com segmentos.
-  const segments = Math.max(1, Math.round((clamped / 100) * 48));
+  const total = 96;
+  const segments = Math.round((clamped / 100) * total);
   const start = Math.PI / 2;
+
   for (let i = 0; i < segments; i++) {
-    const a0 = start - (i / 48) * Math.PI * 2;
-    const a1 = start - ((i + 1) / 48) * Math.PI * 2;
-    const x0 = cx + Math.cos(a0) * radius;
-    const y0 = cy + Math.sin(a0) * radius;
-    const x1 = cx + Math.cos(a1) * radius;
-    const y1 = cy + Math.sin(a1) * radius;
+    const a0 = start - (i / total) * Math.PI * 2;
+    const a1 = start - ((i + 1) / total) * Math.PI * 2;
     page.drawLine({
-      start: { x: x0, y: y0 },
-      end: { x: x1, y: y1 },
+      start: {
+        x: cx + Math.cos(a0) * radius,
+        y: cy + Math.sin(a0) * radius,
+      },
+      end: {
+        x: cx + Math.cos(a1) * radius,
+        y: cy + Math.sin(a1) * radius,
+      },
       thickness: stroke,
-      color: fill,
+      color: reportTheme.scoreRing,
+      lineCap: LineCapStyle.Round,
     });
   }
 
-  const label = `${clamped.toLocaleString("pt-BR", {
-    maximumFractionDigits: 0,
-  })}%`;
+  const label = formatRingPercent(clamped);
+  const labelSize = 20;
   page.drawText(label, {
-    x: cx - doc.fonts.bold.widthOfTextAtSize(label, 18) / 2,
-    y: cy - 6,
-    size: 18,
+    x: cx - doc.fonts.bold.widthOfTextAtSize(label, labelSize) / 2,
+    y: cy - 7,
+    size: labelSize,
     font: doc.fonts.bold,
-    color: reportTheme.brandDark,
+    color: reportTheme.slate900,
   });
 }

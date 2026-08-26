@@ -172,7 +172,10 @@ export async function loadCycleFamiReportSnapshot(
       };
     })
     .sort((a, b) => a.order - b.order || a.sectionName.localeCompare(b.sectionName, "pt-BR"))
-    .map(({ order: _order, ...section }) => section);
+    .map(({ order, ...section }) => ({
+      ...section,
+      sectionOrder: order,
+    }));
 
   const axesWithPoints = sortAxesMaturity(
     axisRows.map((row) => ({

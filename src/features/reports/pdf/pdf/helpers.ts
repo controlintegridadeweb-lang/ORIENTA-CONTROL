@@ -34,13 +34,8 @@ export function drawBadge(
   const pad = 6;
   const size = 8;
   const w = doc.fonts.bold.widthOfTextAtSize(label, size) + pad * 2;
-  page.drawRectangle({
-    x,
-    y: y - 12,
-    width: w,
-    height: 14,
-    color: colors.bg,
-  });
+  const h = 14;
+  drawPill(page, x, y - 12, w, h, colors.bg);
   page.drawText(label, {
     x: x + pad,
     y: y - 10,
@@ -51,6 +46,42 @@ export function drawBadge(
   return w + 6;
 }
 
+function drawPill(
+  page: Cursor["page"],
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  color: RGB,
+): void {
+  const radius = height / 2;
+  page.drawCircle({ x: x + radius, y: y + radius, size: radius, color });
+  page.drawCircle({
+    x: x + width - radius,
+    y: y + radius,
+    size: radius,
+    color,
+  });
+  page.drawRectangle({
+    x: x + radius,
+    y,
+    width: Math.max(0, width - height),
+    height,
+    color,
+  });
+}
+
+export function drawFilledPill(
+  page: Cursor["page"],
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  color: RGB,
+): void {
+  drawPill(page, x, y, width, height, color);
+}
+
 export function drawProgressBar(
   page: Cursor["page"],
   x: number,
@@ -58,8 +89,9 @@ export function drawProgressBar(
   width: number,
   pct: number,
   fillColor = reportTheme.brand,
+  barHeight = 8,
 ): void {
-  const h = 8;
+  const h = barHeight;
   const clamped = Math.max(0, Math.min(100, pct));
   page.drawRectangle({
     x,
@@ -67,8 +99,6 @@ export function drawProgressBar(
     width,
     height: h,
     color: reportTheme.slate100,
-    borderColor: reportTheme.slate200,
-    borderWidth: 0.5,
   });
   if (clamped > 0) {
     page.drawRectangle({
@@ -232,4 +262,23 @@ export function recommendationAccent(type: string): { bg: RGB; text: RGB; border
     return { bg: reportTheme.emeraldBg, text: reportTheme.emerald, border: reportTheme.emerald };
   }
   return { bg: reportTheme.skyBg, text: reportTheme.sky, border: reportTheme.sky };
+}
+
+/** Retângulo preenchido com cantos arredondados (card de resumo da seção). */
+export function drawRoundedRectFill(
+  page: Cursor["page"],
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+  color: RGB,
+): void {
+  const r = Math.min(radius, width / 2, height / 2);
+  page.drawRectangle({ x: x + r, y, width: width - r * 2, height, color });
+  page.drawRectangle({ x, y: y + r, width, height: height - r * 2, color });
+  page.drawCircle({ x: x + r, y: y + r, size: r, color });
+  page.drawCircle({ x: x + width - r, y: y + r, size: r, color });
+  page.drawCircle({ x: x + r, y: y + height - r, size: r, color });
+  page.drawCircle({ x: x + width - r, y: y + height - r, size: r, color });
 }

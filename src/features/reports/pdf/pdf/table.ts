@@ -6,9 +6,14 @@ export type ReportTableColumn = {
   key: string;
   header: string;
   width: number;
+  align?: "left" | "right";
 };
 
 export type ReportTableRow = Record<string, string>;
+
+export type ReportTableOptions = {
+  zebra?: boolean;
+};
 
 const HEADER_H = 18;
 const CELL_PAD = 4;
@@ -38,6 +43,18 @@ function rowHeight(
   return Math.max(ROW_LINE + 6, lines * ROW_LINE + 6);
 }
 
+function cellX(
+  column: ReportTableColumn,
+  x: number,
+  text: string,
+  size: number,
+  font: OrientaPdfDocument["fonts"]["regular"],
+): number {
+  if (column.align !== "right") return x + CELL_PAD;
+  const width = font.widthOfTextAtSize(text, size);
+  return x + column.width - CELL_PAD - width;
+}
+
 function drawHeader(
   doc: OrientaPdfDocument,
   cursor: Cursor,
@@ -50,13 +67,12 @@ function drawHeader(
     y: cur.y - HEADER_H,
     width: contentWidth(),
     height: HEADER_H,
-    color: reportTheme.slate100,
-    borderColor: reportTheme.slate200,
-    borderWidth: 0.5,
+    color: reportTheme.tableHeader,
   });
   for (const column of columns) {
-    cur.page.drawText(latinPdfSafe(column.header), {
-      x: x + CELL_PAD,
+    const label = latinPdfSafe(column.header);
+    cur.page.drawText(label, {
+      x: cellX(column, x, label, 8, doc.fonts.bold),
       y: cur.y - 12,
       size: 8,
       font: doc.fonts.bold,
@@ -65,6 +81,12 @@ function drawHeader(
     });
     x += column.width;
   }
+  cur.page.drawLine({
+    start: { x: reportTheme.margin, y: cur.y - HEADER_H },
+    end: { x: reportTheme.margin + contentWidth(), y: cur.y - HEADER_H },
+    thickness: 0.4,
+    color: reportTheme.slate200,
+  });
   return { ...cur, y: cur.y - HEADER_H };
 }
 
@@ -77,13 +99,14 @@ export function drawReportTable(
   cursor: Cursor,
   columns: ReportTableColumn[],
   rows: ReportTableRow[],
+  opts: ReportTableOptions = {},
 ): Cursor {
   if (rows.length === 0) return cursor;
 
   let cur = drawHeader(doc, cursor, columns);
   const cellSize = 8;
 
-  for (const row of rows) {
+  rows.forEach((row, index) => {
     const height = rowHeight(doc, columns, row, cellSize);
     if (cur.y - height < doc.contentBottom) {
       cur = doc.newPage();
@@ -91,14 +114,13 @@ export function drawReportTable(
     }
 
     const top = cur.y;
+    const zebra = opts.zebra && index % 2 === 0;
     cur.page.drawRectangle({
       x: reportTheme.margin,
       y: top - height,
       width: contentWidth(),
       height,
-      color: reportTheme.white,
-      borderColor: reportTheme.slate200,
-      borderWidth: 0.4,
+      color: zebra ? reportTheme.tableStripe : reportTheme.white,
     });
 
     let x = reportTheme.margin;
@@ -107,7 +129,7 @@ export function drawReportTable(
       let ly = top - 11;
       for (const line of lines) {
         cur.page.drawText(line, {
-          x: x + CELL_PAD,
+          x: cellX(column, x, line, cellSize, doc.fonts.regular),
           y: ly,
           size: cellSize,
           font: doc.fonts.regular,
@@ -118,8 +140,14 @@ export function drawReportTable(
       }
       x += column.width;
     }
+    cur.page.drawLine({
+      start: { x: reportTheme.margin, y: top - height },
+      end: { x: reportTheme.margin + contentWidth(), y: top - height },
+      thickness: 0.35,
+      color: reportTheme.slate200,
+    });
     cur = { ...cur, y: top - height };
-  }
+  });
 
   return { ...cur, y: cur.y - 8 };
 }

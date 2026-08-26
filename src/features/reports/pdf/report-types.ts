@@ -25,6 +25,8 @@ export type ReportFamiSectionScore = {
   maturityLevel: number | null;
   pointsObtained: number;
   pointsPossible: number;
+  /** Ordem oficial da seção no formulário, quando o catálogo congelado existe. */
+  sectionOrder?: number;
 };
 
 export type ReportFamiAxisScore = {

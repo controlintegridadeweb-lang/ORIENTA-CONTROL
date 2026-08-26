@@ -52,15 +52,17 @@ export function useReportsController({
   const isReissue =
     selectedCycle?.reportStatus === "available" &&
     (selectedCycle.emissionCount ?? 0) > 0;
+  const missingReissueReason = isReissue && state.reissueReason.trim().length < 3;
   const canGenerate = Boolean(
     state.cycleId &&
-    selectedCycle?.cycleState === "completed" &&
+    selectedCycle &&
+    selectedCycle.cycleState === "completed" &&
     selectedCycle.referenceStartYear != null &&
     selectedCycle.referenceEndYear != null &&
     selectedCycle.reportStatus !== "emitting" &&
     selectedCycle.reportStatus !== "not_ready" &&
     selectedCycle.reportStatus !== "outdated" &&
-    (!isReissue || state.reissueReason.trim().length >= 3),
+    !missingReissueReason,
   );
 
   useEffect(() => {
@@ -76,14 +78,15 @@ export function useReportsController({
     const cycleId = searchParams.get("cycleId") ?? "";
     const historyOffset = reportOffsetFromSearchParams(searchParams);
 
-    // Sincroniza só a partir da URL. Não depende do state local: depender de
-    // cycleId/organizationId reentrava o efeito no meio do router.push e apagava
-    // a seleção do diagnóstico (botão "Emitir" ficava permanentemente desabilitado).
+    // URL é a fonte de verdade. Não depende do state local (evita corrida com router.push).
     patch({ organizationId, cycleId, historyOffset });
 
     let cancelled = false;
     void loadCycles(organizationId, cycleId).then((resolvedCycleId) => {
-      if (cancelled || resolvedCycleId === cycleId) return;
+      // null = requisição obsoleta; não mexer na URL.
+      if (cancelled || resolvedCycleId === null) return;
+      if (resolvedCycleId === cycleId) return;
+      // Só reescreve quando o ciclo pedido realmente não existe na API.
       router.replace(reportsHref(organizationId, resolvedCycleId, historyOffset), {
         scroll: false,
       });
@@ -109,9 +112,9 @@ export function useReportsController({
       cycleTotal: 0,
       cycleHasMore: false,
     });
+    // O efeito de searchParams recarrega os ciclos a partir da URL.
     router.push(reportsHref(organizationId, "", 0), { scroll: false });
-    void loadCycles(organizationId);
-  }, [loadCycles, patch, router]);
+  }, [patch, router]);
 
   const searchCycles = useCallback(() => {
     patch({ historyOffset: 0, cycleId: "" });

@@ -15,7 +15,6 @@ describe("relatório oficial", () => {
   it("mantém a sequência do modelo institucional com hierarquia por eixo", () => {
     expect(OFFICIAL_REPORT_SECTION_ORDER).toEqual([
       "fami_summary",
-      "detailed_analysis",
       "diagnostic_summary",
       "detailed_axis_analysis",
       "conclusion",
