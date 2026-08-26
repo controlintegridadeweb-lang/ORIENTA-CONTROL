@@ -82,7 +82,7 @@ describe("relatório oficial", () => {
     });
   });
 
-  it("gera o PDF completo com hierarquia linear e metadados de integridade", async () => {
+  it("gera o PDF completo com hierarquia linear e identificação da emissão", async () => {
     const longCriterion =
       "A organização possui procedimento institucional formalizado com registro, responsáveis, critérios de verificação e trilha documental auditável para cada ciclo de revisão. ".repeat(8);
     const longRecommendation =

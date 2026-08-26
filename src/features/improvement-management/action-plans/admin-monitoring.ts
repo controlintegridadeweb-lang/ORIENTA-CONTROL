@@ -9,6 +9,7 @@ import type { ActionPlanListItem } from "./types";
 import type { ActionPlanAction } from "./domain-model";
 import type { PlanStatus } from "./schemas";
 import type { RecommendationStatus } from "@/shared/domain/recommendation-status";
+import { formSurface } from "@/shared/layout/form-surface";
 import { ACTION_PLAN_REGISTRY } from "@/shared/ui/status-registry";
 
 export type StatusMeta = {
@@ -49,24 +50,24 @@ export const RISK_META: Record<RiskLevel, RiskMeta> = {
     label: "Saudável",
     description: "Execução em dia.",
     icon: ShieldCheck,
-    badgeClasses: "bg-brand-50/70 text-brand-700",
+    badgeClasses: formSurface.badge.brand,
   },
   low: {
     label: "Baixo risco",
     icon: ShieldQuestion,
-    badgeClasses: "bg-slate-50 text-slate-600",
+    badgeClasses: formSurface.badge.neutral,
     description: "",
   },
   medium: {
     label: "Médio risco",
     icon: AlertTriangle,
-    badgeClasses: "bg-amber-50/70 text-amber-700",
+    badgeClasses: formSurface.badge.warning,
     description: "",
   },
   high: {
     label: "Alto risco",
     icon: ShieldAlert,
-    badgeClasses: "bg-rose-50/70 text-rose-700",
+    badgeClasses: formSurface.badge.danger,
     description: "",
   },
 };

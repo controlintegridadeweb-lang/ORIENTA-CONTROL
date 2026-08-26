@@ -256,12 +256,12 @@ export function drawSparkline(
 export function recommendationAccent(type: string): { bg: RGB; text: RGB; border: RGB } {
   const t = type.toLowerCase();
   if (t === "risk" || t === "weakness") {
-    return { bg: reportTheme.roseBg, text: reportTheme.rose, border: reportTheme.rose };
+    return { bg: reportTheme.rose, text: reportTheme.white, border: reportTheme.rose };
   }
   if (t === "opportunity" || t === "strength") {
-    return { bg: reportTheme.emeraldBg, text: reportTheme.emerald, border: reportTheme.emerald };
+    return { bg: reportTheme.emerald, text: reportTheme.white, border: reportTheme.emerald };
   }
-  return { bg: reportTheme.skyBg, text: reportTheme.sky, border: reportTheme.sky };
+  return { bg: reportTheme.sky, text: reportTheme.white, border: reportTheme.sky };
 }
 
 /** Retângulo preenchido com cantos arredondados (card de resumo da seção). */

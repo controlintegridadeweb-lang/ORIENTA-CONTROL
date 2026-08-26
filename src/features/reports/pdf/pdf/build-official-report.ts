@@ -27,7 +27,7 @@ type SectionRenderer = (doc: OrientaPdfDocument) => void;
 
 /**
  * PDF institucional: capa → sumário → FAMI/análise → diagnóstico →
- * detalhamento hierárquico por eixo → conclusão → metadados.
+ * detalhamento hierárquico por eixo → conclusão → emissão.
  */
 export async function buildOfficialReportPdfDocument(
   payload: OfficialReportData,

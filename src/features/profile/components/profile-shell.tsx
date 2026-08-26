@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import { layout } from "@/shared/layout/design-system";
+import { formSurface } from "@/shared/layout/form-surface";
 import { FORM_WORKSPACE_HERO_IMAGE } from "@/shared/config/page-assets/form-workspace-hero-image";
 import {
   ADMIN_PAGE_HERO_BLEED,
@@ -86,7 +87,7 @@ export function ProfileShell({
               <p className={hero.description}>{description}</p>
               {roleLabel ? (
                 <div className="mt-5">
-                  <span className="inline-flex items-center rounded-md border border-brand-200/80 bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700">
+                  <span className={`${formSurface.badge.base} ${formSurface.badge.brand}`}>
                     {roleLabel}
                   </span>
                 </div>

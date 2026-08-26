@@ -421,7 +421,7 @@ export function RespondentRecommendationsShell() {
   const listTitle = actionPlanView ? "Planos de ação" : "Recomendações";
   const listDescription = actionPlanView
     ? "Organizado em Diagnóstico → Eixo → Seção → Plano da seção → Ações. As recomendações permanecem como origem rastreável."
-    : "Organizadas por Eixo → Seção → Recomendação, na ordem oficial do diagnóstico.";
+    : "Apresentadas na mesma sequência do diagnóstico, por eixo, seção e recomendação.";
 
   return (
     <div className={layout.pageStack}>

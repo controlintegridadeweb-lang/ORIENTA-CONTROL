@@ -5,7 +5,7 @@ import { StatusPill } from "@/shared/ui/components/status-pill";
 
 const BADGE_VARIANT: Record<
   FormPublicationState,
-  keyof typeof formSurface.badge
+  Exclude<keyof typeof formSurface.badge, "base">
 > = {
   draft: "neutral",
   published: "brand",

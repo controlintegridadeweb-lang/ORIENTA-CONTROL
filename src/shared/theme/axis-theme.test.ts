@@ -13,6 +13,12 @@ describe("getAxisTheme", () => {
     expect(getAxisTheme("Social").primary).toBe("#DB2777");
   });
 
+  it("as tags do eixo usam o preenchimento forte (texto inverso branco)", () => {
+    expect(getAxisTheme("Governança").strong).toBe("#00748A");
+    expect(getAxisTheme("Ambiental").strong).toBe("#15803D");
+    expect(getAxisTheme("Social").strong).toBe("#BE185D");
+  });
+
   it("não exige condicionais locais por nome exato com acento", () => {
     expect(axisThemeKeyForName("Governanca")).toBe("governance");
     expect(getAxisThemeStrict("desconhecido")).toBeUndefined();

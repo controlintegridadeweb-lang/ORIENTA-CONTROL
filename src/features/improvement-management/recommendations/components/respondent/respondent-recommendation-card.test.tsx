@@ -213,7 +213,11 @@ describe("RespondentRecommendationList", () => {
       />,
     );
 
-    expect(screen.getByRole("heading", { name: "Governança" })).toBeTruthy();
+    const axisHeading = screen.getByRole("heading", { name: "Governança" });
+    expect(axisHeading).toBeTruthy();
+    expect(axisHeading.closest("header")?.style.backgroundColor.replaceAll(" ", "")).toMatch(
+      /#E5F4F7|rgb\(229,244,247\)/i,
+    );
     expect(
       screen.getByRole("heading", { name: /Seção 1 — Gestão da Transparência/i }),
     ).toBeTruthy();

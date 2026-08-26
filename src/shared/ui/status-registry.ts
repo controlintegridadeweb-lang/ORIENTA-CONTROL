@@ -58,6 +58,8 @@ const STATUS_BADGE_SURFACE = {
   danger: formSurface.badge.danger,
   info: formSurface.badge.info,
   muted: formSurface.badge.muted,
+  indigo: formSurface.badge.indigo,
+  orange: formSurface.badge.orange,
 } as const;
 
 function entry(p: Omit<StatusRegistryEntry, "key"> & { key?: string }): StatusRegistryEntry {
@@ -109,7 +111,7 @@ const RECOMMENDATION_TYPE_REGISTRY: Record<string, StatusRegistryEntry> = {
     key: "nao_implementacao",
     label: RECOMMENDATION_TYPE_LABELS.nao_implementacao,
     description: "Motivo da recomendação: a resposta no diagnóstico foi Não. Não muda ao atualizar o plano de ação.",
-    colorClass: "bg-rose-100 text-rose-800",
+    colorClass: STATUS_BADGE_SURFACE.danger,
     icon: XCircle,
     priority: 20,
   }),
@@ -117,7 +119,7 @@ const RECOMMENDATION_TYPE_REGISTRY: Record<string, StatusRegistryEntry> = {
     key: "ausencia_evidencia",
     label: RECOMMENDATION_TYPE_LABELS.ausencia_evidencia,
     description: "Motivo da recomendação: faltou evidência obrigatória. Não muda ao atualizar o plano de ação.",
-    colorClass: "bg-orange-100 text-orange-800",
+    colorClass: STATUS_BADGE_SURFACE.orange,
     icon: AlertCircle,
     priority: 21,
   }),
@@ -125,7 +127,7 @@ const RECOMMENDATION_TYPE_REGISTRY: Record<string, StatusRegistryEntry> = {
     key: "evidencia_insuficiente",
     label: RECOMMENDATION_TYPE_LABELS.evidencia_insuficiente,
     description: "Motivo da recomendação: a evidência foi insuficiente ou não aprovada. Não muda ao atualizar o plano de ação.",
-    colorClass: "bg-amber-100 text-amber-900",
+    colorClass: STATUS_BADGE_SURFACE.warning,
     icon: AlertCircle,
     priority: 22,
   }),
@@ -139,32 +141,32 @@ export const ACTION_PLAN_REGISTRY: Record<PlanStatus, StatusRegistryEntry> = {
 };
 
 const FORM_WORKFLOW_REGISTRY: Record<CycleState, StatusRegistryEntry> = {
-  draft: entry({ key: "draft", label: CYCLE_STATE_LABEL.draft, colorClass: "bg-slate-50 text-slate-700", icon: ClipboardList, priority: 60 }),
-  in_response: entry({ key: "in_response", label: CYCLE_STATE_LABEL.in_response, colorClass: "bg-sky-50 text-sky-700", icon: PlayCircle, priority: 50 }),
-  submitted: entry({ key: "submitted", label: CYCLE_STATE_LABEL.submitted, colorClass: "bg-sky-50 text-sky-700", icon: Send, priority: 45 }),
-  in_validation: entry({ key: "in_validation", label: CYCLE_STATE_LABEL.in_validation, colorClass: "bg-indigo-50 text-indigo-700", icon: Eye, priority: 38 }),
-  awaiting_adjustment: entry({ key: "awaiting_adjustment", label: CYCLE_STATE_LABEL.awaiting_adjustment, colorClass: "bg-amber-50 text-amber-700", icon: FileQuestion, priority: 22 }),
-  validated: entry({ key: "validated", label: CYCLE_STATE_LABEL.validated, colorClass: "bg-emerald-50 text-emerald-700", icon: ShieldCheck, priority: 85 }),
-  completed: entry({ key: "completed", label: CYCLE_STATE_LABEL.completed, colorClass: "bg-slate-50/70 text-slate-600", icon: CheckCircle2, priority: 100 }),
+  draft: entry({ key: "draft", label: CYCLE_STATE_LABEL.draft, colorClass: STATUS_BADGE_SURFACE.neutral, icon: ClipboardList, priority: 60 }),
+  in_response: entry({ key: "in_response", label: CYCLE_STATE_LABEL.in_response, colorClass: STATUS_BADGE_SURFACE.info, icon: PlayCircle, priority: 50 }),
+  submitted: entry({ key: "submitted", label: CYCLE_STATE_LABEL.submitted, colorClass: STATUS_BADGE_SURFACE.info, icon: Send, priority: 45 }),
+  in_validation: entry({ key: "in_validation", label: CYCLE_STATE_LABEL.in_validation, colorClass: STATUS_BADGE_SURFACE.indigo, icon: Eye, priority: 38 }),
+  awaiting_adjustment: entry({ key: "awaiting_adjustment", label: CYCLE_STATE_LABEL.awaiting_adjustment, colorClass: STATUS_BADGE_SURFACE.warning, icon: FileQuestion, priority: 22 }),
+  validated: entry({ key: "validated", label: CYCLE_STATE_LABEL.validated, colorClass: STATUS_BADGE_SURFACE.success, icon: ShieldCheck, priority: 85 }),
+  completed: entry({ key: "completed", label: CYCLE_STATE_LABEL.completed, colorClass: STATUS_BADGE_SURFACE.neutral, icon: CheckCircle2, priority: 100 }),
 };
 
 const REPORT_JOB_REGISTRY: Record<RespondentReportJobStatus, StatusRegistryEntry> = {
-  queued: entry({ key: "queued", label: "Em fila", colorClass: "bg-slate-50/70 text-slate-700", icon: Clock, priority: 44 }),
-  processing: entry({ key: "processing", label: "Processando", colorClass: "bg-sky-50 text-sky-700", icon: Loader2, priority: 40 }),
-  completed: entry({ key: "completed", label: "Concluído", colorClass: "bg-emerald-50 text-emerald-700", icon: CheckCircle2, priority: 100 }),
-  failed: entry({ key: "failed", label: "Falhou", colorClass: "bg-rose-50 text-rose-700", icon: AlertCircle, priority: 10 }),
-  outdated: entry({ key: "outdated", label: "Desatualizado", colorClass: "bg-amber-50 text-amber-700", icon: RefreshCw, priority: 28 }),
-  available: entry({ key: "available", label: "Disponível", colorClass: "bg-indigo-50 text-indigo-700", icon: HelpCircle, priority: 92 }),
+  queued: entry({ key: "queued", label: "Em fila", colorClass: STATUS_BADGE_SURFACE.neutral, icon: Clock, priority: 44 }),
+  processing: entry({ key: "processing", label: "Processando", colorClass: STATUS_BADGE_SURFACE.info, icon: Loader2, priority: 40 }),
+  completed: entry({ key: "completed", label: "Concluído", colorClass: STATUS_BADGE_SURFACE.success, icon: CheckCircle2, priority: 100 }),
+  failed: entry({ key: "failed", label: "Falhou", colorClass: STATUS_BADGE_SURFACE.danger, icon: AlertCircle, priority: 10 }),
+  outdated: entry({ key: "outdated", label: "Desatualizado", colorClass: STATUS_BADGE_SURFACE.warning, icon: RefreshCw, priority: 28 }),
+  available: entry({ key: "available", label: "Disponível", colorClass: STATUS_BADGE_SURFACE.indigo, icon: HelpCircle, priority: 92 }),
 };
 
 export type FamiMaturityLevel = 1 | 2 | 3 | 4 | 5;
 
 export const FAMI_MATURITY_LEVEL_REGISTRY: Record<FamiMaturityLevel, StatusRegistryEntry> = {
-  1: entry({ key: "fami_level_1", label: "Nível 1 · Inicial", colorClass: "border border-[#E12456]/25 bg-[#E12456]/10 text-[#B01B44]", icon: Flame, priority: 10 }),
-  2: entry({ key: "fami_level_2", label: "Nível 2 · Em desenvolvimento", colorClass: "border border-[#C3681D]/25 bg-[#C3681D]/10 text-[#8F4B14]", icon: Compass, priority: 20 }),
-  3: entry({ key: "fami_level_3", label: "Nível 3 · Intermediário", colorClass: "border border-[#007AC3]/25 bg-[#007AC3]/10 text-[#005F97]", icon: Target, priority: 30 }),
-  4: entry({ key: "fami_level_4", label: "Nível 4 · Avançado", colorClass: "border border-[#663300]/25 bg-[#663300]/10 text-[#663300]", icon: Medal, priority: 40 }),
-  5: entry({ key: "fami_level_5", label: "Nível 5 · Maduro", colorClass: "border border-[#009669]/25 bg-[#009669]/10 text-[#007A55]", icon: Award, priority: 50 }),
+  1: entry({ key: "fami_level_1", label: "Nível 1 · Inicial", colorClass: "bg-[#E12456] text-white", icon: Flame, priority: 10 }),
+  2: entry({ key: "fami_level_2", label: "Nível 2 · Em desenvolvimento", colorClass: "bg-[#C3681D] text-white", icon: Compass, priority: 20 }),
+  3: entry({ key: "fami_level_3", label: "Nível 3 · Intermediário", colorClass: "bg-[#007AC3] text-white", icon: Target, priority: 30 }),
+  4: entry({ key: "fami_level_4", label: "Nível 4 · Avançado", colorClass: "bg-[#663300] text-white", icon: Medal, priority: 40 }),
+  5: entry({ key: "fami_level_5", label: "Nível 5 · Maduro", colorClass: "bg-[#009669] text-white", icon: Award, priority: 50 }),
 };
 
 export type WorkflowStatusDomain =
@@ -198,7 +200,7 @@ const WORKFLOW_STATUS_REGISTRY: {
 const FALLBACK_ENTRY: StatusRegistryEntry = entry({
   key: "unknown",
   label: "Indefinido",
-  colorClass: "bg-slate-50/70 text-slate-600",
+  colorClass: STATUS_BADGE_SURFACE.neutral,
   icon: HelpCircle,
   priority: 999,
 });

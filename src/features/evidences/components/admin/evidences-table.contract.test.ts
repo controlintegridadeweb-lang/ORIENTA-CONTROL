@@ -13,7 +13,7 @@ describe("tabela administrativa de evidências", () => {
     const tokens = source("src/shared/layout/form-surface.ts");
 
     expect(tokens).toContain("brandTable");
-    expect(tokens).toContain("bg-brand");
+    expect(tokens).toContain("bg-brand-700");
     expect(tokens).toContain("bg-sky-50/70");
     expect(table).toContain("formSurface.brandTable");
     expect(row).toContain("formSurface.brandTable");

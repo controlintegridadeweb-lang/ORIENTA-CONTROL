@@ -27,7 +27,7 @@ export type EntityTableProps = {
 
 const STATUS_BADGE: Record<
   LibraryItemStatus,
-  keyof typeof formSurface.badge
+  Exclude<keyof typeof formSurface.badge, "base">
 > = {
   draft: "neutral",
   in_review: "warning",

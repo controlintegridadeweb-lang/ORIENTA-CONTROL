@@ -191,7 +191,7 @@ function drawSectionPerformanceTable(
       y: next.y - HEADER_H,
       width: w,
       height: HEADER_H,
-      color: reportTheme.skyBg,
+      color: reportTheme.tableHeader,
     });
     columns.forEach((column, index) => {
       const width = doc.fonts.bold.widthOfTextAtSize(column.header, 7);
@@ -200,7 +200,7 @@ function drawSectionPerformanceTable(
         y: next.y - HEADER_H / 2 - 2,
         size: 7,
         font: doc.fonts.bold,
-        color: reportTheme.sky,
+        color: reportTheme.white,
       });
     });
     return { ...next, y: next.y - HEADER_H };
@@ -223,14 +223,14 @@ function drawSectionPerformanceTable(
       y: cur.y - GROUP_H,
       width: w,
       height: GROUP_H,
-      color: theme.softBackground,
+      color: theme.strong,
     });
     cur.page.drawText(latinPdfSafe(axis.axisName), {
       x: columnX(columns, 0),
       y: cur.y - GROUP_H / 2 - 3,
       size: 8,
       font: doc.fonts.bold,
-      color: theme.text,
+      color: reportTheme.white,
     });
     cur = { ...cur, y: cur.y - GROUP_H };
 

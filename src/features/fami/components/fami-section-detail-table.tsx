@@ -17,7 +17,7 @@ type Props = {
 
 const FALLBACK_AXIS_COLORS = {
   text: "#64748b",
-  badge: "rgba(100, 116, 139, 0.12)",
+  badge: "#115E59",
   accent: "#64748b",
   row: "rgba(100, 116, 139, 0.04)",
 } as const;
@@ -116,7 +116,7 @@ export function FamiSectionDetailTable({
                     className="border-y border-slate-200/80 px-5 py-3 text-left sm:px-6"
                     style={{ backgroundColor: colors.badge }}
                   >
-                    <span className="text-sm font-semibold" style={{ color: colors.text }}>
+                    <span className="text-sm font-semibold text-white">
                       {group.axisLabel}
                     </span>
                   </th>

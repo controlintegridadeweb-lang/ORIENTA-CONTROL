@@ -4,7 +4,7 @@ import type { PendencyItem } from "@/features/dashboard/queries";
 import { formSurface } from "@/shared/layout/form-surface";
 
 const PENDENCY_STYLE = {
-  badge: "bg-amber-100 text-amber-700 ring-1 ring-inset ring-amber-200",
+  badge: formSurface.badge.warning,
   label: "Atenção",
   iconWrap: "bg-amber-100 text-amber-700",
 };
@@ -35,7 +35,7 @@ export function PendenciesList({ items }: { items: PendencyItem[] }) {
               <div className="flex flex-wrap items-center gap-2">
                 <p className="text-sm font-semibold text-slate-900">{item.title}</p>
                 <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-micro font-semibold uppercase tracking-wide ${style.badge} sm:text-xs`}
+                  className={`${formSurface.badge.base} ${style.badge} uppercase tracking-wide`}
                 >
                   {style.label}
                 </span>

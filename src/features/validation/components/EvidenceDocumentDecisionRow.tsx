@@ -313,7 +313,7 @@ export function EvidenceDocumentDecisionRow({
                             "transition disabled:cursor-not-allowed disabled:opacity-50",
                             justification === preset
                               ? formSurface.badge.brand
-                              : `${formSurface.badge.neutral} hover:bg-slate-200/80`,
+                              : `${formSurface.badge.neutral} hover:bg-slate-500`,
                           ].join(" ")}
                         >
                           {preset}

@@ -48,7 +48,10 @@ export function RecommendationHierarchy<T extends RecommendationHierarchySource>
           >
             <header
               className={recommendationHierarchySurface.axisHeader}
-              style={{ borderLeftColor: surface.accent }}
+              style={{
+                borderLeftColor: surface.accent,
+                backgroundColor: surface.soft,
+              }}
             >
               <div>
                 <p

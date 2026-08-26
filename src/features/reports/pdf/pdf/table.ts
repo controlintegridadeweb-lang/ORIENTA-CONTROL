@@ -76,7 +76,7 @@ function drawHeader(
       y: cur.y - 12,
       size: 8,
       font: doc.fonts.bold,
-      color: reportTheme.slate600,
+      color: reportTheme.white,
       maxWidth: column.width - CELL_PAD * 2,
     });
     x += column.width;

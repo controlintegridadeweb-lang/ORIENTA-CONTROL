@@ -26,8 +26,8 @@ export const reportTheme = {
   emeraldBg: rgb(0.93, 0.99, 0.96),
   sky: rgb(0.12, 0.45, 0.78),
   skyBg: rgb(0.94, 0.97, 1),
-  /** Cabeçalho de tabela Indicador/Valor. */
-  tableHeader: rgb(240 / 255, 242 / 255, 245 / 255),
+  /** Cabeçalho de tabela — mesmo tom escuro das tags (`brand-700`). */
+  tableHeader: rgb(15 / 255, 147 / 255, 135 / 255),
   tableStripe: rgb(250 / 255, 250 / 255, 250 / 255),
   /** Card de resumo da seção (referência “Pontuação do critério”). */
   sectionSummaryCard: rgb(234 / 255, 246 / 255, 249 / 255),
@@ -65,6 +65,7 @@ export function pdfRgbFromHex(hex: string): RGB {
  */
 export function reportAxisTheme(axisName: string): {
   primary: RGB;
+  strong: RGB;
   softBackground: RGB;
   border: RGB;
   text: RGB;
@@ -72,6 +73,7 @@ export function reportAxisTheme(axisName: string): {
   const theme = getAxisTheme(axisName);
   return {
     primary: pdfRgbFromHex(theme.primary),
+    strong: pdfRgbFromHex(theme.strong),
     softBackground: pdfRgbFromHex(theme.softBackground),
     border: pdfRgbFromHex(theme.border),
     text: pdfRgbFromHex(theme.text),
@@ -83,24 +85,24 @@ const MATURITY_LEVEL_PDF: Record<
   { bg: RGB; text: RGB }
 > = {
   1: {
-    bg: rgb(252 / 255, 233 / 255, 238 / 255),
-    text: rgb(176 / 255, 27 / 255, 68 / 255),
+    bg: rgb(225 / 255, 36 / 255, 86 / 255),
+    text: reportTheme.white,
   },
   2: {
-    bg: rgb(249 / 255, 240 / 255, 232 / 255),
-    text: rgb(143 / 255, 75 / 255, 20 / 255),
+    bg: rgb(195 / 255, 104 / 255, 29 / 255),
+    text: reportTheme.white,
   },
   3: {
-    bg: rgb(230 / 255, 242 / 255, 249 / 255),
-    text: rgb(0 / 255, 95 / 255, 151 / 255),
+    bg: rgb(0 / 255, 122 / 255, 195 / 255),
+    text: reportTheme.white,
   },
   4: {
-    bg: rgb(240 / 255, 235 / 255, 230 / 255),
-    text: rgb(102 / 255, 51 / 255, 0 / 255),
+    bg: rgb(102 / 255, 51 / 255, 0 / 255),
+    text: reportTheme.white,
   },
   5: {
-    bg: rgb(230 / 255, 245 / 255, 240 / 255),
-    text: rgb(0 / 255, 122 / 255, 85 / 255),
+    bg: rgb(0 / 255, 150 / 255, 105 / 255),
+    text: reportTheme.white,
   },
 };
 
@@ -111,7 +113,7 @@ export function reportMaturityLevelTheme(level: number | null): {
   if (level === 1 || level === 2 || level === 3 || level === 4 || level === 5) {
     return MATURITY_LEVEL_PDF[level];
   }
-  return { bg: reportTheme.slate100, text: reportTheme.slate600 };
+  return { bg: reportTheme.slate600, text: reportTheme.white };
 }
 
 export function contentWidth(): number {

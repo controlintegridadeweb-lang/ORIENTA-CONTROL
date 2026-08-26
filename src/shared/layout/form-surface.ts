@@ -100,7 +100,7 @@ export const formSurface = {
     wrapper:
       "min-w-0 overflow-x-auto overscroll-x-contain rounded-xl border border-slate-200 bg-white",
     table: "w-full text-sm",
-    head: "sticky top-0 z-10 border-b border-slate-100/80 bg-brand-50/95 text-left text-xs font-medium uppercase tracking-wide text-slate-900 backdrop-blur",
+    head: "sticky top-0 z-10 bg-brand-700 text-left text-xs font-medium uppercase tracking-wide text-white",
     headCell: "px-4 py-3",
     body: "divide-y divide-slate-100",
     row: "transition hover:bg-slate-50/70",
@@ -108,14 +108,14 @@ export const formSurface = {
     cellMuted: "px-4 py-3 align-top text-sm text-slate-600",
   },
   /**
-   * Tabela institucional (cabeçalho brand + linhas ciano claro).
+   * Tabela institucional (cabeçalho brand-700 + linhas ciano claro).
    * Mesmo desenho do acompanhamento quadrimestral do FAMI preliminar.
    */
   brandTable: {
     wrapper:
       "min-w-0 overflow-x-auto overflow-hidden overscroll-x-contain rounded-xl border border-slate-200 bg-white",
     table: "w-full text-sm",
-    head: "bg-brand text-left text-sm font-semibold text-white",
+    head: "bg-brand-700 text-left text-sm font-semibold text-white",
     headCell: "px-4 py-3",
     rowEven: "border-t border-slate-200/80 bg-sky-50/70",
     rowOdd: "border-t border-slate-200/80 bg-white",
@@ -135,16 +135,18 @@ export const formSurface = {
   },
 
   // ----------------------------------------------------------------- BADGES & CHIPS
-  /** Fundo claro + texto no tom escuro; sem borda/anel. */
+  /** Fundo no tom escuro da semântica + texto branco; sem borda/anel. */
   badge: {
-    base: "inline-flex min-h-6 items-center gap-1 rounded-md px-2 py-1 text-xs font-medium leading-none",
-    neutral: "bg-slate-100 text-slate-700",
-    brand: "bg-brand-50 text-brand-800",
-    success: "bg-emerald-50 text-emerald-800",
-    warning: "bg-amber-50 text-amber-900",
-    danger: "bg-rose-50 text-rose-800",
-    info: "bg-sky-50 text-sky-800",
-    muted: "bg-violet-50 text-violet-800",
+    base: "inline-flex min-h-6 items-center gap-1 rounded-md px-2 py-1 text-xs font-medium leading-none text-white",
+    neutral: "bg-slate-600 text-white",
+    brand: "bg-brand-700 text-white",
+    success: "bg-emerald-700 text-white",
+    warning: "bg-amber-700 text-white",
+    danger: "bg-rose-700 text-white",
+    info: "bg-sky-700 text-white",
+    muted: "bg-violet-700 text-white",
+    indigo: "bg-indigo-700 text-white",
+    orange: "bg-orange-700 text-white",
   },
   chip: {
     base: "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition",
@@ -231,7 +233,7 @@ export const formSurface = {
     sectionHeader: "space-y-4 border-b border-slate-100/90 pb-6",
     sectionStepRow: "flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1",
     sectionStepKicker:
-      "inline-flex items-center rounded-full border border-brand-100 bg-brand-50/80 px-3 py-1 text-xs font-medium text-brand-800",
+      "inline-flex items-center rounded-full bg-brand-700 px-3 py-1 text-xs font-medium text-white",
     sectionTitle:
       "break-words text-pretty text-lg font-semibold leading-snug tracking-tight text-slate-900 md:text-xl",
     sectionProgressTrack:

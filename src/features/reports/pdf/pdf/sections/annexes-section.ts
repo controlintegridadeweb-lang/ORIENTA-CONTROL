@@ -3,50 +3,32 @@ import { reportTheme } from "../theme";
 import { renderEvidencesSubsection } from "./evidences-section";
 import { renderEvolutionSubsection } from "./evolution-section";
 
-export function reportPeriodMetadataLines(params: {
-  periodLabel: string;
-  referencePeriodLabel: string;
+export function reportEmissionLines(params: {
+  generatedByLabel: string;
+  generatedAtLabel: string;
 }): string[] {
-  if (params.periodLabel.trim() === params.referencePeriodLabel.trim()) {
-    return [`Período: ${params.referencePeriodLabel}`];
-  }
-
   return [
-    `Período: ${params.periodLabel}`,
-    `Período de referência: ${params.referencePeriodLabel}`,
+    `Emitido por: ${params.generatedByLabel}`,
+    `Data e horário: ${params.generatedAtLabel}`,
   ];
 }
 
 export function renderAnnexesSection(doc: OrientaPdfDocument): Cursor {
   let cur = doc.beginMajorSection(
-    "Metadados e auditoria da emissão",
-    "Identificação técnica, trilha documental, evidências e evolução FAMI quando houver períodos comparáveis.",
+    "Emissão",
+    "Quem emitiu o relatório, com data e horário.",
     "metadata-audit",
   );
 
   cur = renderEvidencesSubsection(doc, cur);
   cur = renderEvolutionSubsection(doc, cur);
-  cur = doc.drawSubsectionTitle(cur, "Informações técnicas da emissão");
+  cur = doc.drawSubsectionTitle(cur, "Emissão do relatório");
 
-  const items = [
-    `Diagnóstico: ${doc.data.formName}`,
-    `Organização: ${doc.data.organizationName}`,
-    ...reportPeriodMetadataLines({
-      periodLabel: doc.data.periodLabel,
-      referencePeriodLabel: doc.data.referencePeriodLabel,
-    }),
-    `Versão do formulário: ${doc.data.actionPlan.formVersion}`,
-    `Processamento: ${doc.data.processingVersion}`,
-    `Política FAMI: ${doc.data.policyVersion}`,
-    `Processado em: ${doc.formatDate(doc.data.famiProcessedAt)}`,
-    `Relatório emitido em: ${doc.formatDate(doc.data.generatedAtIso)}`,
-    `Identificador documental: ${doc.data.document?.reportId ?? "não disponível"}`,
-    `Versão da emissão: ${doc.data.document?.emissionVersion ?? "não disponível"}`,
-    `Revisão documentada do plano de ação: ${doc.data.actionPlanRevision}`,
-    `Emitido por: ${doc.data.document?.generatedByLabel ?? "Administração da plataforma"}`,
-    `Motivo da reemissão: ${doc.data.document?.reissueReason ?? "Primeira emissão"}`,
-    `Impressão digital do conteúdo (SHA-256): ${doc.data.document?.contentSha256 ?? "não disponível"}`,
-  ];
+  const items = reportEmissionLines({
+    generatedByLabel:
+      doc.data.document?.generatedByLabel ?? "Administração da plataforma",
+    generatedAtLabel: doc.formatDate(doc.data.generatedAtIso),
+  });
 
   for (const item of items) {
     cur = doc.drawParagraph(cur, item, {

@@ -213,7 +213,7 @@ export function AdminRecommendationsShell({ initialFilters }: Props = {}) {
         />
       }
       filtersDescription="Refine por organização, formulário, eixo, situação, início ou final."
-      resultsDescription="Organizadas por Eixo → Seção → Recomendação, na ordem oficial do diagnóstico."
+      resultsDescription="Apresentadas na mesma sequência do diagnóstico, por eixo, seção e recomendação."
       total={data.total}
       summaryTotal={data.summary.total}
       hasCardFilter={Boolean(controls.cardFilter)}

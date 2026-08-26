@@ -1,6 +1,7 @@
 "use client";
 
 import { statusPillBase } from "@/shared/ui/components/status-pill";
+import { formSurface } from "@/shared/layout/form-surface";
 import { levelMeta } from "@/features/fami/respondent-presentation";
 
 type Props = {
@@ -26,7 +27,7 @@ export function RespondentFamiLevelBadge({
   return (
     <span
       className={`${statusPillBase} ${pad} ${text} ${
-        isNotApplicable ? "bg-slate-100 text-slate-600 ring-1 ring-slate-200" : meta!.badgeClasses
+        isNotApplicable ? formSurface.badge.neutral : meta!.badgeClasses
       }`}
       title={isNotApplicable ? "Sem pergunta aplicável neste escopo" : meta!.description}
     >

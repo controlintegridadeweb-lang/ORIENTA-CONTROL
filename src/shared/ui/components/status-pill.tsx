@@ -1,6 +1,6 @@
 import { formSurface } from "@/shared/layout/form-surface";
 
-/** Layout base compartilhado por todos os badges de status (discreto, sem ícone por padrão). */
+/** Layout base compartilhado por todos os badges de status (fundo escuro, texto branco). */
 export const statusPillBase = formSurface.badge.base;
 
 type StatusPillProps = {

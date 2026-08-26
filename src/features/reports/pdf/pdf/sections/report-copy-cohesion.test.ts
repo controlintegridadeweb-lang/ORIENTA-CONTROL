@@ -5,7 +5,7 @@ import { DIAGNOSTIC_SUMMARY_INDICATORS } from "./diagnostic-summary-section";
 import { OFFICIAL_REPORT_COVER_FIELD_LABELS } from "./cover-page";
 import { OFFICIAL_REPORT_TOC_TITLE } from "./table-of-contents";
 import { hasComparableFamiEvolution } from "./evolution-section";
-import { reportPeriodMetadataLines } from "./annexes-section";
+import { reportEmissionLines } from "./annexes-section";
 import { OFFICIAL_REPORT_SECTION_ORDER } from "../build-official-report";
 import {
   axisAnalysisHeading,
@@ -103,20 +103,16 @@ describe("coesão textual do relatório oficial", () => {
     ]);
   });
 
-  it("não duplica período quando período informado e referência são iguais", () => {
+  it("identifica a emissão só com autor, data e horário", () => {
     expect(
-      reportPeriodMetadataLines({
-        periodLabel: "2026",
-        referencePeriodLabel: "2026",
+      reportEmissionLines({
+        generatedByLabel: "Mauricio",
+        generatedAtLabel: "21 de julho de 2026, 09:00",
       }),
-    ).toEqual(["Período: 2026"]);
-
-    expect(
-      reportPeriodMetadataLines({
-        periodLabel: "2026.1",
-        referencePeriodLabel: "2026",
-      }),
-    ).toEqual(["Período: 2026.1", "Período de referência: 2026"]);
+    ).toEqual([
+      "Emitido por: Mauricio",
+      "Data e horário: 21 de julho de 2026, 09:00",
+    ]);
   });
 
   it("só exibe evolução FAMI com pelo menos dois resultados comparáveis", () => {

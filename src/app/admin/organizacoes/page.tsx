@@ -2,9 +2,10 @@ import { formatPlatformDate } from "@/shared/datetime/platform-date-time";
 import Link from "next/link";
 import { CsvImportPanel } from "@/features/imports/components/CsvImportPanel";
 import { PanelSection } from "@/shared/ui/components/panel-section";
-import { PageHeader } from "@/shared/ui/components/page-header";
 import { requireRole } from "@/infrastructure/auth/current-user";
 import { listOrganizationsDetailed } from "@/features/organizations/admin-service";
+import { AdminOrganizacoesHero } from "@/features/organizations/components/admin-organizacoes-hero";
+import { ADMIN_PAGE_HERO_BLEED } from "@/shared/layout/admin-page-layout";
 import { layout, typography } from "@/shared/layout/design-system";
 import { formSurface } from "@/shared/layout/form-surface";
 import { countLabel } from "@/shared/format/count-label";
@@ -12,7 +13,6 @@ import { firstSearchParam } from "@/features/admin/search-params";
 import { CreateOrganizationForm } from "./create-organization-form";
 
 const PAGE_SIZE = 25;
-const PANEL = `${formSurface.dashboardPanel} ${formSurface.dashboardPanelPadding}`;
 
 function pageHref(page: number, search: string) {
   const params = new URLSearchParams();
@@ -41,30 +41,28 @@ export default async function AdminOrganizacoesPage({
   const safePage = Math.min(page, totalPages);
 
   return (
-    <div className={`mx-auto max-w-5xl ${layout.panelStack}`}>
-      <PageHeader
-        title="Organizações"
-        description="Cadastre e consulte as organizações avaliadas. Cada respondente pertence a exatamente uma organização; administradores têm visão global."
-      />
+    <div className={layout.pageStack}>
+      <div className={ADMIN_PAGE_HERO_BLEED}>
+        <AdminOrganizacoesHero />
+      </div>
 
-      <PanelSection
-        title="Cadastrar organização"
-        description="O nome e a sigla são únicos. Após cadastrar, vincule respondentes pela tela de Usuários."
-        variant="plain"
-      >
-        <div className={PANEL}>
+      <div className={`${layout.panelStack} pt-1`}>
+        <PanelSection
+          title="Cadastrar organização"
+          description="O nome e a sigla são únicos. Após cadastrar, vincule respondentes pela tela de Usuários."
+          variant="card"
+        >
           <CreateOrganizationForm />
-        </div>
-      </PanelSection>
+        </PanelSection>
 
-      <CsvImportPanel kind="organizations" />
+        <CsvImportPanel kind="organizations" />
 
-      <PanelSection
-        title="Organizações cadastradas"
-        description={`${countLabel(organizations.total, "organização", "organizações")} no total.`}
-        variant="plain"
-      >
-        <div className={`${PANEL} space-y-5`}>
+        <PanelSection
+          title="Organizações cadastradas"
+          description={`${countLabel(organizations.total, "organização", "organizações")} no total.`}
+          variant="card"
+        >
+          <div className="space-y-5">
           <form className="flex flex-col gap-2 sm:flex-row sm:items-end" action="/admin/organizacoes">
             <label className={`min-w-0 flex-1 ${formSurface.fieldGroup}`}>
               <span className={formSurface.label}>Buscar organização</span>
@@ -170,8 +168,9 @@ export default async function AdminOrganizacoesPage({
               </div>
             </nav>
           ) : null}
-        </div>
-      </PanelSection>
+          </div>
+        </PanelSection>
+      </div>
     </div>
   );
 }

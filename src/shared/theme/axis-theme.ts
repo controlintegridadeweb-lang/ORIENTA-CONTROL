@@ -11,7 +11,7 @@ export { normalizeAxisNameKey } from "@/shared/domain/axis";
 
 export type AxisTheme = {
   key: AxisThemeKey;
-  /** Preenchimento do nível mais alto (cápsula do eixo no organograma). */
+  /** Preenchimento escuro: AxisBadge e cápsula do eixo no organograma. Texto inverso branco. */
   strong: string;
   primary: string;
   /** Superfície clara cromática (recomendação no organograma). */

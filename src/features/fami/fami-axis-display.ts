@@ -30,7 +30,7 @@ function presentationColorsForKey(key: AxisColorKey) {
   const theme = getAxisThemeByKey(key);
   return {
     text: theme.text,
-    badge: theme.softBackground,
+    badge: theme.strong,
     accent: theme.primary,
     row: withAlpha(theme.primary, 0.04),
   } as const;

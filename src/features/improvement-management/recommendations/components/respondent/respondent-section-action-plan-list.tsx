@@ -68,7 +68,10 @@ export function RespondentSectionActionPlanList({ items, returnPath }: Props) {
           >
             <header
               className={recommendationHierarchySurface.axisHeader}
-              style={{ borderLeftColor: surface.accent }}
+              style={{
+                borderLeftColor: surface.accent,
+                backgroundColor: surface.soft,
+              }}
             >
               <p
                 className={recommendationHierarchySurface.axisEyebrow}

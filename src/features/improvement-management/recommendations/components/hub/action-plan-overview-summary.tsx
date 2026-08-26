@@ -38,7 +38,7 @@ export function ActionPlanOverviewSummary({ plans, axisName }: Props) {
         <div className="overflow-hidden rounded-xl" style={{ backgroundColor: theme.softBackground }}>
           <table className="w-full table-fixed text-sm">
             <thead>
-              <tr style={{ backgroundColor: theme.primary }}>
+              <tr style={{ backgroundColor: theme.strong }}>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-white sm:px-5">
                   Ação cadastrada
                 </th>

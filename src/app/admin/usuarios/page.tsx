@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { CsvImportPanel } from "@/features/imports/components/CsvImportPanel";
 import { PanelSection } from "@/shared/ui/components/panel-section";
-import { PageHeader } from "@/shared/ui/components/page-header";
 import { requireRole } from "@/infrastructure/auth/current-user";
+import { AdminUsuariosHero } from "@/features/admin/components/admin-usuarios-hero";
 import { listUsersForAdmin } from "@/features/admin/users-service";
 import { getOrganizationOptions } from "@/features/organizations/options";
 import { firstSearchParam } from "@/features/admin/search-params";
+import { ADMIN_PAGE_HERO_BLEED } from "@/shared/layout/admin-page-layout";
 import { layout, typography } from "@/shared/layout/design-system";
 import { formSurface } from "@/shared/layout/form-surface";
 import { countLabel } from "@/shared/format/count-label";
@@ -13,7 +14,6 @@ import { EditableUserRow, ReadonlyAdminRow, UserRowGridHeader } from "./user-row
 import { CreateRespondentForm } from "./create-respondent-form";
 
 const PAGE_SIZE = 25;
-const PANEL = `${formSurface.dashboardPanel} ${formSurface.dashboardPanelPadding}`;
 
 function pageHref(input: { organizationId: string; query: string; page: number }): string {
   const params = new URLSearchParams();
@@ -58,44 +58,42 @@ export default async function AdminUsuariosPage({
   const orgNameById = new Map(organizations.map((organization) => [organization.id, organization.name]));
 
   return (
-    <div className={`mx-auto max-w-6xl ${layout.panelStack}`}>
-      <PageHeader
-        title="Usuários"
-        description="Crie e gerencie respondentes: edite nome, e-mail e organização vinculada, solicite a recuperação de senha ou remova contas. O perfil Respondente é fixo nesta área."
-      />
+    <div className={layout.pageStack}>
+      <div className={ADMIN_PAGE_HERO_BLEED}>
+        <AdminUsuariosHero />
+      </div>
 
-      {organizations.length === 0 ? (
-        <div className={formSurface.messageWarning}>
-          Nenhuma organização cadastrada — não é possível criar respondentes ainda.{" "}
-          <Link href="/admin/organizacoes" className="font-semibold underline">
-            Cadastre uma organização
-          </Link>{" "}
-          primeiro.
-        </div>
-      ) : null}
+      <div className={`${layout.panelStack} pt-1`}>
+        {organizations.length === 0 ? (
+          <div className={formSurface.messageWarning}>
+            Nenhuma organização cadastrada — não é possível criar respondentes ainda.{" "}
+            <Link href="/admin/organizacoes" className="font-semibold underline">
+              Cadastre uma organização
+            </Link>{" "}
+            primeiro.
+          </div>
+        ) : null}
 
-      <PanelSection
-        title="Criar respondente"
-        description="Cria a conta de acesso, vincula à organização escolhida e somente depois envia as instruções de primeiro acesso."
-        variant="plain"
-      >
-        <div className={PANEL}>
+        <PanelSection
+          title="Criar respondente"
+          description="Cria a conta de acesso, vincula à organização escolhida e somente depois envia as instruções de primeiro acesso."
+          variant="card"
+        >
           <CreateRespondentForm organizations={organizations} />
-        </div>
-      </PanelSection>
+        </PanelSection>
 
-      <CsvImportPanel kind="respondents" />
+        <CsvImportPanel kind="respondents" />
 
-      <PanelSection
-        title="Cadastro de usuários"
-        description="Administradores aparecem somente para consulta. Edição (nome, e-mail, organização) e remoção são restritas a respondentes."
-        variant="plain"
-      >
-        <div className={`${PANEL} space-y-5`}>
-          <form
-            method="get"
-            className="grid grid-cols-1 gap-3 rounded-xl border border-slate-200/80 bg-slate-50/40 p-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)_auto] lg:items-end"
-          >
+        <PanelSection
+          title="Cadastro de usuários"
+          description="Administradores aparecem somente para consulta. Edição (nome, e-mail, organização) e remoção são restritas a respondentes."
+          variant="card"
+        >
+          <div className="space-y-5">
+            <form
+              method="get"
+              className="grid grid-cols-1 gap-3 rounded-xl border border-slate-200/80 bg-slate-50/40 p-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)_auto] lg:items-end"
+            >
             <label className={`${formSurface.fieldGroup} min-w-0 sm:col-span-2 lg:col-span-1`}>
               <span className={formSurface.label}>Buscar</span>
               <input
@@ -212,8 +210,9 @@ export default async function AdminUsuariosPage({
               </div>
             </nav>
           ) : null}
-        </div>
-      </PanelSection>
+          </div>
+        </PanelSection>
+      </div>
     </div>
   );
 }

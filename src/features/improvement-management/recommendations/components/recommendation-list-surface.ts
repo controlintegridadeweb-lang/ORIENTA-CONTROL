@@ -48,7 +48,7 @@ export const recommendationHierarchySurface = {
   stack: "space-y-10 sm:space-y-12",
   axisBlock: "space-y-6 sm:space-y-8",
   axisHeader:
-    "relative border-l-4 border-slate-200 bg-white py-1 pl-4",
+    "relative overflow-hidden rounded-r-xl border-l-4 border-slate-200 py-3 pl-5 pr-4 sm:py-3.5",
   axisEyebrow:
     "text-xs font-medium text-slate-500",
   axisTitle:

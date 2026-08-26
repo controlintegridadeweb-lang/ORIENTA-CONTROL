@@ -15,11 +15,9 @@ export function AxisBadge({
 
   return (
     <span
-      className={`inline-flex min-h-6 items-center rounded-md border px-2.5 py-1 text-xs font-medium leading-none ${className}`.trim()}
+      className={`inline-flex min-h-6 items-center rounded-md px-2.5 py-1 text-xs font-medium leading-none text-white ${className}`.trim()}
       style={{
-        backgroundColor: theme.softBackground,
-        borderColor: theme.border,
-        color: theme.text,
+        backgroundColor: theme.strong,
       }}
     >
       {label}

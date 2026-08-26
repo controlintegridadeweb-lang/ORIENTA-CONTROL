@@ -159,7 +159,7 @@ export const overviewStack = "space-y-4";
 /** Lista principal de ações — cabeçalho institucional da referência. */
 export const overviewActionsTable = {
   table: "w-full min-w-[48rem] border-separate border-spacing-0 text-sm",
-  headRow: "bg-brand-400",
+  headRow: "bg-brand-700",
   headCell:
     "px-3 py-3 text-center text-sm font-semibold text-white first:rounded-tl-xl last:rounded-tr-xl sm:px-4",
   bodyRow: "bg-white",
@@ -171,9 +171,9 @@ export const overviewActionsTable = {
 /** Tabelas internas (visualizar / histórico) — cabeçalho leve da plataforma. */
 export const overviewNestedTable = {
   table: "w-full border-separate border-spacing-0 text-sm",
-  headRow: "bg-brand-50",
+  headRow: "bg-brand-700",
   headCell:
-    "border-b border-slate-200/80 px-3 py-2.5 text-left text-micro font-medium uppercase tracking-wider text-slate-800 first:rounded-tl-xl last:rounded-tr-xl sm:px-4",
+    "px-3 py-2.5 text-left text-micro font-medium uppercase tracking-wider text-white first:rounded-tl-xl last:rounded-tr-xl sm:px-4",
   bodyRow: "bg-white",
   bodyCell:
     "border-b border-slate-200/80 px-3 py-3.5 text-left align-middle text-sm text-slate-800 sm:px-4",
