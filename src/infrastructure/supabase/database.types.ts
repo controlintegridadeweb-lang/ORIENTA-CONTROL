@@ -215,7 +215,32 @@ export type Database = {
           criteria_completed_in_period?: number
         }
         Update: {
-          [key: string]: unknown
+          id?: string
+          cycle_id?: string
+          source_cycle_processing_id?: string
+          reference_year?: number
+          bimester?: number
+          report_version?: number
+          period_start?: string
+          period_end?: string
+          generated_by?: string | null
+          generation_kind?: string
+          generated_at?: string
+          closed_at?: string | null
+          active_action_count?: number
+          not_started_count?: number
+          in_progress_count?: number
+          completed_count?: number
+          overdue_count?: number
+          cancelled_count?: number
+          average_progress_percentage?: number
+          completed_criterion_count?: number
+          pending_criterion_count?: number
+          actions_completed_in_period?: number
+          actions_advanced_in_period?: number
+          actions_stagnant_in_period?: number
+          actions_became_overdue_in_period?: number
+          criteria_completed_in_period?: number
         }
         Relationships: [
           {
@@ -287,7 +312,33 @@ export type Database = {
           captured_at?: string
         }
         Update: {
-          [key: string]: unknown
+          id?: string
+          report_id?: string
+          action_plan_id?: string
+          recommendation_id?: string
+          question_version_id?: string
+          section_id?: string
+          axis_id?: string
+          action_text?: string
+          responsible_label?: string
+          start_date?: string
+          due_date?: string
+          status?: Database["public"]["Enums"]["action_plan_status"]
+          progress_percentage?: number
+          revision?: number
+          effective_at?: string
+          overdue?: boolean
+          has_valid_evidence?: boolean
+          evidence_document_id?: string | null
+          approved?: boolean
+          approval_effective_at?: string | null
+          has_open_adjustment?: boolean
+          completed_in_period?: boolean
+          advanced_in_period?: boolean
+          stagnant_in_period?: boolean
+          became_overdue_in_period?: boolean
+          movements_in_period?: Json
+          captured_at?: string
         }
         Relationships: [
           {
@@ -327,7 +378,17 @@ export type Database = {
           captured_at?: string
         }
         Update: {
-          [key: string]: unknown
+          id?: string
+          report_id?: string
+          question_version_id?: string
+          recommendation_id?: string
+          section_id?: string
+          axis_id?: string
+          criterion_completed?: boolean
+          active_action_count?: number
+          completed_action_count?: number
+          completed_in_period?: boolean
+          captured_at?: string
         }
         Relationships: [
           {

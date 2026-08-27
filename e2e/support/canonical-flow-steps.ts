@@ -472,12 +472,11 @@ export async function respondentCorrectsAndAdminCloses(
   await expect(page.getByLabel("Diagnóstico")).toHaveValue(state.cycleId);
 
   await expect(page.getByText(/Relatório disponível/i).first()).toBeVisible();
-  await expect(page.getByText(/Emissão v1/i).first()).toBeVisible();
+  const history = page.getByRole("list", { name: "Histórico de emissões" });
+  await expect(history.getByText("Emissão", { exact: true })).toBeVisible();
+  await expect(history.getByText("v1", { exact: true })).toBeVisible();
   const downloadPromise = page.waitForEvent("download");
-  await page
-    .getByRole("list", { name: "Histórico de emissões" })
-    .getByRole("button", { name: "Baixar", exact: true })
-    .click();
+  await history.getByRole("button", { name: "Baixar", exact: true }).click();
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toMatch(/^relatorio-orienta-.*-emissao-1-.*\.pdf$/);
   await logout(page);
