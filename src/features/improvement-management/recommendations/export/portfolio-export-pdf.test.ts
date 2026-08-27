@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { PDFDocument } from "pdf-lib";
 import type { ActionPlanAction } from "@/features/improvement-management/action-plans/domain-model";
 import { computeActionSla } from "@/features/improvement-management/action-plans/domain-model";
+import { buildRecommendationPortfolioExportDocument } from "./build-portfolio-export-document";
 import { buildRecommendationPortfolioExportRows } from "./build-portfolio-export-rows";
 import { buildRecommendationPortfolioPdf } from "./portfolio-export-pdf";
 import { PORTFOLIO_PDF_SPACE, actionPlanPdfContextFields, portfolioAxisBarColor } from "./portfolio-export-pdf-layout";
@@ -150,12 +151,9 @@ describe("buildRecommendationPortfolioPdf", () => {
         plans: [makeAction({ id: "a1" })],
       }),
     ]);
-    const recommendation = {
-      questionText: rows[0]!.questionText,
-      recommendationText: rows[0]!.recommendationText,
-      recommendationStatus: rows[0]!.recommendationStatus,
-      actions: rows[0]!.actions,
-    };
+    const recommendation =
+      buildRecommendationPortfolioExportDocument(rows).contexts[0]!.axes[0]!.sections[0]!
+        .recommendations[0]!;
     const withoutActions = measureRecommendationCardMinHeight(
       ctx,
       recommendation,
