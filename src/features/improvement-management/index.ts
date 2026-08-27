@@ -17,8 +17,10 @@ export {
   computeActionSla,
   type ActionPlanAction,
   type ActionPlanByCyclePayload,
+  type ActionPlanDocument,
   type ActionPlanRecommendationNode,
 } from "./action-plans/domain-model";
+export { ACTION_DOCUMENT_STATUS_LABEL } from "./action-plans/monitoring/summarize-action-documents";
 export { loadRecommendationFilters } from "./recommendations/client";
 export type { RecommendationFilterOptions } from "./recommendations/filter-options";
 export {

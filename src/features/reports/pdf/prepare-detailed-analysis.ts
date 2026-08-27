@@ -1,11 +1,11 @@
 import { structuralAxisOrderIndex } from "@/shared/domain/axis";
-import type {
-  ActionPlanAction,
-  ActionPlanRecommendationNode,
+import {
+  ACTION_DOCUMENT_STATUS_LABEL,
+  calculatePlanProgress,
+  type ActionPlanAction,
+  type ActionPlanDocument,
+  type ActionPlanRecommendationNode,
 } from "@/features/improvement-management";
-import type { ActionPlanDocument } from "@/features/improvement-management/action-plans/domain-model";
-import { calculatePlanProgress } from "@/features/improvement-management";
-import { ACTION_DOCUMENT_STATUS_LABEL } from "@/features/improvement-management/action-plans/monitoring/summarize-action-documents";
 import { levelMeta } from "@/features/fami";
 import {
   recommendationTypeLabel,
