@@ -116,8 +116,8 @@ o manifesto é copiado temporariamente para `var/imports/`, ignorado pelo Git.
 ## Inventário verificável em 22 de agosto de 2026
 
 - **55 páginas** do App Router.
-- **106 rotas de API**.
-- Vitest | **317 arquivos** em `src/`.
+- **109 rotas de API**.
+- Vitest | **328 arquivos** em `src/`.
 - **4 testes Node.js** de scripts, executados fora do Vitest.
 - **1 jornada Playwright canônica**.
 

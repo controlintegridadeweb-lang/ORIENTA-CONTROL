@@ -106,7 +106,7 @@ ajustes no Supabase Auth estão em
 
 ## Banco de dados
 
-Há **20 migrations timestampadas** em `supabase/migrations/`: 10 migrations imutáveis da baseline greenfield, já validadas em PostgreSQL 17 real, mais 10 evoluções pós-baseline para alteração de prazo, FAMI preliminar, exportação/monitoramento, reparo controlado da carga 2026, listagem de respondentes, progresso monotônico do plano de ação, integridade do encerramento com emissão oficial automática, leitura do estado do ciclo no rascunho de validação e comprovação opcional da execução no aceite/encerramento — ver
+Há **21 migrations timestampadas** em `supabase/migrations/`: 10 migrations imutáveis da baseline greenfield, já validadas em PostgreSQL 17 real, mais 11 evoluções pós-baseline para alteração de prazo, FAMI preliminar, exportação/monitoramento, reparo controlado da carga 2026, listagem de respondentes, progresso monotônico do plano de ação, integridade do encerramento com emissão oficial automática, leitura do estado do ciclo no rascunho de validação, comprovação opcional da execução no aceite/encerramento e acompanhamento bimestral com FAMI preliminar `prelim_v2` — ver
 [`docs/current/BANCO.md`](docs/current/BANCO.md) e
 [`docs/current/BASELINE_PRIMEIRA_IMPLANTACAO.md`](docs/current/BASELINE_PRIMEIRA_IMPLANTACAO.md). A validação da baseline em PostgreSQL real está documentada em [`docs/current/VALIDACAO_BASELINE_POSTGRESQL.md`](docs/current/VALIDACAO_BASELINE_POSTGRESQL.md).
 A sequência antiga `0001`–`0054` foi aposentada como fonte executável antes da primeira implantação. A baseline atual nasce diretamente no estado final, em ordem de dependências, sem patches, backfills históricos ou migrations corretivas intermediárias.

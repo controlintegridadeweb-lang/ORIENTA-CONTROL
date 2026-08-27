@@ -22,6 +22,7 @@ export type { OfficialReportData } from "./report-types";
 export async function loadOfficialReportData(params: {
   cycleId: string;
   processingVersion?: number;
+  allowOpenActionPlan?: boolean;
 }, client?: TypedSupabaseClient): Promise<OfficialReportData | null> {
   const supabase = client ?? createSupabaseServiceRoleClient();
   const scope = await resolveCycleReportScope(supabase, params.cycleId);
@@ -67,7 +68,7 @@ export async function loadOfficialReportData(params: {
   ]);
   if (!actionPlan) return null;
 
-  if (scope.cycleState === "completed") {
+  if (scope.cycleState === "completed" && !params.allowOpenActionPlan) {
     const unresolvedRecommendations = actionPlan.axes.flatMap((axis) =>
       axis.recommendations.filter(
         (recommendation) =>

@@ -19,7 +19,6 @@ import {
 import type { AdminPlanItem } from "@/features/improvement-management/action-plans/admin-monitoring";
 import {
   adminPlanoAcaoDetailHref,
-  adminSectionActionWorkspaceHref,
 } from "@/shared/navigation/admin-paths";
 import { formSurface } from "@/shared/layout/form-surface";
 import { AxisBadge } from "@/shared/ui/components/axis-badge";
@@ -86,14 +85,11 @@ export function AdminActionPlanTable({
           const risk = riskBadge(item.risk);
           const rowClass =
             index % 2 === 0 ? formSurface.brandTable.rowEven : formSurface.brandTable.rowOdd;
-          const sectionHref = withAdminReturnPath(
-            adminSectionActionWorkspaceHref(item.sectionId, item.cycleId, "visao-geral"),
-            returnTo,
-          );
           const planoHref = withAdminReturnPath(
             adminPlanoAcaoDetailHref(item.recommendationId, "visao-geral"),
             returnTo,
           );
+          const sectionHref = planoHref;
 
           return (
             <tr key={item.rowKey} className={rowClass}>

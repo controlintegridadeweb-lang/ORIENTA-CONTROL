@@ -25,7 +25,6 @@ describe("AdminMonitoringSummaryCards", () => {
     render(
       <AdminMonitoringSummaryCards
         ariaLabel="Indicadores do portfólio"
-        gridClassName="grid"
         activeFilter={null}
         clearFilter={null}
         onSelect={vi.fn()}
@@ -46,7 +45,6 @@ describe("AdminMonitoringSummaryCards", () => {
     render(
       <AdminMonitoringSummaryCards
         ariaLabel="Indicadores do portfólio"
-        gridClassName="grid"
         activeFilter="without_plan"
         clearFilter={null}
         onSelect={onSelect}

@@ -1,8 +1,46 @@
 import { levelForPercentage } from "@/shared/domain/fami-policy";
+import {
+  happenedAtOrBefore,
+  isQuadrimesterClosed,
+  quadrimesterLastInstant,
+  type Quadrimester,
+} from "@/shared/domain/calendar-periods";
+import {
+  evaluateCriterionCompletion,
+  type ActionCompletionSnapshot,
+} from "@/shared/domain/criterion-completion";
+import { FAMI_PRELIMINARY_METHODOLOGY_V2 } from "./methodology";
 
-export const FAMI_PRELIMINARY_METHODOLOGY_VERSION = "prelim_v1" as const;
+export {
+  FAMI_PRELIMINARY_METHODOLOGY_V1,
+  FAMI_PRELIMINARY_METHODOLOGY_V2,
+  FAMI_PRELIMINARY_METHODOLOGY_VERSIONS,
+  type FamiPreliminaryMethodologyVersion,
+} from "./methodology";
 
-export type Quadrimester = 1 | 2 | 3;
+export {
+  bimesterClosesQuadrimester,
+  bimesterCutoffExclusive,
+  bimesterLastInstant,
+  bimesterPeriod,
+  bimestersOfQuadrimester,
+  BIMESTERS,
+  hasBimesterStarted,
+  hasQuadrimesterStarted,
+  happenedAtOrBefore,
+  isBimesterClosed,
+  isQuadrimesterClosed,
+  periodCutoffExclusive,
+  periodLastInstant,
+  quadrimesterClosedByBimester,
+  quadrimesterContainingBimester,
+  quadrimesterCutoffExclusive,
+  quadrimesterLastInstant,
+  quadrimesterPeriod,
+  QUADRIMESTERS,
+  type Bimester,
+  type Quadrimester,
+} from "@/shared/domain/calendar-periods";
 
 export type PreliminaryCriterionInput = {
   officialPoints: number;
@@ -10,6 +48,15 @@ export type PreliminaryCriterionInput = {
   activeActionProgressPercentages: number[];
   hasApprovedException: boolean;
   hasRecommendation: boolean;
+};
+
+export type PreliminaryCriterionV2Input = {
+  officialPoints: number;
+  pointsPossible: number;
+  hasRecommendation: boolean;
+  hasApprovedException: boolean;
+  actions: readonly ActionCompletionSnapshot[];
+  activeActionProgressPercentages?: number[];
 };
 
 export type PreliminaryCriterionResult = {
@@ -22,6 +69,12 @@ export type PreliminaryCriterionResult = {
   preliminaryPoints: number;
 };
 
+export type PreliminaryCriterionV2Result = PreliminaryCriterionResult & {
+  criterionCompleted: boolean;
+  completedActionCount: number;
+  methodologyVersion: typeof FAMI_PRELIMINARY_METHODOLOGY_V2;
+};
+
 export type PreliminaryAggregate = {
   pointsObtained: number;
   pointsPossible: number;
@@ -29,7 +82,7 @@ export type PreliminaryAggregate = {
   maturityLevel: 1 | 2 | 3 | 4 | 5 | null;
 };
 
-function round(value: number, digits: number): number {
+export function roundPreliminary(value: number, digits: number): number {
   const factor = 10 ** digits;
   return Math.round((value + Number.EPSILON) * factor) / factor;
 }
@@ -37,6 +90,39 @@ function round(value: number, digits: number): number {
 function clampProgress(value: number): number {
   if (!Number.isFinite(value)) return 0;
   return Math.min(100, Math.max(0, value));
+}
+
+function averageProgress(percentages: readonly number[]): number {
+  if (percentages.length === 0) return 0;
+  return roundPreliminary(
+    percentages.map(clampProgress).reduce((sum, value) => sum + value, 0) / percentages.length,
+    4,
+  );
+}
+
+function baseCriterionScore(input: {
+  officialPoints: number;
+  pointsPossible: number;
+}): Pick<PreliminaryCriterionResult, "officialPoints" | "pointsPossible" | "recoverableGap"> {
+  const possible = Math.max(0, input.pointsPossible);
+  const official = Math.min(possible, Math.max(0, input.officialPoints));
+  return {
+    officialPoints: roundPreliminary(official, 4),
+    pointsPossible: roundPreliminary(possible, 4),
+    recoverableGap: roundPreliminary(possible - official, 4),
+  };
+}
+
+function capPreliminary(
+  official: number,
+  recovered: number,
+  possible: number,
+): { recoveredPoints: number; preliminaryPoints: number } {
+  const recoveredPoints = roundPreliminary(Math.min(Math.max(0, recovered), possible - official), 4);
+  return {
+    recoveredPoints,
+    preliminaryPoints: roundPreliminary(Math.min(possible, official + recoveredPoints), 4),
+  };
 }
 
 /**
@@ -49,112 +135,74 @@ function clampProgress(value: number): number {
 export function calculatePreliminaryCriterion(
   input: PreliminaryCriterionInput,
 ): PreliminaryCriterionResult {
-  const possible = Math.max(0, input.pointsPossible);
-  const official = Math.min(possible, Math.max(0, input.officialPoints));
-  const recoverableGap = round(possible - official, 4);
-
+  const base = baseCriterionScore(input);
   const progresses = input.activeActionProgressPercentages.map(clampProgress);
   const canRecover =
     input.hasRecommendation && !input.hasApprovedException && progresses.length > 0;
-  const progress = canRecover
-    ? round(progresses.reduce((sum, value) => sum + value, 0) / progresses.length, 4)
-    : 0;
-  const recovered = round(recoverableGap * (progress / 100), 4);
+  const progress = canRecover ? averageProgress(progresses) : 0;
+  const recovered = roundPreliminary(base.recoverableGap * (progress / 100), 4);
+  const capped = capPreliminary(base.officialPoints, recovered, base.pointsPossible);
 
   return {
-    officialPoints: round(official, 4),
-    pointsPossible: round(possible, 4),
-    recoverableGap,
+    ...base,
     activeActionCount: canRecover ? progresses.length : 0,
     actionProgressPercentage: progress,
-    recoveredPoints: recovered,
-    preliminaryPoints: round(official + recovered, 4),
+    ...capped,
+  };
+}
+
+/**
+ * Metodologia prelim_v2.
+ *
+ * Percentual de progresso não gera pontos. A recuperação do gap é integral e
+ * só ocorre quando o critério está efetivamente concluído e aceito na data de
+ * corte. O percentual continua disponível para monitoramento.
+ */
+export function calculatePreliminaryCriterionV2(
+  input: PreliminaryCriterionV2Input,
+): PreliminaryCriterionV2Result {
+  const base = baseCriterionScore(input);
+  const completion = evaluateCriterionCompletion({
+    hasRecommendation: input.hasRecommendation,
+    hasApprovedException: input.hasApprovedException,
+    actions: input.actions,
+  });
+  const progress = averageProgress(input.activeActionProgressPercentages ?? []);
+  const recovered = completion.criterionCompleted ? base.recoverableGap : 0;
+  const capped = capPreliminary(base.officialPoints, recovered, base.pointsPossible);
+
+  return {
+    ...base,
+    activeActionCount: completion.activeActionCount,
+    actionProgressPercentage: progress,
+    ...capped,
+    criterionCompleted: completion.criterionCompleted,
+    completedActionCount: completion.completedActionCount,
+    methodologyVersion: FAMI_PRELIMINARY_METHODOLOGY_V2,
   };
 }
 
 export function aggregatePreliminaryCriteria(
   criteria: Array<Pick<PreliminaryCriterionResult, "preliminaryPoints" | "pointsPossible">>,
 ): PreliminaryAggregate {
-  const pointsObtained = round(
+  const pointsObtained = roundPreliminary(
     criteria.reduce((sum, item) => sum + item.preliminaryPoints, 0),
     2,
   );
-  const pointsPossible = round(
+  const pointsPossible = roundPreliminary(
     criteria.reduce((sum, item) => sum + item.pointsPossible, 0),
     2,
   );
   if (pointsPossible === 0) {
     return { pointsObtained: 0, pointsPossible: 0, percentage: 0, maturityLevel: null };
   }
-  const percentage = round((pointsObtained / pointsPossible) * 100, 2);
+  const percentage = roundPreliminary((pointsObtained / pointsPossible) * 100, 2);
   return {
     pointsObtained,
     pointsPossible,
     percentage,
     maturityLevel: levelForPercentage(percentage),
   };
-}
-
-export function quadrimesterPeriod(referenceYear: number, quadrimester: Quadrimester): {
-  start: string;
-  end: string;
-  label: string;
-} {
-  if (!Number.isInteger(referenceYear) || referenceYear < 1900 || referenceYear > 2100) {
-    throw new Error("invalid_preliminary_reference_year");
-  }
-  const ranges = {
-    1: [`${referenceYear}-01-01`, `${referenceYear}-04-30`, "1º quadrimestre"],
-    2: [`${referenceYear}-05-01`, `${referenceYear}-08-31`, "2º quadrimestre"],
-    3: [`${referenceYear}-09-01`, `${referenceYear}-12-31`, "3º quadrimestre"],
-  } as const;
-  const [start, end, label] = ranges[quadrimester];
-  return { start, end, label };
-}
-
-export function quadrimesterLastInstant(
-  referenceYear: number,
-  quadrimester: Quadrimester,
-): Date {
-  const { end } = quadrimesterPeriod(referenceYear, quadrimester);
-  return new Date(`${end}T23:59:59.999-03:00`);
-}
-
-/** Primeiro instante após a data de corte, no horário de Fortaleza. */
-export function quadrimesterCutoffExclusive(
-  referenceYear: number,
-  quadrimester: Quadrimester,
-): Date {
-  return new Date(quadrimesterLastInstant(referenceYear, quadrimester).getTime() + 1);
-}
-
-/** Disponível no dia seguinte à data de corte, no horário de Fortaleza. */
-export function isQuadrimesterClosed(
-  referenceYear: number,
-  quadrimester: Quadrimester,
-  now: Date = new Date(),
-): boolean {
-  return now.getTime() > quadrimesterLastInstant(referenceYear, quadrimester).getTime();
-}
-
-export function hasQuadrimesterStarted(
-  referenceYear: number,
-  quadrimester: Quadrimester,
-  now: Date = new Date(),
-): boolean {
-  const { start } = quadrimesterPeriod(referenceYear, quadrimester);
-  const firstInstant = new Date(`${start}T00:00:00.000-03:00`);
-  return now.getTime() >= firstInstant.getTime();
-}
-
-export function happenedAtOrBefore(
-  timestamp: string | null | undefined,
-  limit: Date,
-): boolean {
-  if (!timestamp) return false;
-  const instant = new Date(timestamp);
-  if (Number.isNaN(instant.getTime())) return false;
-  return instant.getTime() <= limit.getTime();
 }
 
 /**
@@ -225,4 +273,23 @@ export function canManuallyMaterializeQuadrimester(input: {
 }): boolean {
   if (!input.started || input.closed || input.hasClosedSnapshot) return false;
   return input.officialAvailable;
+}
+
+export function canAutomaticallyCloseBimester(input: {
+  closed: boolean;
+  officialAvailable: boolean;
+  hasImplementation: boolean;
+  hasCheckpoint: boolean;
+  hasClosedSnapshot: boolean;
+}): boolean {
+  return canAutomaticallyCloseQuadrimester(input);
+}
+
+export function canManuallyMaterializeBimester(input: {
+  started: boolean;
+  closed: boolean;
+  officialAvailable: boolean;
+  hasClosedSnapshot: boolean;
+}): boolean {
+  return canManuallyMaterializeQuadrimester(input);
 }

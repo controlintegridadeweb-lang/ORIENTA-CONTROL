@@ -17,62 +17,24 @@ function ReportHistoryItem({
   onDownload: (report: ReportHistoryOption) => void;
 }) {
   return (
-    <li className={`${formSurface.entityListCard} p-4 sm:p-5`}>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex min-w-0 flex-1 items-start gap-4">
-          <span
-            className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800"
-            aria-hidden
-          >
-            <FileText className="h-5 w-5" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className={typography.cardTitle}>{report.formName}</h3>
-              {!report.isCurrent ? (
-                <span className={`${formSurface.badge.base} ${formSurface.badge.warning}`}>
-                  Versão anterior
-                </span>
-              ) : null}
-            </div>
-            <p className={`mt-1 ${typography.cardDescription}`}>
-              {report.periodLabel || "Sem período"}
-              {" · "}
-              <time dateTime={report.generatedAt}>{formatReportDate(report.generatedAt)}</time>
-              {" · "}
-              {report.generatedByLabel}
-            </p>
-            <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-              <div>
-                <dt className={typography.meta}>Emissão</dt>
-                <dd className="mt-0.5 text-slate-700">v{report.emissionVersion}</dd>
-              </div>
-              <div>
-                <dt className={typography.meta}>Processamento</dt>
-                <dd className="mt-0.5 text-slate-700">nº {report.processingVersion}</dd>
-              </div>
-              <div>
-                <dt className={typography.meta}>Política FAMI</dt>
-                <dd className="mt-0.5 text-slate-700">{report.policyVersion}</dd>
-              </div>
-              {report.fileSha256 ? (
-                <div className="min-w-0 sm:col-span-2 lg:col-span-1">
-                  <dt className={typography.meta}>SHA-256</dt>
-                  <dd className="mt-0.5 truncate font-mono text-slate-700" title={report.fileSha256}>
-                    {report.fileSha256.slice(0, 16)}…
-                  </dd>
-                </div>
-              ) : null}
-            </dl>
-            {report.reissueReason ? (
-              <p className={`mt-3 ${typography.auxiliary}`}>
-                Motivo da reemissão: {report.reissueReason}
-              </p>
-            ) : null}
-            {report.outdatedReason ? (
-              <p className="mt-3 text-sm font-medium text-amber-800">{report.outdatedReason}</p>
+    <li className={`${formSurface.entityListCard} overflow-hidden`}>
+      <div className="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-5">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className={typography.cardTitle}>{report.formName}</h3>
+            {!report.isCurrent ? (
+              <span className={`${formSurface.badge.base} ${formSurface.badge.warning}`}>
+                Versão anterior
+              </span>
             ) : null}
           </div>
+          <p className={`mt-1 ${typography.cardDescription}`}>
+            {report.periodLabel || "Sem período"}
+            {" · "}
+            <time dateTime={report.generatedAt}>{formatReportDate(report.generatedAt)}</time>
+            {" · "}
+            {report.generatedByLabel}
+          </p>
         </div>
         <button
           type="button"
@@ -83,6 +45,45 @@ function ReportHistoryItem({
           Baixar
         </button>
       </div>
+
+      <dl className="grid gap-4 bg-slate-50/60 px-4 py-4 text-sm sm:grid-cols-2 sm:px-5 lg:grid-cols-4">
+        <div>
+          <dt className={typography.meta}>Emissão</dt>
+          <dd className="mt-0.5 font-medium text-slate-800">v{report.emissionVersion}</dd>
+        </div>
+        <div>
+          <dt className={typography.meta}>Processamento</dt>
+          <dd className="mt-0.5 font-medium text-slate-800">nº {report.processingVersion}</dd>
+        </div>
+        <div>
+          <dt className={typography.meta}>Política FAMI</dt>
+          <dd className="mt-0.5 font-medium text-slate-800">{report.policyVersion}</dd>
+        </div>
+        {report.fileSha256 ? (
+          <div className="min-w-0">
+            <dt className={typography.meta}>SHA-256</dt>
+            <dd
+              className="mt-0.5 truncate font-mono text-xs font-medium text-slate-700"
+              title={report.fileSha256}
+            >
+              {report.fileSha256.slice(0, 16)}…
+            </dd>
+          </div>
+        ) : null}
+      </dl>
+
+      {report.reissueReason || report.outdatedReason ? (
+        <div className="space-y-1.5 border-t border-slate-100 px-4 py-3 sm:px-5">
+          {report.reissueReason ? (
+            <p className={typography.auxiliary}>
+              Motivo da reemissão: {report.reissueReason}
+            </p>
+          ) : null}
+          {report.outdatedReason ? (
+            <p className="text-sm font-medium text-amber-800">{report.outdatedReason}</p>
+          ) : null}
+        </div>
+      ) : null}
     </li>
   );
 }

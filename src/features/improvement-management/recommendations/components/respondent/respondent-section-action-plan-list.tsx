@@ -12,7 +12,7 @@ import {
   SectionPlanStatusBadge,
   sectionPlanStatusFromMetrics,
 } from "@/features/improvement-management/action-plans/components/section/section-plan-status-badge";
-import { respondentSectionActionWorkspacePath } from "@/shared/navigation/respondent-portfolio-paths";
+import { respondentActionWorkspacePath } from "@/shared/navigation/respondent-portfolio-paths";
 import { formSurface } from "@/shared/layout/form-surface";
 import { typography } from "@/shared/layout/design-system";
 import {
@@ -89,12 +89,12 @@ export function RespondentSectionActionPlanList({ items, returnPath }: Props) {
 
             <ul className={recommendationHierarchySurface.cards} role="list">
               {axis.sections.map((section) => {
-                const href = respondentSectionActionWorkspacePath(
-                  section.sectionId,
-                  section.cycleId,
-                  "visao-geral",
-                  { returnTo: returnPath },
-                );
+                const entryRecommendationId = section.recommendations[0]?.recommendationId;
+                const href = entryRecommendationId
+                  ? respondentActionWorkspacePath(entryRecommendationId, "visao-geral", {
+                      returnTo: returnPath,
+                    })
+                  : returnPath;
                 const status = sectionPlanStatusFromMetrics(section.metrics);
                 const sectionLabel = `Seção ${section.sectionDisplayNumber}`;
 

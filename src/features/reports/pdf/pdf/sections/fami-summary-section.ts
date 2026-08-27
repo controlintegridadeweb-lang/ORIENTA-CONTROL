@@ -11,10 +11,17 @@ import {
 import { renderDetailedAnalysisOverviewContent } from "./detailed-analysis-overview-section";
 
 /** Resultado geral do FAMI + análise detalhada na mesma composição (modelo de referência). */
+function famiSummarySubtitle(doc: OrientaPdfDocument): string {
+  if (doc.data.tracking) {
+    return "Percentual e nível oficiais do diagnóstico. O plano de ação neste relatório é o andamento no corte do bimestre, não uma nova emissão oficial.";
+  }
+  return "Percentual e nível oficiais do processamento selecionado.";
+}
+
 export function renderFamiSummarySection(doc: OrientaPdfDocument): Cursor {
   let cur = doc.beginMajorSection(
     "Resultado geral do FAMI",
-    "Percentual e nível oficiais do processamento selecionado.",
+    famiSummarySubtitle(doc),
     "fami-summary",
   );
 

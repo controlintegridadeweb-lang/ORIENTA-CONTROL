@@ -18,6 +18,8 @@ describe("separação entre relatório oficial e FAMI preliminar", () => {
 
     expect(officialSources).not.toContain("fami_preliminary");
     expect(officialSources).not.toContain("prelim_v1");
+    expect(officialSources).not.toContain("prelim_v2");
+    expect(officialSources).not.toContain("action_plan_bimonthly");
   });
 
   it("identifica a exportação preliminar como não oficial", () => {

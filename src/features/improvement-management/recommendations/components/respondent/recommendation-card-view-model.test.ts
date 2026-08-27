@@ -23,7 +23,7 @@ function item(over: Partial<RespondentRecommendationItem> = {}): RespondentRecom
     organizationName: "Órgão Demo",
     axisId: "axis-1",
     axisName: "Governança",
-    sectionId: "section-1",
+    sectionId: "44444444-4444-4444-8444-444444444444",
     sectionName: "Gestão da Transparência",
     sectionOrder: 1,
     questionOrder: 1,
@@ -112,6 +112,24 @@ describe("resolveRecommendationPrimaryAction", () => {
     );
     expect(cta?.label).toBe(RECOMMENDATION_PRIMARY_ACTION_LABELS.continuePlan);
     expect(cta?.label).not.toBe(RECOMMENDATION_PRIMARY_ACTION_LABELS.registerActions);
+    expect(cta?.href).toContain(
+      "/respondente/plano-acao/11111111-1111-4111-8111-111111111111/visao-geral",
+    );
+  });
+
+  it("abre o workspace da recomendação ao visualizar ações", () => {
+    const cta = resolveRecommendationPrimaryAction(
+      item({
+        status: "completed",
+        hasPlan: true,
+        actionCount: 2,
+      }),
+      RETURN,
+    );
+    expect(cta?.label).toBe(RECOMMENDATION_PRIMARY_ACTION_LABELS.viewActions);
+    expect(cta?.href).toContain(
+      "/respondente/plano-acao/11111111-1111-4111-8111-111111111111/visao-geral",
+    );
   });
 
   it("não oferece cadastrar ações para recomendação dispensada", () => {

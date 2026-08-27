@@ -3,6 +3,9 @@ import "server-only";
 import type { TypedSupabaseClient } from "@/infrastructure/supabase/server";
 import type { Quadrimester } from "./domain";
 
+import { listPreliminaryCriterionRows } from "./criterion-read";
+import { buildQuadrimesterEvolution, type QuadrimesterEvolution } from "./evolution";
+
 export type PreliminaryCheckpoint = {
   id: string;
   cycleId: string;
@@ -42,6 +45,7 @@ export type PreliminaryHistory = {
   history: PreliminaryCheckpoint[];
   latestByPeriod: PreliminaryCheckpoint[];
   tracking: PreliminaryTrackingContext;
+  evolutions: Array<QuadrimesterEvolution & { quadrimester: Quadrimester }>;
 };
 
 export async function listPreliminaryCheckpoints(
@@ -65,7 +69,7 @@ export async function listPreliminaryCheckpoints(
 
   const tracking = await loadPreliminaryTracking(client, cycleId);
   if (!processings?.length) {
-    return { history: [], latestByPeriod: [], tracking };
+    return { history: [], latestByPeriod: [], tracking, evolutions: [] };
   }
 
   const preliminaryIds = processings.map((row) => row.id);
@@ -151,7 +155,37 @@ export async function listPreliminaryCheckpoints(
     seen.add(key);
     return true;
   });
-  return { history, latestByPeriod, tracking };
+  return { history, latestByPeriod, tracking, evolutions: await loadEvolutions(client, latestByPeriod) };
+}
+
+async function loadEvolutions(
+  client: TypedSupabaseClient,
+  latestByPeriod: PreliminaryCheckpoint[],
+): Promise<Array<QuadrimesterEvolution & { quadrimester: Quadrimester }>> {
+  const ordered = [...latestByPeriod].sort((left, right) => left.quadrimester - right.quadrimester);
+  const rows = await listPreliminaryCriterionRows(
+    client,
+    ordered.map((item) => item.id),
+  );
+  const byProcessing = new Map<string, typeof rows>();
+  for (const row of rows) {
+    const list = byProcessing.get(row.processingId) ?? [];
+    list.push(row);
+    byProcessing.set(row.processingId, list);
+  }
+  return ordered.map((current, index) => {
+    const previous = index > 0 ? ordered[index - 1] : null;
+    return {
+      quadrimester: current.quadrimester,
+      ...buildQuadrimesterEvolution({
+        officialPercentage: current.official?.percentage ?? null,
+        previousPreliminaryPercentage: previous?.preliminary?.percentage ?? null,
+        currentPreliminaryPercentage: current.preliminary?.percentage ?? null,
+        previous: previous ? (byProcessing.get(previous.id) ?? []) : [],
+        current: byProcessing.get(current.id) ?? [],
+      }),
+    };
+  });
 }
 
 async function loadPreliminaryTracking(

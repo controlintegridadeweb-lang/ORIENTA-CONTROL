@@ -19,7 +19,7 @@ export function FamiEixosTab({ axes }: Props) {
         variant="card"
         contentClassName="space-y-6"
       >
-        <div className="mx-auto min-h-88 max-w-3xl rounded-xl border border-slate-200/80 bg-slate-50/30 p-4 sm:p-5">
+        <div className="mx-auto min-h-88 max-w-3xl">
           <RespondentFamiRadarChart embedded axes={axes} title="Radar de eixos" />
         </div>
       </PanelSection>

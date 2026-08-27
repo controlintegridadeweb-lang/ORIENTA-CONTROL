@@ -145,6 +145,18 @@ export type ReportDocumentIdentity = {
   contentSha256: string;
 };
 
+/** Presente só no PDF de acompanhamento; a emissão oficial deixa o campo ausente. */
+export type OfficialReportTracking = {
+  kind: "bimonthly";
+  bimester: 1 | 2 | 3 | 4 | 5 | 6;
+  bimesterLabel: string;
+  periodRangeLabel: string;
+  cutoffLabel: string;
+  reportVersion: number;
+  generationKind: "manual" | "automatic";
+  disclaimer: string;
+};
+
 /** Movimentação persistida de progresso de uma ação (fonte: action_plan_progress_updates). */
 export type ReportActionMovementSource = {
   id: string;
@@ -292,6 +304,7 @@ export type OfficialReportData = {
   famiProcessedAt: string;
   generatedAtIso: string;
   document: ReportDocumentIdentity | null;
+  tracking?: OfficialReportTracking;
   actionPlan: ActionPlanByCyclePayload;
   diagnostic: ReportDiagnostic;
   fami: {

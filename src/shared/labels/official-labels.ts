@@ -69,23 +69,26 @@ export const famiAnnualLabels = {
 };
 
 export const famiPreliminaryLabels = {
-  title: "Acompanhamento quadrimestral",
+  title: "Acompanhamento",
   description:
-    "A pontuação oficial do FAMI é divulgada anualmente pela Controladoria-Geral do Estado. Este acompanhamento estima, a cada quadrimestre, a evolução a partir das ações implementadas e das informações válidas do Monitoramento. O FAMI preliminar não substitui o FAMI anual.",
+    "Relatórios bimestrais do plano de ação e FAMI preliminar quadrimestral. O FAMI preliminar não substitui o FAMI anual.",
   panoramaLabel: "FAMI preliminar",
   unofficial:
     "Tem histórico e exportação próprios e não entra no PDF do Resultado FAMI.",
   methodology:
+    "Parte do Resultado FAMI oficial da data de corte. O percentual das ações não gera pontos; somente o critério efetivamente concluído e aceito recupera o gap integral. Ações canceladas e exceções aprovadas não geram recuperação.",
+  methodologyV1:
     "Parte do Resultado FAMI oficial que já existia na data de corte e estima somente a recuperação dos critérios com recomendação, pela média do progresso das ações ativas. Ações canceladas e exceções aprovadas não geram recuperação.",
+  trackingTitle: (year: number) => `Acompanhamento ${year}`,
   requirement:
     "Durante o quadrimestre o administrador pode calcular ou recalcular a prévia com os dados válidos até o instante da execução. Na data de corte o sistema consolida automaticamente um snapshot imutável. Alterações posteriores entram só no quadrimestre seguinte.",
   statusOpen: "Em andamento",
   statusCompleted: "Concluído",
   statusNotImplemented: "Não implementado",
   statusUpcoming: "Aguardando período",
-  calculate: (quadrimester: 1 | 2 | 3) => `Calcular agora o ${quadrimester}º quadrimestre`,
+  calculate: (quadrimester: 1 | 2 | 3) => `Calcular o ${quadrimester}º quadrimestre`,
   calculateAgain: (quadrimester: 1 | 2 | 3) => `Recalcular o ${quadrimester}º quadrimestre`,
-  calculateRow: "Calcular agora",
+  calculateRow: "Calcular",
   recalculateRow: "Recalcular",
   viewDetails: "Ver detalhes",
   hideDetails: "Ocultar detalhes",
@@ -97,4 +100,20 @@ export const famiPreliminaryLabels = {
   invalidResponse: "A resposta do servidor não pôde ser lida.",
   exportHistory: "Exportar histórico CSV",
   closedPeriodHint: "O quadrimestre já foi fechado e não pode ser alterado.",
+  bimonthlyReportAvailable: "Relatório disponível",
+  bimonthlyReportPending: "Relatório ainda não gerado",
+  quadrimesterCalculated: (quadrimester: 1 | 2 | 3) =>
+    `${quadrimester}º quadrimestre calculado`,
+  generateBimester: "Gerar",
+  generatingBimester: "Gerando…",
+  exportMenu: "Exportar",
+  exportPdf: "Exportar PDF",
+  exportXlsx: "Exportar Excel",
+  exportPdfHint: "Relatório bimestral em PDF.",
+  exportXlsxHint: "Planilha do snapshot bimestral.",
+  officialFami: "FAMI oficial",
+  previousPreliminary: "FAMI preliminar anterior",
+  currentPreliminary: "FAMI preliminar atual",
+  recoveredPoints: "Pontos recuperados",
+  criteriaNowScoring: "Critérios que passaram a pontuar",
 };

@@ -61,6 +61,9 @@ describe("toAdminRecommendationCardViewModel", () => {
     expect(vm.recommendationDisplayCode).toBe("1.1");
     expect(vm.situationLabel).toBe("Gerada");
     expect(vm.actionCountLabel).toBe("Sem ações vinculadas");
+    expect(vm.actionPlanHref).toContain(
+      "/admin/plano-acao/11111111-1111-4111-8111-111111111111/visao-geral",
+    );
   });
 
   it("rotula solicitação de ajuste na situação do plano", () => {

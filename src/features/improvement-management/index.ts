@@ -1,5 +1,6 @@
 export {
   isDbActionPlanStatus,
+  parseResponsibleLabel,
   planStatusFromDb,
   planStatusToDb,
   type DbActionPlanStatus,
@@ -13,6 +14,7 @@ export {
 } from "./action-plans";
 export type { ActionPlanCompletionReadiness } from "./action-plans/completion-readiness";
 export {
+  computeActionSla,
   type ActionPlanAction,
   type ActionPlanByCyclePayload,
   type ActionPlanRecommendationNode,

@@ -39,7 +39,7 @@ function item(over: Partial<RespondentRecommendationItem> = {}): RespondentRecom
     organizationName: "Órgão Demo",
     axisId: "axis-1",
     axisName: "Governança",
-    sectionId: "section-1",
+    sectionId: "44444444-4444-4444-8444-444444444444",
     sectionName: "Gestão da Transparência",
     sectionOrder: 1,
     questionOrder: 1,

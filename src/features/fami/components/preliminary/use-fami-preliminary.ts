@@ -43,6 +43,24 @@ export type PreliminaryPayload = {
   latestByPeriod: PreliminaryCheckpoint[];
   history: PreliminaryCheckpoint[];
   tracking: PreliminaryTrackingContext;
+  evolutions: EvolutionView[];
+};
+
+export type EvolutionView = {
+  quadrimester: Quadrimester;
+  officialPercentage: number | null;
+  previousPreliminaryPercentage: number | null;
+  currentPreliminaryPercentage: number | null;
+  deltaPercentagePoints: number | null;
+  criteriaNowScoring: number;
+  recoveredPoints: number;
+  rows: Array<{
+    questionVersionId: string;
+    questionPrompt: string;
+    previousStatus: "nao_iniciado" | "em_andamento" | "concluido";
+    currentStatus: "nao_iniciado" | "em_andamento" | "concluido";
+    recoveredPoints: number;
+  }>;
 };
 
 const scoreSchema = z.object({
@@ -75,16 +93,37 @@ const trackingSchema = z.object({
   earliestActionCreatedAt: z.string().nullable(),
 });
 
+const evolutionSchema = z.object({
+  quadrimester: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  officialPercentage: z.number().nullable(),
+  previousPreliminaryPercentage: z.number().nullable(),
+  currentPreliminaryPercentage: z.number().nullable(),
+  deltaPercentagePoints: z.number().nullable(),
+  criteriaNowScoring: z.number(),
+  recoveredPoints: z.number(),
+  rows: z.array(
+    z.object({
+      questionVersionId: z.string(),
+      questionPrompt: z.string(),
+      previousStatus: z.enum(["nao_iniciado", "em_andamento", "concluido"]),
+      currentStatus: z.enum(["nao_iniciado", "em_andamento", "concluido"]),
+      recoveredPoints: z.number(),
+    }),
+  ),
+});
+
 const apiPayloadSchema = z.object({
   latestByPeriod: z.array(checkpointSchema),
   history: z.array(checkpointSchema),
   tracking: trackingSchema,
+  evolutions: z.array(evolutionSchema).optional().default([]),
 });
 
 const emptyPayload: PreliminaryPayload = {
   history: [],
   latestByPeriod: [],
   tracking: { officialAvailableAt: null, earliestActionCreatedAt: null },
+  evolutions: [],
 };
 
 export function useFamiPreliminary(
@@ -123,6 +162,7 @@ export function useFamiPreliminary(
       history: parsed.data.history,
       latestByPeriod: parsed.data.latestByPeriod,
       tracking: parsed.data.tracking,
+      evolutions: parsed.data.evolutions,
     };
   }, [cycleId, referenceYear]);
 
@@ -189,6 +229,7 @@ export function useFamiPreliminary(
           history: parsed.data.history,
           latestByPeriod: parsed.data.latestByPeriod,
           tracking: parsed.data.tracking,
+          evolutions: parsed.data.evolutions,
         });
         setMessage(
           hadCheckpoint

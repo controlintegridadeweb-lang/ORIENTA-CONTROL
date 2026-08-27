@@ -5,7 +5,7 @@ import { resolveQuadrimesterDisplay } from "./panel-presentation";
 describe("separação entre FAMI anual e FAMI preliminar quadrimestral", () => {
   it("mantém nomes e papéis distintos nos rótulos", () => {
     expect(famiAnnualLabels.title).toBe("FAMI anual");
-    expect(famiPreliminaryLabels.title).toBe("Acompanhamento quadrimestral");
+    expect(famiPreliminaryLabels.title).toBe("Acompanhamento");
     expect(famiAnnualLabels.disclaimer).toMatch(/não o substitui/);
     expect(famiPreliminaryLabels.description).toMatch(/não substitui o FAMI anual/);
     expect(famiPreliminaryLabels.panoramaLabel).toBe("FAMI preliminar");

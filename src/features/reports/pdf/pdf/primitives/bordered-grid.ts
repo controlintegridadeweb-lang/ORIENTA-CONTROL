@@ -115,7 +115,7 @@ export function drawGridRow(
   cells: GridCell[],
 ): Cursor {
   const height = rowHeight(doc, cells);
-  let cur = doc.ensureSpace(cursor, height + 2);
+  const cur = doc.ensureSpace(cursor, height + 2);
   const top = cur.y;
   let x = reportTheme.margin;
   for (const cell of cells) {

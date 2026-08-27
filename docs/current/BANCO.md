@@ -2,16 +2,16 @@
 
 ## Fonte oficial
 
-A única fonte executável do schema é `supabase/migrations/`, com **20 migrations timestampadas**: 10 migrations imutáveis da baseline greenfield (`20260812000100` a `20260812001000`) e 10 evoluções pós-baseline (`20260812001100` a `20260824143000`). O intervalo completo é `20260812000100` a `20260824143000`.
+A única fonte executável do schema é `supabase/migrations/`, com **21 migrations timestampadas**: 10 migrations imutáveis da baseline greenfield (`20260812000100` a `20260812001000`) e 11 evoluções pós-baseline (`20260812001100` a `20260826120000`). O intervalo completo é `20260812000100` a `20260826120000`.
 
 A sequência evolutiva antiga `0001`–`0054` não participa mais da instalação. Ela foi consolidada antes da primeira implantação para evitar que um banco novo reproduza patches, backfills e correções intermediárias.
 
 ## Contratos estruturais
 
-- 58 tabelas públicas no estado final esperado;
-- 197 funções conhecidas no schema final, incluindo 133 funções/RPCs públicas não-trigger representadas em `database.types.ts`;
+- 61 tabelas públicas no estado final esperado;
+- 203 funções conhecidas no schema final, incluindo as RPCs públicas não-trigger representadas em `database.types.ts`;
 - 6 views/read models públicos;
-- 93 triggers finais;
+- 96 triggers finais;
 - FAMI oficial `v7`; a carga inicial de 2026 não transporta séries técnicas de políticas anteriores;
 - FAMI preliminar quadrimestral em estruturas separadas do oficial;
 - RLS habilitado conforme modelo de autorização;
@@ -22,7 +22,7 @@ A sequência evolutiva antiga `0001`–`0054` não participa mais da instalaçã
 
 ## Instalação limpa
 
-1. Aplicar as 20 migrations em banco vazio.
+1. Aplicar as 21 migrations em banco vazio.
 2. Regenerar `database.types.ts` a partir desse banco.
 3. Executar verificadores SQL, RLS, Storage e advisors.
 4. Não executar seeds de desenvolvimento na implantação real.

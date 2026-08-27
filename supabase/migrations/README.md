@@ -1,8 +1,8 @@
 # Migrations do ORIENTA
 
-Este diretório contém **20 migrations SQL timestampadas**: as 10 primeiras formam a baseline canônica validada da primeira implantação e permanecem imutáveis; as seguintes são evoluções pós-baseline.
+Este diretório contém **21 migrations SQL timestampadas**: as 10 primeiras formam a baseline canônica validada da primeira implantação e permanecem imutáveis; as seguintes são evoluções pós-baseline.
 
-Não há migrations corretivas, backfills históricos ou dados reais neste diretório. A sequência atual vai de `20260812000100` a `20260824143000`.
+Não há migrations corretivas, backfills históricos ou dados reais neste diretório. A sequência atual vai de `20260812000100` a `20260826120000`.
 
 ## Ordem canônica
 
@@ -28,6 +28,7 @@ Não há migrations corretivas, backfills históricos ou dados reais neste diret
 | `20260822190000_validation_draft_reads_cycle_state.sql` | O rascunho de validação lê ciclo e alvo sem `FOR UPDATE`, para o autosave não serializar com o veredito. |
 | `20260824120000_optional_action_plan_execution_evidence.sql` | Torna a comprovação da execução opcional: aceite e encerramento não dependem do anexo. |
 | `20260824143000_recommendation_status_optional_execution_evidence.sql` | Situação `completed` da recomendação segue o aceite vigente, não a comprovação da execução. |
+| `20260826120000_bimonthly_tracking_and_prelim_v2.sql` | Relatório bimestral imutável do plano de ação e FAMI preliminar `prelim_v2` por critério efetivamente concluído. |
 
 ## Regras
 

@@ -14,7 +14,6 @@ export function AdminActionPlanSummaryCards({ summary, activeFilter, onSelect }:
   return (
     <AdminMonitoringSummaryCards
       ariaLabel="Indicadores do plano de ação"
-      gridClassName="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
       activeFilter={activeFilter}
       clearFilter={null}
       onSelect={onSelect}

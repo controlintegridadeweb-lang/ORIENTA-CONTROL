@@ -2,7 +2,7 @@
 
 import { formatPlatformDateTime } from "@/shared/datetime/platform-date-time";
 import Link from "next/link";
-import { Download, Eye, FileText, History, Share2 } from "lucide-react";
+import { Download, Eye, History, Share2 } from "lucide-react";
 import type { RespondentReportHistoryRow } from "@/features/reports/ui/respondent-presentation";
 import { formSurface } from "@/shared/layout/form-surface";
 import { typography } from "@/shared/layout/design-system";
@@ -38,67 +38,28 @@ function HistoryReportRow({
   onShare: () => void;
 }) {
   return (
-    <li className={`${formSurface.entityListCard} p-4 sm:p-5`}>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex min-w-0 flex-1 items-start gap-4">
-          <span
-            className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-800"
-            aria-hidden
-          >
-            <FileText className="h-5 w-5" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className={typography.cardTitle}>{row.formName}</h3>
-              {outdated ? (
-                <span className={`${formSurface.badge.base} ${formSurface.badge.warning}`}>
-                  Versão anterior
-                </span>
-              ) : null}
-            </div>
-            <p className={`mt-1 ${typography.cardDescription}`}>
-              <time dateTime={row.generatedAt}>{formatWhen(row.generatedAt)}</time>
-              {" · "}
-              {row.periodLabel}
-              {" · "}
-              {row.generatedByLabel}
-            </p>
-            <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-              <div>
-                <dt className={typography.meta}>Emissão</dt>
-                <dd className="mt-0.5 text-slate-700">v{row.emissionVersion}</dd>
-              </div>
-              <div>
-                <dt className={typography.meta}>Processamento</dt>
-                <dd className="mt-0.5 text-slate-700">nº {row.processingVersion}</dd>
-              </div>
-              <div>
-                <dt className={typography.meta}>Política FAMI</dt>
-                <dd className="mt-0.5 text-slate-700">{row.policyVersion}</dd>
-              </div>
-              {row.formTemplateVersion != null ? (
-                <div>
-                  <dt className={typography.meta}>Template</dt>
-                  <dd className="mt-0.5 text-slate-700">v{row.formTemplateVersion}</dd>
-                </div>
-              ) : null}
-              {row.fileSha256 ? (
-                <div className="min-w-0 sm:col-span-2 lg:col-span-4">
-                  <dt className={typography.meta}>SHA-256</dt>
-                  <dd className="mt-0.5 truncate font-mono text-slate-700" title={row.fileSha256}>
-                    {row.fileSha256.slice(0, 16)}…
-                  </dd>
-                </div>
-              ) : null}
-            </dl>
-            {row.outdatedReason ? (
-              <p className="mt-3 text-sm font-medium text-amber-800">{row.outdatedReason}</p>
+    <li className={`${formSurface.entityListCard} overflow-hidden`}>
+      <div className="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-5">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className={typography.cardTitle}>{row.formName}</h3>
+            {outdated ? (
+              <span className={`${formSurface.badge.base} ${formSurface.badge.warning}`}>
+                Versão anterior
+              </span>
             ) : null}
           </div>
+          <p className={`mt-1 ${typography.cardDescription}`}>
+            <time dateTime={row.generatedAt}>{formatWhen(row.generatedAt)}</time>
+            {" · "}
+            {row.periodLabel}
+            {" · "}
+            {row.generatedByLabel}
+          </p>
         </div>
 
         <div
-          className="flex shrink-0 flex-wrap items-center gap-1 sm:pt-1"
+          className="flex shrink-0 flex-wrap items-center gap-1"
           role="toolbar"
           aria-label={`Ações para ${row.formName}`}
         >
@@ -117,8 +78,46 @@ function HistoryReportRow({
         </div>
       </div>
 
+      <dl className="grid gap-4 bg-slate-50/60 px-4 py-4 text-sm sm:grid-cols-2 sm:px-5 lg:grid-cols-4">
+        <div>
+          <dt className={typography.meta}>Emissão</dt>
+          <dd className="mt-0.5 font-medium text-slate-800">v{row.emissionVersion}</dd>
+        </div>
+        <div>
+          <dt className={typography.meta}>Processamento</dt>
+          <dd className="mt-0.5 font-medium text-slate-800">nº {row.processingVersion}</dd>
+        </div>
+        <div>
+          <dt className={typography.meta}>Política FAMI</dt>
+          <dd className="mt-0.5 font-medium text-slate-800">{row.policyVersion}</dd>
+        </div>
+        {row.formTemplateVersion != null ? (
+          <div>
+            <dt className={typography.meta}>Template</dt>
+            <dd className="mt-0.5 font-medium text-slate-800">v{row.formTemplateVersion}</dd>
+          </div>
+        ) : null}
+        {row.fileSha256 ? (
+          <div className="min-w-0 sm:col-span-2 lg:col-span-4">
+            <dt className={typography.meta}>SHA-256</dt>
+            <dd
+              className="mt-0.5 truncate font-mono text-xs font-medium text-slate-700"
+              title={row.fileSha256}
+            >
+              {row.fileSha256.slice(0, 16)}…
+            </dd>
+          </div>
+        ) : null}
+      </dl>
+
+      {row.outdatedReason ? (
+        <div className="border-t border-slate-100 px-4 py-3 sm:px-5">
+          <p className="text-sm font-medium text-amber-800">{row.outdatedReason}</p>
+        </div>
+      ) : null}
+
       <nav
-        className="mt-4 border-t border-slate-100 pt-3"
+        className="border-t border-slate-100 px-4 py-3 sm:px-5"
         aria-label={`Abrir versão do relatório ${row.formName}`}
       >
         <Link

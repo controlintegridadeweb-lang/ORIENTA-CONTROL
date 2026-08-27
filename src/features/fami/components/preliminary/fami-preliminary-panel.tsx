@@ -1,23 +1,28 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import { FileSpreadsheet, FileText } from "lucide-react";
 import { formSurface } from "@/shared/layout/form-surface";
 import { typography } from "@/shared/layout/design-system";
 import { famiPreliminaryLabels } from "@/shared/labels/official-labels";
 import { AsyncErrorState } from "@/shared/ui/components/async-error-state";
+import { ExportMenu, type ExportMenuOption } from "@/shared/ui/components/export-menu";
 import { LoadingButton } from "@/shared/ui/components/loading";
 import { PanelSection } from "@/shared/ui/components/panel-section";
 import { type Quadrimester } from "@/features/fami/preliminary/domain";
 import {
   buildQuadrimesterDisplay,
   formatPreliminaryPercentage,
-  quadrimesterAvailability,
-  type QuadrimesterRowKind,
 } from "@/features/fami/preliminary/panel-presentation";
-import type {
-  PreliminaryCheckpoint,
-  PreliminaryPayload,
-} from "./use-fami-preliminary";
+import {
+  bimesterRowStatus,
+  formatBimesterSummary,
+  listBimesterRows,
+} from "@/features/fami/preliminary/tracking-presentation";
+import type { Bimester } from "@/shared/domain/calendar-periods";
+import type { PreliminaryCheckpoint, PreliminaryPayload } from "./use-fami-preliminary";
+import { useBimonthlyReports } from "./use-bimonthly-reports";
+import { QuadrimesterEvolutionBlock } from "./quadrimester-evolution-block";
 
 type Props = {
   cycleId: string | null | undefined;
@@ -32,13 +37,20 @@ type Props = {
   onCalculate(quadrimester: Quadrimester): void;
 };
 
-const ROW_STATUS: Record<QuadrimesterRowKind, string> = {
-  upcoming: famiPreliminaryLabels.statusUpcoming,
-  not_implemented: famiPreliminaryLabels.statusNotImplemented,
-  open: famiPreliminaryLabels.statusOpen,
-  open_calculated: famiPreliminaryLabels.statusOpen,
-  completed: famiPreliminaryLabels.statusCompleted,
-};
+const BIMONTHLY_EXPORT_OPTIONS: Array<ExportMenuOption<"pdf" | "xlsx">> = [
+  {
+    format: "pdf",
+    label: famiPreliminaryLabels.exportPdf,
+    icon: FileText,
+    hint: famiPreliminaryLabels.exportPdfHint,
+  },
+  {
+    format: "xlsx",
+    label: famiPreliminaryLabels.exportXlsx,
+    icon: FileSpreadsheet,
+    hint: famiPreliminaryLabels.exportXlsxHint,
+  },
+];
 
 function downloadCsv(rows: PreliminaryCheckpoint[], cycleId: string): void {
   const header = [
@@ -82,6 +94,19 @@ function downloadCsv(rows: PreliminaryCheckpoint[], cycleId: string): void {
   URL.revokeObjectURL(url);
 }
 
+function exportHref(reportId: string, format: "pdf" | "xlsx"): string {
+  return `/api/monitoring/bimonthly/${reportId}/export?format=${format}`;
+}
+
+function startExportDownload(reportId: string, format: "pdf" | "xlsx"): void {
+  const anchor = document.createElement("a");
+  anchor.href = exportHref(reportId, format);
+  anchor.rel = "noopener";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+}
+
 export function FamiPreliminaryPanel({
   cycleId,
   referenceYear,
@@ -94,40 +119,44 @@ export function FamiPreliminaryPanel({
   onRetry,
   onCalculate,
 }: Props) {
-  const [detailsFor, setDetailsFor] = useState<Quadrimester | null>(null);
+  const bimonthly = useBimonthlyReports(cycleId, referenceYear);
+  const bimonthlyLatest = bimonthly.payload.latestByPeriod;
   const latestByQuadrimester = useMemo(() => {
     const map = new Map<Quadrimester, PreliminaryCheckpoint>();
     for (const row of payload.latestByPeriod) map.set(row.quadrimester, row);
     return map;
   }, [payload.latestByPeriod]);
-
-  const periods = useMemo(
+  const latestByBimester = useMemo(() => {
+    const map = new Map<Bimester, (typeof bimonthlyLatest)[number]>();
+    for (const row of bimonthlyLatest) map.set(row.bimester, row);
+    return map;
+  }, [bimonthlyLatest]);
+  const evolutionByQuadrimester = useMemo(() => {
+    const map = new Map(payload.evolutions.map((row) => [row.quadrimester, row]));
+    return map;
+  }, [payload.evolutions]);
+  const closedBimesters = useMemo(() => {
+    const closed = new Set<Bimester>();
+    for (const row of bimonthlyLatest) {
+      if (row.closedAt) closed.add(row.bimester);
+    }
+    return closed;
+  }, [bimonthlyLatest]);
+  const rows = useMemo(
     () =>
-      ([1, 2, 3] as const).map((quadrimester) => {
-        const availability = quadrimesterAvailability(referenceYear, quadrimester);
-        const latest = latestByQuadrimester.get(quadrimester) ?? null;
-        const display = buildQuadrimesterDisplay({
-          referenceYear,
-          quadrimester,
-          officialAvailableAt: payload.tracking.officialAvailableAt,
-          earliestActionCreatedAt: payload.tracking.earliestActionCreatedAt,
-          checkpoint: latest
-            ? {
-                percentage: latest.preliminary?.percentage,
-                calculatedAt: latest.calculatedAt,
-                closedAt: latest.closedAt,
-                calculationKind: latest.calculationKind,
-              }
-            : null,
-        });
-        return { quadrimester, availability, latest, display };
+      listBimesterRows(referenceYear, {
+        officialAvailableAt: payload.tracking.officialAvailableAt,
+        closedBimesters,
       }),
-    [latestByQuadrimester, payload.tracking, referenceYear],
+    [closedBimesters, payload.tracking.officialAvailableAt, referenceYear],
   );
+  const busy = loading || bimonthly.loading;
+  const combinedError = error ?? bimonthly.error;
+  const actionsBusy = submitting !== null || bimonthly.submitting !== null;
 
   return (
     <PanelSection
-      title={famiPreliminaryLabels.title}
+      title={famiPreliminaryLabels.trackingTitle(referenceYear)}
       description={famiPreliminaryLabels.description}
       variant="plain"
       actions={
@@ -143,22 +172,27 @@ export function FamiPreliminaryPanel({
       }
     >
       <div className="space-y-3">
-        {loading ? (
-          <p className={typography.auxiliary}>Carregando acompanhamento quadrimestral…</p>
-        ) : null}
+        {busy ? <p className={typography.auxiliary}>Carregando acompanhamento…</p> : null}
         {message ? <p className={formSurface.messageSuccess}>{message}</p> : null}
-        {error ? (
+        {combinedError ? (
           <AsyncErrorState
             compact
             title={
-              error === famiPreliminaryLabels.loadError ||
-              error.startsWith("Falha ao carregar")
+              combinedError === famiPreliminaryLabels.loadError ||
+              combinedError.startsWith("Falha ao carregar")
                 ? famiPreliminaryLabels.loadError
                 : famiPreliminaryLabels.calculateError
             }
-            message={error}
-            onRetry={cycleId ? onRetry : undefined}
-            retrying={loading}
+            message={combinedError}
+            onRetry={
+              cycleId
+                ? () => {
+                    onRetry();
+                    void bimonthly.reload();
+                  }
+                : undefined
+            }
+            retrying={busy}
           />
         ) : null}
 
@@ -168,98 +202,120 @@ export function FamiPreliminaryPanel({
               <tr>
                 <th className={formSurface.brandTable.headCell}>Período</th>
                 <th className={formSurface.brandTable.headCell}>Situação</th>
-                <th className={formSurface.brandTable.headCell}>{famiPreliminaryLabels.panoramaLabel}</th>
-                <th className={formSurface.brandTable.headCell}>Evolução</th>
+                <th className={formSurface.brandTable.headCell}>Plano de ação</th>
                 <th className={formSurface.brandTable.headCell}>Ação</th>
               </tr>
             </thead>
             <tbody>
-              {periods.map(({ quadrimester, availability, latest, display }, index) => {
-                const detailsOpen = detailsFor === quadrimester;
+              {rows.map((row, index) => {
+                const report = latestByBimester.get(row.bimester) ?? null;
+                const status = bimesterRowStatus(row, report != null);
+                const quadrimester = row.quadrimester;
+                const checkpoint = quadrimester
+                  ? (latestByQuadrimester.get(quadrimester) ?? null)
+                  : null;
+                const display = quadrimester
+                  ? buildQuadrimesterDisplay({
+                      referenceYear,
+                      quadrimester,
+                      officialAvailableAt: payload.tracking.officialAvailableAt,
+                      earliestActionCreatedAt: payload.tracking.earliestActionCreatedAt,
+                      checkpoint: checkpoint
+                        ? {
+                            percentage: checkpoint.preliminary?.percentage,
+                            calculatedAt: checkpoint.calculatedAt,
+                            closedAt: checkpoint.closedAt,
+                            calculationKind: checkpoint.calculationKind,
+                          }
+                        : null,
+                    })
+                  : null;
+                const canCalculate =
+                  canMaterialize &&
+                  display &&
+                  (display.action === "calculate" || display.action === "recalculate");
                 return (
                   <tr
-                    key={quadrimester}
+                    key={row.bimester}
                     className={index % 2 === 0 ? formSurface.brandTable.rowEven : formSurface.brandTable.rowOdd}
                   >
                     <td className={formSurface.brandTable.cell}>
-                      <p className="font-semibold text-slate-900">{availability.periodLabel}</p>
+                      <p className="font-semibold text-slate-900">
+                        {row.label} · {row.shortLabel}
+                      </p>
                       <p className={`mt-1 ${typography.meta}`}>
-                        {availability.rangeLabel} · corte em {availability.cutoffLabel}
+                        {row.rangeLabel} · corte em {row.cutoffLabel}
                       </p>
                     </td>
                     <td className={`${formSurface.brandTable.cell} text-slate-700`}>
-                      <p>{ROW_STATUS[display.kind]}</p>
-                      {display.auxiliary ? (
-                        <p className={`mt-1 ${typography.meta}`}>{display.auxiliary}</p>
+                      <p>{status.label}</p>
+                      {status.auxiliary ? (
+                        <p className={`mt-1 ${typography.meta}`}>{status.auxiliary}</p>
                       ) : null}
-                      {display.reason ? (
-                        <p className={`mt-1 ${typography.meta}`}>{display.reason}</p>
-                      ) : null}
-                    </td>
-                    <td className={`${formSurface.brandTable.cell} font-medium text-slate-900`}>
-                      {formatPreliminaryPercentage(display.percentage)}
                     </td>
                     <td className={`${formSurface.brandTable.cell} text-slate-700`}>
-                      {display.percentage == null || latest?.deltaPercentagePoints == null
-                        ? "—"
-                        : `${latest.deltaPercentagePoints >= 0 ? "+" : ""}${formatPreliminaryPercentage(latest.deltaPercentagePoints)}`}
+                      <p>{formatBimesterSummary(report?.summary ?? null)}</p>
+                      {display ? (
+                        <p className={`mt-2 font-medium text-slate-900`}>
+                          {famiPreliminaryLabels.panoramaLabel}:{" "}
+                          {formatPreliminaryPercentage(display.percentage)}
+                        </p>
+                      ) : null}
+                      {quadrimester && checkpoint ? (
+                        <QuadrimesterEvolutionBlock
+                          quadrimester={quadrimester}
+                          percentage={checkpoint.preliminary?.percentage ?? null}
+                          deltaPercentagePoints={checkpoint.deltaPercentagePoints}
+                          methodologyVersion={checkpoint.methodologyVersion}
+                          evolution={evolutionByQuadrimester.get(quadrimester) ?? null}
+                        />
+                      ) : null}
                     </td>
                     <td className={formSurface.brandTable.cell}>
-                      {canMaterialize &&
-                      (display.action === "calculate" || display.action === "recalculate") ? (
-                        <LoadingButton
-                          type="button"
-                          pending={submitting === quadrimester}
-                          pendingLabel={famiPreliminaryLabels.calculating}
-                          disabled={submitting !== null}
-                          onClick={() => onCalculate(quadrimester)}
-                          className={formSurface.primaryButtonSm}
-                          aria-label={
-                            display.action === "recalculate"
-                              ? famiPreliminaryLabels.calculateAgain(quadrimester)
-                              : famiPreliminaryLabels.calculate(quadrimester)
-                          }
-                        >
-                          {display.action === "recalculate"
-                            ? famiPreliminaryLabels.recalculateRow
-                            : famiPreliminaryLabels.calculateRow}
-                        </LoadingButton>
-                      ) : display.action === "view_details" && latest ? (
-                        <div className="space-y-2">
-                          <button
+                      <div className="flex flex-wrap items-center gap-2">
+                        {canMaterialize && row.canGenerateManually ? (
+                          <LoadingButton
                             type="button"
-                            className={formSurface.secondaryButtonSm}
-                            onClick={() => setDetailsFor(detailsOpen ? null : quadrimester)}
+                            pending={bimonthly.submitting === row.bimester}
+                            pendingLabel={famiPreliminaryLabels.generatingBimester}
+                            disabled={actionsBusy}
+                            onClick={() => void bimonthly.generate(row.bimester)}
+                            className={formSurface.primaryButtonSm}
+                            aria-label={`${famiPreliminaryLabels.generateBimester} ${row.label}`}
                           >
-                            {detailsOpen
-                              ? famiPreliminaryLabels.hideDetails
-                              : famiPreliminaryLabels.viewDetails}
-                          </button>
-                          {detailsOpen ? (
-                            <div className={`${typography.meta} space-y-1`}>
-                              <p>
-                                {formatPreliminaryPercentage(latest.preliminary?.percentage)}
-                                {latest.preliminary?.maturityLevel != null
-                                  ? ` · nível ${latest.preliminary.maturityLevel}`
-                                  : ""}
-                              </p>
-                              <p>Metodologia {latest.methodologyVersion}</p>
-                              <p>
-                                Tipo: {latest.calculationKind === "automatic" ? "automático" : "manual"}
-                              </p>
-                              {latest.deltaPercentagePoints != null ? (
-                                <p>
-                                  Evolução vs. base oficial:{" "}
-                                  {`${latest.deltaPercentagePoints >= 0 ? "+" : ""}${formatPreliminaryPercentage(latest.deltaPercentagePoints)}`}
-                                </p>
-                              ) : null}
-                              <p>{famiPreliminaryLabels.closedPeriodHint}</p>
-                            </div>
-                          ) : null}
-                        </div>
-                      ) : (
-                        <span className={typography.auxiliary}>—</span>
-                      )}
+                            {famiPreliminaryLabels.generateBimester}
+                          </LoadingButton>
+                        ) : null}
+                        {canCalculate ? (
+                          <LoadingButton
+                            type="button"
+                            pending={submitting === quadrimester}
+                            pendingLabel={famiPreliminaryLabels.calculating}
+                            disabled={actionsBusy}
+                            onClick={() => quadrimester && onCalculate(quadrimester)}
+                            className={formSurface.secondaryButtonSm}
+                            aria-label={
+                              display.action === "recalculate"
+                                ? famiPreliminaryLabels.calculateAgain(quadrimester ?? 1)
+                                : famiPreliminaryLabels.calculate(quadrimester ?? 1)
+                            }
+                          >
+                            {display.action === "recalculate"
+                              ? famiPreliminaryLabels.recalculateRow
+                              : famiPreliminaryLabels.calculateRow}
+                          </LoadingButton>
+                        ) : null}
+                        {report ? (
+                          <ExportMenu
+                            label={famiPreliminaryLabels.exportMenu}
+                            options={BIMONTHLY_EXPORT_OPTIONS}
+                            disabled={actionsBusy}
+                            onExport={async (format) => {
+                              startExportDownload(report.id, format);
+                            }}
+                          />
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 );

@@ -25,7 +25,7 @@ A migration `relations` existe para fechar FKs cuja criação depende de ambos o
 
 ## Estado executável atual em 22/08/2026
 
-O diretório `supabase/migrations/` contém **20 migrations**: as 10 migrations imutáveis da baseline acima e 10 evoluções funcionais posteriores. Para criar um Supabase novo, aplique **todas as 20 na ordem do diretório**; não aplique apenas as dez primeiras. O gate `npm run db:audit:migrations` valida esse contrato.
+O diretório `supabase/migrations/` contém **21 migrations**: as 10 migrations imutáveis da baseline acima e 11 evoluções funcionais posteriores. Para criar um Supabase novo, aplique **todas as 21 na ordem do diretório**; não aplique apenas as dez primeiras. O gate `npm run db:audit:migrations` valida esse contrato.
 
 ## Dados
 

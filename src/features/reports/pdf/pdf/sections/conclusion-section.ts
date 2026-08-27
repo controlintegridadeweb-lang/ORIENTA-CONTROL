@@ -77,7 +77,9 @@ function buildInstitutionalReading(doc: OrientaPdfDocument): string[] {
   );
 
   paragraphs.push(
-    "O resultado registra a situação aferida no diagnóstico; as ações, comprovações e registros de acompanhamento apresentados neste relatório documentam o tratamento realizado até a emissão.",
+    d.tracking
+      ? "O Resultado FAMI permanece o do diagnóstico oficial. As ações, comprovações e registros apresentados documentam o andamento do plano até o corte deste bimestre."
+      : "O resultado registra a situação aferida no diagnóstico; as ações, comprovações e registros de acompanhamento apresentados neste relatório documentam o tratamento realizado até a emissão.",
   );
 
   return paragraphs;

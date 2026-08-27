@@ -61,6 +61,7 @@ describe("contrato do fechamento automático quadrimestral", () => {
       "utf8",
     );
     expect(route).toContain("createCronRoute");
+    expect(route).toContain("closeDueBimonthlyReports");
     expect(route).toContain("closeDuePreliminaryQuadrimesters");
     expect(sql).toContain("pg_try_advisory_xact_lock");
     expect(sql).toContain("unique_violation");

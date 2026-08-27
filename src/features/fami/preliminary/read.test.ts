@@ -66,6 +66,7 @@ describe("listPreliminaryCheckpoints", () => {
       2026,
     );
 
+    expect(payload.evolutions).toEqual([]);
     expect(payload.tracking).toEqual({
       officialAvailableAt: "2026-08-07T12:00:00.000Z",
       earliestActionCreatedAt: "2026-08-10T15:00:00.000Z",

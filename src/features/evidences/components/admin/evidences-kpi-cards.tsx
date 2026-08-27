@@ -5,6 +5,7 @@ import type { EvidenceStatsResult } from "@/features/evidences/types";
 import { getEvidenceStats, type EvidenceStatsFilters } from "@/features/evidences/client";
 import type { ValidationStatus } from "@/features/evidences/schemas";
 import { describeError } from "@/infrastructure/notifications/notify";
+import { kpiGridForCount } from "@/shared/layout/design-system";
 import { AsyncErrorState } from "@/shared/ui/components/async-error-state";
 import { MetricCard, MetricCardSkeleton, type MetricCardVariant } from "@/shared/ui/components/metric-card";
 
@@ -54,7 +55,7 @@ export function EvidencesKpiCards({
 
   if (loading && !stats) {
     return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className={kpiGridForCount(4)}>
         {Array.from({ length: 4 }).map((_, index) => (
           <MetricCardSkeleton key={index} showIcon={false} />
         ))}
@@ -101,27 +102,29 @@ export function EvidencesKpiCards({
           retrying={loading}
         />
       ) : null}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className={kpiGridForCount(cards.length)}>
         {cards.map((card) => {
           const active = activeStatus === card.status;
           return (
-            <MetricCard
-              key={card.key}
-              variant={card.variant}
-              label={card.label}
-              value={card.value}
-              density="compact"
-              onClick={interactive ? () => onSelectStatus?.(active ? "" : card.status) : undefined}
-              aria-pressed={interactive ? active : undefined}
-              selected={interactive ? active : false}
-              htmlTitle={
-                interactive
-                  ? active
-                    ? "Remover filtro deste status"
-                    : `Filtrar por "${card.label}"`
-                  : undefined
-              }
-            />
+            <div key={card.key} className="min-w-0">
+              <MetricCard
+                variant={card.variant}
+                label={card.label}
+                value={card.value}
+                density="compact"
+                onClick={interactive ? () => onSelectStatus?.(active ? "" : card.status) : undefined}
+                aria-pressed={interactive ? active : undefined}
+                selected={interactive ? active : false}
+                className="h-full"
+                htmlTitle={
+                  interactive
+                    ? active
+                      ? "Remover filtro deste status"
+                      : `Filtrar por "${card.label}"`
+                    : undefined
+                }
+              />
+            </div>
           );
         })}
       </div>

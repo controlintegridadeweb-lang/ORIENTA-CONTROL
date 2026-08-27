@@ -6,11 +6,14 @@ import { renderEvolutionSubsection } from "./evolution-section";
 export function reportEmissionLines(params: {
   generatedByLabel: string;
   generatedAtLabel: string;
+  trackingDisclaimer?: string;
 }): string[] {
-  return [
+  const lines = [
     `Emitido por: ${params.generatedByLabel}`,
     `Data e horário: ${params.generatedAtLabel}`,
   ];
+  if (params.trackingDisclaimer) lines.push(params.trackingDisclaimer);
+  return lines;
 }
 
 export function renderAnnexesSection(doc: OrientaPdfDocument): Cursor {
@@ -28,6 +31,7 @@ export function renderAnnexesSection(doc: OrientaPdfDocument): Cursor {
     generatedByLabel:
       doc.data.document?.generatedByLabel ?? "Administração da plataforma",
     generatedAtLabel: doc.formatDate(doc.data.generatedAtIso),
+    trackingDisclaimer: doc.data.tracking?.disclaimer,
   });
 
   for (const item of items) {

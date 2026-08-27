@@ -157,6 +157,188 @@ export type Database = {
           },
         ]
       }
+      action_plan_bimonthly_reports: {
+        Row: {
+          id: string
+          cycle_id: string
+          source_cycle_processing_id: string
+          reference_year: number
+          bimester: number
+          report_version: number
+          period_start: string
+          period_end: string
+          generated_by: string | null
+          generation_kind: string
+          generated_at: string
+          closed_at: string | null
+          active_action_count: number
+          not_started_count: number
+          in_progress_count: number
+          completed_count: number
+          overdue_count: number
+          cancelled_count: number
+          average_progress_percentage: number
+          completed_criterion_count: number
+          pending_criterion_count: number
+          actions_completed_in_period: number
+          actions_advanced_in_period: number
+          actions_stagnant_in_period: number
+          actions_became_overdue_in_period: number
+          criteria_completed_in_period: number
+        }
+        Insert: {
+          id?: string
+          cycle_id: string
+          source_cycle_processing_id: string
+          reference_year: number
+          bimester: number
+          report_version: number
+          period_start: string
+          period_end: string
+          generated_by?: string | null
+          generation_kind?: string
+          generated_at?: string
+          closed_at?: string | null
+          active_action_count?: number
+          not_started_count?: number
+          in_progress_count?: number
+          completed_count?: number
+          overdue_count?: number
+          cancelled_count?: number
+          average_progress_percentage?: number
+          completed_criterion_count?: number
+          pending_criterion_count?: number
+          actions_completed_in_period?: number
+          actions_advanced_in_period?: number
+          actions_stagnant_in_period?: number
+          actions_became_overdue_in_period?: number
+          criteria_completed_in_period?: number
+        }
+        Update: {
+          [key: string]: unknown
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_plan_bimonthly_reports_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "cycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      action_plan_bimonthly_action_snapshots: {
+        Row: {
+          id: string
+          report_id: string
+          action_plan_id: string
+          recommendation_id: string
+          question_version_id: string
+          section_id: string
+          axis_id: string
+          action_text: string
+          responsible_label: string
+          start_date: string
+          due_date: string
+          status: Database["public"]["Enums"]["action_plan_status"]
+          progress_percentage: number
+          revision: number
+          effective_at: string
+          overdue: boolean
+          has_valid_evidence: boolean
+          evidence_document_id: string | null
+          approved: boolean
+          approval_effective_at: string | null
+          has_open_adjustment: boolean
+          completed_in_period: boolean
+          advanced_in_period: boolean
+          stagnant_in_period: boolean
+          became_overdue_in_period: boolean
+          movements_in_period: Json
+          captured_at: string
+        }
+        Insert: {
+          id?: string
+          report_id: string
+          action_plan_id: string
+          recommendation_id: string
+          question_version_id: string
+          section_id: string
+          axis_id: string
+          action_text: string
+          responsible_label: string
+          start_date: string
+          due_date: string
+          status: Database["public"]["Enums"]["action_plan_status"]
+          progress_percentage: number
+          revision: number
+          effective_at: string
+          overdue: boolean
+          has_valid_evidence: boolean
+          evidence_document_id?: string | null
+          approved: boolean
+          approval_effective_at?: string | null
+          has_open_adjustment: boolean
+          completed_in_period: boolean
+          advanced_in_period: boolean
+          stagnant_in_period: boolean
+          became_overdue_in_period: boolean
+          movements_in_period?: Json
+          captured_at?: string
+        }
+        Update: {
+          [key: string]: unknown
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_plan_bimonthly_action_snapshots_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "action_plan_bimonthly_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      action_plan_bimonthly_criterion_snapshots: {
+        Row: {
+          id: string
+          report_id: string
+          question_version_id: string
+          recommendation_id: string
+          section_id: string
+          axis_id: string
+          criterion_completed: boolean
+          active_action_count: number
+          completed_action_count: number
+          completed_in_period: boolean
+          captured_at: string
+        }
+        Insert: {
+          id?: string
+          report_id: string
+          question_version_id: string
+          recommendation_id: string
+          section_id: string
+          axis_id: string
+          criterion_completed: boolean
+          active_action_count: number
+          completed_action_count: number
+          completed_in_period: boolean
+          captured_at?: string
+        }
+        Update: {
+          [key: string]: unknown
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_plan_bimonthly_criterion_snapshots_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "action_plan_bimonthly_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       action_plan_documents: {
         Row: {
           action_plan_id: string
@@ -1364,32 +1546,53 @@ export type Database = {
       fami_preliminary_action_snapshots: {
         Row: {
           action_plan_id: string
+          approval_effective_at: string | null
+          approved: boolean | null
           captured_at: string
+          due_date: string | null
           effective_at: string
+          evidence_document_id: string | null
+          has_open_adjustment: boolean | null
+          has_valid_evidence: boolean | null
           id: string
           preliminary_processing_id: string
           progress_percentage: number
           recommendation_id: string
+          revision: number | null
           status: Database["public"]["Enums"]["action_plan_status"]
         }
         Insert: {
           action_plan_id: string
+          approval_effective_at?: string | null
+          approved?: boolean | null
           captured_at?: string
+          due_date?: string | null
           effective_at: string
+          evidence_document_id?: string | null
+          has_open_adjustment?: boolean | null
+          has_valid_evidence?: boolean | null
           id?: string
           preliminary_processing_id: string
           progress_percentage: number
           recommendation_id: string
+          revision?: number | null
           status: Database["public"]["Enums"]["action_plan_status"]
         }
         Update: {
           action_plan_id?: string
+          approval_effective_at?: string | null
+          approved?: boolean | null
           captured_at?: string
+          due_date?: string | null
           effective_at?: string
+          evidence_document_id?: string | null
+          has_open_adjustment?: boolean | null
+          has_valid_evidence?: boolean | null
           id?: string
           preliminary_processing_id?: string
           progress_percentage?: number
           recommendation_id?: string
+          revision?: number | null
           status?: Database["public"]["Enums"]["action_plan_status"]
         }
         Relationships: [
@@ -1422,7 +1625,9 @@ export type Database = {
           active_action_count: number
           approved_exception_id: string | null
           axis_id: string
+          completed_action_count: number | null
           created_at: string
+          criterion_completed: boolean | null
           id: string
           included_in_calculation: boolean
           official_points: number
@@ -1440,7 +1645,9 @@ export type Database = {
           active_action_count: number
           approved_exception_id?: string | null
           axis_id: string
+          completed_action_count?: number | null
           created_at?: string
+          criterion_completed?: boolean | null
           id?: string
           included_in_calculation: boolean
           official_points: number
@@ -1458,7 +1665,9 @@ export type Database = {
           active_action_count?: number
           approved_exception_id?: string | null
           axis_id?: string
+          completed_action_count?: number | null
           created_at?: string
+          criterion_completed?: boolean | null
           id?: string
           included_in_calculation?: boolean
           official_points?: number
@@ -4274,9 +4483,66 @@ export type Database = {
         }
         Returns: Json
       }
+      calendar_bimester_bounds: {
+        Args: { p_bimester: number; p_year: number }
+        Returns: {
+          closes_quadrimester: boolean
+          period_end: string
+          period_start: string
+          quadrimester: number | null
+        }[]
+      }
+      calendar_quadrimester_bounds: {
+        Args: { p_quadrimester: number; p_year: number }
+        Returns: {
+          period_end: string
+          period_start: string
+        }[]
+      }
+      close_due_action_plan_bimesters: { Args: Record<PropertyKey, never>; Returns: Json }
       close_due_fami_preliminary_quadrimesters: { Args: Record<PropertyKey, never>; Returns: Json }
+      cycle_action_states_at: {
+        Args: {
+          p_cutoff_exclusive: string
+          p_cycle_id: string
+          p_source_processing_id: string
+        }
+        Returns: {
+          action_plan_id: string
+          action_text: string
+          approval_effective_at: string | null
+          approved: boolean
+          axis_id: string
+          due_date: string
+          effective_at: string
+          evidence_document_id: string | null
+          has_open_adjustment: boolean
+          has_valid_evidence: boolean
+          progress_percentage: number
+          question_version_id: string
+          recommendation_id: string
+          responsible_label: string
+          revision: number
+          section_id: string
+          start_date: string
+          status: Database["public"]["Enums"]["action_plan_status"]
+        }[]
+      }
       fami_preliminary_checkpoint_payload: {
         Args: { p_idempotent?: boolean; p_processing_id: string }
+        Returns: Json
+      }
+      action_plan_bimonthly_report_payload: {
+        Args: { p_idempotent?: boolean; p_report_id: string }
+        Returns: Json
+      }
+      materialize_action_plan_bimonthly_report: {
+        Args: {
+          p_actor_user_id: string | null
+          p_bimester: number
+          p_cycle_id: string
+          p_reference_year: number
+        }
         Returns: Json
       }
       materialize_fami_preliminary: {

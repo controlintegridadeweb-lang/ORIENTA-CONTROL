@@ -146,8 +146,9 @@ export async function persistOfficialReport(
     generatedAtIso: reserved.data.generated_at,
     reissueReason: reserved.data.reissue_reason,
   };
+  const { tracking: _tracking, ...dataWithoutTracking } = data;
   const dataForFingerprint: OfficialReportData = {
-    ...data,
+    ...dataWithoutTracking,
     generatedAtIso: reserved.data.generated_at,
     referenceYear: reserved.data.reference_start_year,
     referenceStartYear: reserved.data.reference_start_year,

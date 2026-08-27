@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   aggregatePreliminaryCriteria,
   calculatePreliminaryCriterion,
+  canAutomaticallyCloseBimester,
   canAutomaticallyCloseQuadrimester,
+  canManuallyMaterializeBimester,
   canManuallyMaterializeQuadrimester,
   hasQuadrimesterStarted,
   isQuadrimesterClosed,
@@ -180,5 +182,22 @@ describe("FAMI preliminar — prelim_v1", () => {
         hasClosedSnapshot: true,
       }),
     ).toBe(false);
+    expect(
+      canAutomaticallyCloseBimester({
+        closed: true,
+        officialAvailable: true,
+        hasImplementation: true,
+        hasCheckpoint: false,
+        hasClosedSnapshot: false,
+      }),
+    ).toBe(true);
+    expect(
+      canManuallyMaterializeBimester({
+        started: true,
+        closed: false,
+        officialAvailable: true,
+        hasClosedSnapshot: false,
+      }),
+    ).toBe(true);
   });
 });

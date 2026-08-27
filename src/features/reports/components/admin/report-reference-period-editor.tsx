@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { formSurface } from "@/shared/layout/form-surface";
+import { typography } from "@/shared/layout/design-system";
 import { notify } from "@/infrastructure/notifications/notify";
 import { updateAdminCycleReferencePeriod } from "@/features/cycles";
 import type { ReportCycleOption } from "@/features/reports/ui/client";
@@ -14,10 +15,13 @@ export function ReportReferencePeriodEditor({
   cycle,
   disabled,
   onSaved,
+  embedded = false,
 }: {
   cycle: ReportCycleOption;
   disabled: boolean;
   onSaved(reference: { referenceStartYear: number; referenceEndYear: number }): Promise<void>;
+  /** When true, omit outer card chrome (parent already provides the surface). */
+  embedded?: boolean;
 }) {
   const [startYear, setStartYear] = useState(cycle.referenceStartYear?.toString() ?? "");
   const [endYear, setEndYear] = useState(cycle.referenceEndYear?.toString() ?? "");
@@ -25,9 +29,12 @@ export function ReportReferencePeriodEditor({
 
   if (cycle.referenceStartYear != null && cycle.referenceEndYear != null) {
     return (
-      <p className="rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700">
-        Referência institucional do relatório: <strong>{periodLabel(cycle.referenceStartYear, cycle.referenceEndYear)}</strong>.
-      </p>
+      <dl className="grid gap-1 sm:grid-cols-[auto_1fr] sm:items-baseline sm:gap-x-3">
+        <dt className={typography.meta}>Referência institucional</dt>
+        <dd className="text-sm font-medium text-slate-800">
+          {periodLabel(cycle.referenceStartYear, cycle.referenceEndYear)}
+        </dd>
+      </dl>
     );
   }
 
@@ -62,10 +69,10 @@ export function ReportReferencePeriodEditor({
     }
   }
 
-  return (
-    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-      <p className="text-sm font-semibold text-amber-950">Defina a referência institucional</p>
-      <p className="mt-1 text-xs text-amber-800">
+  const editor = (
+    <>
+      <p className={typography.cardTitle}>Defina a referência institucional</p>
+      <p className={`mt-1 ${typography.cardDescription}`}>
         Este diagnóstico foi criado antes do período estruturado. A emissão fica bloqueada até que os anos de referência sejam informados. Essa referência será congelada a partir da próxima emissão oficial.
       </p>
       <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end">
@@ -104,6 +111,20 @@ export function ReportReferencePeriodEditor({
           {saving ? "Salvando…" : "Salvar referência"}
         </button>
       </div>
+    </>
+  );
+
+  if (embedded) {
+    return (
+      <div className="-mx-4 -my-3.5 border-l-4 border-l-amber-400 bg-white px-4 py-4 sm:-mx-5 sm:px-5">
+        {editor}
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <div className="border-l-4 border-l-amber-400 px-4 py-4 sm:px-5">{editor}</div>
     </div>
   );
 }

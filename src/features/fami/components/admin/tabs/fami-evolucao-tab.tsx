@@ -28,7 +28,7 @@ export function FamiEvolucaoTab({
     <div className={FAMI_SECTION_STACK}>
       <PanelSection
         title="Evolução temporal"
-        description="Comparativo entre processamentos oficiais do diagnóstico e o acompanhamento quadrimestral do plano de ação no mesmo ano."
+        description="Comparativo entre processamentos oficiais do diagnóstico e o acompanhamento do plano de ação no mesmo ano."
         variant="card"
         contentClassName="p-5 sm:p-6"
       >

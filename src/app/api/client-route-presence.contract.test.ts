@@ -38,6 +38,10 @@ const activeClientRoutes = [
   "src/app/api/admin/automation/jobs/[jobId]/route.ts",
   "src/app/api/admin/automation/jobs/[jobId]/download/route.ts",
   "src/app/api/reports/[reportId]/download/route.ts",
+  "src/app/api/fami/preliminary/route.ts",
+  "src/app/api/monitoring/bimonthly/route.ts",
+  "src/app/api/monitoring/bimonthly/[reportId]/route.ts",
+  "src/app/api/monitoring/bimonthly/[reportId]/export/route.ts",
 ] as const;
 
 describe("contrato de presença das rotas consumidas pela UI", () => {

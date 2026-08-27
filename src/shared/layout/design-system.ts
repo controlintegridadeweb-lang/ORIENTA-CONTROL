@@ -149,13 +149,16 @@ export const layout = {
   /** Espaço interno típico de uma `<section>` (título + grid ou painel). */
   sectionStack: "space-y-4",
   /** Grid de KPIs do admin (4 colunas em XL). */
-  kpiGrid4: "grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5 xl:grid-cols-4",
+  kpiGrid4: "grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5 xl:grid-cols-4",
   /** Grid de KPIs em três colunas (respondente / admin). */
-  kpiGrid3: "grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 md:gap-5",
+  kpiGrid3: "grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 md:gap-5",
   /** Dois KPIs lado a lado (bloco “Sistema” no admin). */
-  kpiGrid2: "grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5",
-  /** Cinco indicadores (evidências, recomendações, maturidade). */
-  kpiGrid5: "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5",
+  kpiGrid2: "grid auto-rows-fr grid-cols-1 gap-4 md:grid-cols-2 md:gap-5",
+  /**
+   * Cinco indicadores em uma linha no desktop (recomendacoes, evidencias).
+   * Em telas menores: 1 → 2 → 5, sem linha residual de 3+2.
+   */
+  kpiGrid5: "grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 lg:gap-4",
   /** Maturidade (3 col) + evidências (2 col) no dashboard admin. */
   maturityAndEvidenceGrid: "grid grid-cols-1 gap-4 xl:grid-cols-5 xl:gap-5",
   /** Dois painéis lado a lado (ex.: maturidade + evidências). */
@@ -184,6 +187,18 @@ export const layout = {
    */
   panelStack: "space-y-6",
 } as const;
+
+/**
+ * Grade de KPIs conforme a quantidade de cards: células com a mesma largura
+ * e altura (`auto-rows-fr` nos tokens `kpiGrid*`).
+ */
+export function kpiGridForCount(count: number): string {
+  if (count <= 1) return "grid auto-rows-fr grid-cols-1 gap-4";
+  if (count === 2) return layout.kpiGrid2;
+  if (count === 3) return layout.kpiGrid3;
+  if (count === 4) return layout.kpiGrid4;
+  return layout.kpiGrid5;
+}
 
 /** Links da navegação lateral (fundo brand); ícone 18px + label. */
 export const sidebar = {
