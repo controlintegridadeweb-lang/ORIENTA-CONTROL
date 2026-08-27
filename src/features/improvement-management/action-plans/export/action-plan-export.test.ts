@@ -366,6 +366,8 @@ describe("PDF institucional do plano de ação", () => {
     const pdf = await PDFDocument.load(populated.content);
     expect(pdf.getPageCount()).toBeGreaterThanOrEqual(1);
     expect(populated.filename).toMatch(/^plano-de-acao-\d{4}-\d{2}-\d{2}\.pdf$/);
+    // Hierarquia institucional: contexto → eixo → seção → origem → ações.
+    expect(data.document.contexts[0]?.axes[0]?.sections[0]?.recommendations).toHaveLength(1);
   });
 
   it("aceita textos longos, múltiplos eixos e quebra de página", async () => {

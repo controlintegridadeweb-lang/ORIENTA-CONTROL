@@ -1,5 +1,5 @@
 import { latinPdfSafe } from "@/shared/export/text";
-import type { Cursor, OrientaPdfDocument, ReportFonts } from "../document";
+import type { Cursor, ReportFonts } from "../document";
 import { contentWidth, reportTheme } from "../theme";
 
 const PAD = 10;
@@ -7,6 +7,12 @@ const LINE = 12;
 const MIN_H = 32;
 const SIZE = 8;
 const ASCENT = 6;
+
+/** Host mínimo para a grade institucional (relatório oficial e plano de ação). */
+export type PdfGridHost = {
+  fonts: ReportFonts;
+  ensureSpace(c: Cursor, needed: number): Cursor;
+};
 
 export type GridCell = {
   text: string;
@@ -71,7 +77,7 @@ function wrapLines(
   return lines.length > 0 ? lines : [""];
 }
 
-function rowHeight(doc: OrientaPdfDocument, cells: GridCell[]): number {
+function rowHeight(doc: PdfGridHost, cells: GridCell[]): number {
   let lines = 1;
   for (const cell of cells) {
     const font = cell.bold ? doc.fonts.bold : doc.fonts.regular;
@@ -82,7 +88,7 @@ function rowHeight(doc: OrientaPdfDocument, cells: GridCell[]): number {
 }
 
 function drawCellText(
-  doc: OrientaPdfDocument,
+  doc: PdfGridHost,
   page: Cursor["page"],
   cell: GridCell,
   x: number,
@@ -110,7 +116,7 @@ function drawCellText(
 
 /** Linha de grade com borda preta e texto centralizado (modelo de referência). */
 export function drawGridRow(
-  doc: OrientaPdfDocument,
+  doc: PdfGridHost,
   cursor: Cursor,
   cells: GridCell[],
 ): Cursor {
@@ -135,7 +141,7 @@ export function drawGridRow(
 }
 
 export function labelValueRow(
-  doc: OrientaPdfDocument,
+  doc: PdfGridHost,
   cursor: Cursor,
   label: string,
   value: string,
@@ -149,7 +155,7 @@ export function labelValueRow(
 }
 
 export function quadRow(
-  doc: OrientaPdfDocument,
+  doc: PdfGridHost,
   cursor: Cursor,
   a: string,
   b: string,
@@ -165,7 +171,7 @@ export function quadRow(
   ]);
 }
 
-export function headerRow(doc: OrientaPdfDocument, cursor: Cursor, title: string): Cursor {
+export function headerRow(doc: PdfGridHost, cursor: Cursor, title: string): Cursor {
   return drawGridRow(doc, cursor, [
     { text: title, width: contentWidth(), bold: true },
   ]);
