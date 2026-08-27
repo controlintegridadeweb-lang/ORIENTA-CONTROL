@@ -5,7 +5,7 @@ import { computeActionSla } from "@/features/improvement-management/action-plans
 import { buildRecommendationPortfolioExportRows } from "./build-portfolio-export-rows";
 import { buildRecommendationPortfolioPdf } from "./portfolio-export-pdf";
 import { PORTFOLIO_PDF_SPACE, actionPlanPdfContextFields, portfolioAxisBarColor } from "./portfolio-export-pdf-layout";
-import { measureRecommendationCardMinHeight } from "./portfolio-export-pdf-card";
+import { measureRecommendationCardMinHeight, PORTFOLIO_PDF_CARD_OPTIONS } from "./portfolio-export-pdf-card";
 import { createBasicPdfTextContext } from "@/shared/export/basic-pdf-text";
 import { hexToPdfRgb } from "@/shared/export/pdf-color";
 import { getAxisTheme } from "@/shared/theme/axis-theme";
@@ -140,6 +140,29 @@ describe("buildRecommendationPortfolioPdf", () => {
     };
     const minHeight = measureRecommendationCardMinHeight(ctx, recommendation);
     expect(minHeight).toBeGreaterThan(PORTFOLIO_PDF_SPACE.cardPad * 2 + 40);
+  });
+
+  it("no portfólio, o card não reserva espaço da tabela de ações", async () => {
+    const ctx = await createBasicPdfTextContext();
+    const rows = buildRecommendationPortfolioExportRows([
+      makeSource({
+        recommendationId: "rec-with-actions",
+        plans: [makeAction({ id: "a1" })],
+      }),
+    ]);
+    const recommendation = {
+      questionText: rows[0]!.questionText,
+      recommendationText: rows[0]!.recommendationText,
+      recommendationStatus: rows[0]!.recommendationStatus,
+      actions: rows[0]!.actions,
+    };
+    const withoutActions = measureRecommendationCardMinHeight(
+      ctx,
+      recommendation,
+      PORTFOLIO_PDF_CARD_OPTIONS,
+    );
+    const withActions = measureRecommendationCardMinHeight(ctx, recommendation);
+    expect(withoutActions).toBeLessThan(withActions);
   });
 
   it("monta o bloco de contexto do plano de ação sem versão", () => {

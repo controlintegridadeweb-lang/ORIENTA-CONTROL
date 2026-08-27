@@ -42,16 +42,27 @@ const LAST_UPDATE_SIZE = 9;
 const LAST_UPDATE_BLOCK = 18;
 
 export type InstitutionalPdfCardOptions = {
+  /** Quando false, o card termina em "Situação da recomendação" (sem tabela de ações). */
+  includeActions?: boolean;
   actionsHeading?: string;
   columnSpecs?: readonly ActionTableColumnSpec[];
   showSingleActionLastUpdate?: boolean;
 };
 
+export const PORTFOLIO_PDF_CARD_OPTIONS: InstitutionalPdfCardOptions = {
+  includeActions: false,
+};
+
 export const ACTION_PLAN_PDF_CARD_OPTIONS: InstitutionalPdfCardOptions = {
+  includeActions: true,
   actionsHeading: "Plano de ação",
   columnSpecs: ACTION_PLAN_ACTION_COLUMN_SPECS,
   showSingleActionLastUpdate: true,
 };
+
+function includeActionsOf(options: InstitutionalPdfCardOptions | undefined): boolean {
+  return options?.includeActions !== false;
+}
 
 function columnSpecsOf(
   options: InstitutionalPdfCardOptions | undefined,
@@ -111,6 +122,7 @@ function measureRecommendationBox(
 export function measureRecommendationCardMinHeight(
   ctx: BasicPdfTextContext,
   recommendation: RecommendationPortfolioExportRecommendationView,
+  options?: InstitutionalPdfCardOptions,
 ): number {
   const pad = PORTFOLIO_PDF_SPACE.cardPad;
   const header =
@@ -122,7 +134,7 @@ export function measureRecommendationCardMinHeight(
     PORTFOLIO_PDF_SPACE.afterRecommendation +
     VALUE_SIZE +
     PORTFOLIO_PDF_SPACE.afterStatus +
-    EMPTY_ACTIONS_BLOCK;
+    (includeActionsOf(options) ? EMPTY_ACTIONS_BLOCK : 0);
   return pad + header + pad;
 }
 
@@ -304,7 +316,7 @@ function drawActionsContent(
   if (update) drawLastUpdateLine(ctx, update, contentX);
 }
 
-/** Card: pergunta, recomendação destacada, situação e ações — a borda envolve o conteúdo real. */
+/** Card: pergunta, recomendação destacada e situação; ações só se `includeActions`. */
 export function drawRecommendationCard(
   ctx: BasicPdfTextContext,
   recommendation: RecommendationPortfolioExportRecommendationView,
@@ -313,13 +325,21 @@ export function drawRecommendationCard(
 ): void {
   const pad = PORTFOLIO_PDF_SPACE.cardPad;
   const contentX = ctx.marginX + pad;
-  const hasActions = recommendation.actions.length > 0;
-  const minHeight = measureRecommendationCardMinHeight(ctx, recommendation);
+  const showActions = includeActionsOf(options);
+  const hasActions = showActions && recommendation.actions.length > 0;
+  const minHeight = measureRecommendationCardMinHeight(ctx, recommendation, options);
   ensureBasicPdfSpace(ctx, Math.min(minHeight, ctx.topY - ctx.bottomY));
 
   const top = ctx.y;
   let y = drawCardHeaderContent(ctx, recommendation, axisName, contentX, top - pad);
   y -= PORTFOLIO_PDF_SPACE.afterStatus;
+
+  if (!showActions) {
+    y -= pad;
+    strokeCardBorder(ctx, top, y);
+    ctx.y = y - PORTFOLIO_PDF_SPACE.betweenRecommendations;
+    return;
+  }
 
   const actionsHeight = measureActionsBlock(ctx, recommendation, pad, options);
   const actionsFit = y - actionsHeight - pad >= ctx.bottomY;

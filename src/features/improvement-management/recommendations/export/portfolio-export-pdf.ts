@@ -12,6 +12,7 @@ import { latinPdfSafe } from "@/shared/export/text";
 import { buildRecommendationPortfolioExportDocument } from "./build-portfolio-export-document";
 import {
   drawRecommendationCard,
+  PORTFOLIO_PDF_CARD_OPTIONS,
   type InstitutionalPdfCardOptions,
 } from "./portfolio-export-pdf-card";
 import type {
@@ -130,5 +131,6 @@ export async function buildRecommendationPortfolioPdf(
     filenameBase: "portfolio-recomendacoes",
     emptyMessage: "Nenhuma recomendação para exportar.",
     contextFields: portfolioPdfContextFields,
+    card: PORTFOLIO_PDF_CARD_OPTIONS,
   });
 }
