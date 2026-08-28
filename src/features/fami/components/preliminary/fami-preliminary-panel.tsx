@@ -22,7 +22,7 @@ import {
 import type { Bimester } from "@/shared/domain/calendar-periods";
 import type { PreliminaryCheckpoint, PreliminaryPayload } from "./use-fami-preliminary";
 import { useBimonthlyReports } from "./use-bimonthly-reports";
-import { QuadrimesterEvolutionBlock } from "./quadrimester-evolution-block";
+import { QuadrimesterEvolutionModal } from "./quadrimester-evolution-modal";
 
 type Props = {
   cycleId: string | null | undefined;
@@ -255,20 +255,24 @@ export function FamiPreliminaryPanel({
                     </td>
                     <td className={`${formSurface.brandTable.cell} text-slate-700`}>
                       <p>{formatBimesterSummary(report?.summary ?? null)}</p>
-                      {display ? (
-                        <p className={`mt-2 font-medium text-slate-900`}>
+                      {quadrimester && checkpoint ? (
+                        <>
+                          <p className="mt-2 text-sm font-medium text-slate-900">
+                            {famiPreliminaryLabels.panoramaLabel}:{" "}
+                            {formatPreliminaryPercentage(checkpoint.preliminary?.percentage ?? null)}
+                          </p>
+                          <QuadrimesterEvolutionModal
+                            quadrimester={quadrimester}
+                            percentage={checkpoint.preliminary?.percentage ?? null}
+                            deltaPercentagePoints={checkpoint.deltaPercentagePoints}
+                            evolution={evolutionByQuadrimester.get(quadrimester) ?? null}
+                          />
+                        </>
+                      ) : display ? (
+                        <p className="mt-2 text-sm font-medium text-slate-900">
                           {famiPreliminaryLabels.panoramaLabel}:{" "}
                           {formatPreliminaryPercentage(display.percentage)}
                         </p>
-                      ) : null}
-                      {quadrimester && checkpoint ? (
-                        <QuadrimesterEvolutionBlock
-                          quadrimester={quadrimester}
-                          percentage={checkpoint.preliminary?.percentage ?? null}
-                          deltaPercentagePoints={checkpoint.deltaPercentagePoints}
-                          methodologyVersion={checkpoint.methodologyVersion}
-                          evolution={evolutionByQuadrimester.get(quadrimester) ?? null}
-                        />
                       ) : null}
                     </td>
                     <td className={formSurface.brandTable.cell}>

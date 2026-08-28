@@ -264,21 +264,4 @@ export function recommendationAccent(type: string): { bg: RGB; text: RGB; border
   return { bg: reportTheme.sky, text: reportTheme.white, border: reportTheme.sky };
 }
 
-/** Retângulo preenchido com cantos arredondados (card de resumo da seção). */
-export function drawRoundedRectFill(
-  page: Cursor["page"],
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number,
-  color: RGB,
-): void {
-  const r = Math.min(radius, width / 2, height / 2);
-  page.drawRectangle({ x: x + r, y, width: width - r * 2, height, color });
-  page.drawRectangle({ x, y: y + r, width, height: height - r * 2, color });
-  page.drawCircle({ x: x + r, y: y + r, size: r, color });
-  page.drawCircle({ x: x + width - r, y: y + r, size: r, color });
-  page.drawCircle({ x: x + r, y: y + height - r, size: r, color });
-  page.drawCircle({ x: x + width - r, y: y + height - r, size: r, color });
-}
+export { drawRoundedRectFill } from "@/shared/export/pdf-rounded-rect";

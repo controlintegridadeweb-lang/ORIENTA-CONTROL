@@ -1,11 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Fragment } from "react";
 import { formatPlatformDateTime } from "@/shared/datetime/platform-date-time";
-import { CalendarClock, Info, Lock, LockOpen } from "lucide-react";
 import { isOfficialFamiEligible } from "@/shared/domain/workflow";
 import { cycleStateLabel } from "@/shared/domain/cycle-labels";
+import { formSurface } from "@/shared/layout/form-surface";
 
 export type FamiScopeBannerProps = {
   formName: string | null;
@@ -34,38 +33,12 @@ function formatDate(iso: string | null): string | null {
   return formatted || null;
 }
 
-function MetaRow({
-  children,
-  muted = false,
-}: {
-  children: ReactNode;
-  muted?: boolean;
-}) {
+function MetaChip({ children }: { children: ReactNode }) {
   return (
-    <div
-      className={`flex flex-wrap items-center gap-x-3 gap-y-1 ${muted ? "opacity-90" : ""}`}
-    >
+    <span className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-brand-200 bg-white px-2.5 py-1 text-xs text-brand-800">
       {children}
-    </div>
+    </span>
   );
-}
-
-function MetaDivider() {
-  return (
-    <span
-      className="hidden h-3 w-px shrink-0 self-center bg-current opacity-25 sm:block"
-      aria-hidden
-    />
-  );
-}
-
-function joinMeta(items: Array<{ key: string; node: ReactNode }>) {
-  return items.map((item, index) => (
-    <Fragment key={item.key}>
-      {index > 0 ? <MetaDivider /> : null}
-      {item.node}
-    </Fragment>
-  ));
 }
 
 /** Contexto de um Resultado FAMI associado a um diagnóstico específico. */
@@ -87,10 +60,6 @@ export function FamiScopeBanner({
     : isReopened
       ? "FAMI oficial · diagnóstico reaberto"
       : "FAMI oficial";
-  const Icon = isOfficialScore ? (isReopened ? LockOpen : Lock) : Info;
-  const tone = isOfficialScore
-    ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-    : "border-slate-200 bg-slate-50 text-slate-700";
 
   const applicabilityDetail = [
     waivedQuestions > 0
@@ -103,70 +72,52 @@ export function FamiScopeBanner({
     .filter(Boolean)
     .join("; ");
 
-  const primary: Array<{ key: string; node: ReactNode }> = [
-    {
-      key: "label",
-      node: (
-        <span className="inline-flex items-center gap-1.5 font-semibold">
-          <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
-          {label}
-        </span>
-      ),
-    },
-  ];
-  if (formName) {
-    primary.push({
-      key: "form",
-      node: <span className="font-medium">{formName}</span>,
-    });
-  }
-  if (visibleState) {
-    primary.push({
-      key: "state",
-      node: (
-        <span>
-          <span className="font-medium">situação:</span> {visibleState}
-        </span>
-      ),
-    });
-  }
+  const questionsLabel =
+    applicableQuestions === 1
+      ? "1 pergunta aplicável"
+      : `${applicableQuestions} perguntas aplicáveis`;
 
-  const secondary: Array<{ key: string; node: ReactNode }> = [];
-  if (isOfficialScore) {
-    secondary.push({
-      key: "questions",
-      node: (
-        <span>
-          {applicableQuestions} perguntas aplicáveis
-          {applicabilityDetail ? (
-            <span className="opacity-80"> ({applicabilityDetail})</span>
-          ) : null}
-        </span>
-      ),
-    });
-    if (snapshotYearApplied != null) {
-      secondary.push({
-        key: "year",
-        node: <span>processamento {snapshotYearApplied}</span>,
-      });
-    }
-    if (calculated) {
-      secondary.push({
-        key: "calc",
-        node: (
-          <span className="inline-flex items-center gap-1">
-            <CalendarClock className="h-3 w-3 shrink-0" aria-hidden />
-            calculado em {calculated}
-          </span>
-        ),
-      });
-    }
+  if (!isOfficialScore) {
+    return (
+      <div role="status" className={formSurface.messageNeutral}>
+        <p className="text-sm font-semibold text-slate-800">{label}</p>
+        {formName ? <p className="mt-0.5 truncate text-sm text-slate-600">{formName}</p> : null}
+      </div>
+    );
   }
 
   return (
-    <div className={`space-y-1.5 rounded-md border px-3 py-2.5 text-xs ${tone}`}>
-      <MetaRow>{joinMeta(primary)}</MetaRow>
-      {secondary.length > 0 ? <MetaRow muted>{joinMeta(secondary)}</MetaRow> : null}
+    <div
+      role="status"
+      className="overflow-hidden rounded-xl border border-brand-200 bg-brand-50"
+    >
+      <div className="flex flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4 sm:px-5">
+        <div className="min-w-0 space-y-1">
+          <p className="text-sm font-semibold tracking-tight text-brand-950">{label}</p>
+          {formName ? <p className="truncate text-sm text-brand-800">{formName}</p> : null}
+        </div>
+
+        {visibleState ? (
+          <span className={`${formSurface.badge.base} ${formSurface.badge.brand} shrink-0 self-start`}>
+            {visibleState}
+          </span>
+        ) : null}
+      </div>
+
+      <div className="flex flex-wrap gap-2 border-t border-brand-200 bg-white px-4 py-2.5 sm:px-5">
+        <MetaChip>
+          <span>
+            {questionsLabel}
+            {applicabilityDetail ? (
+              <span className="text-brand-700"> ({applicabilityDetail})</span>
+            ) : null}
+          </span>
+        </MetaChip>
+        {snapshotYearApplied != null ? (
+          <MetaChip>processamento {snapshotYearApplied}</MetaChip>
+        ) : null}
+        {calculated ? <MetaChip>calculado em {calculated}</MetaChip> : null}
+      </div>
     </div>
   );
 }

@@ -15,6 +15,7 @@ import {
   chooseCriterionAnswer,
   expectCriterionSaved,
   expectQuestionBindingReady,
+  expectClosureNotifications,
   fetchNotifications,
   fetchWorkbenchPayload,
   typeQuestionPrompt,
@@ -490,6 +491,7 @@ export async function completedCycleBlocksAndReopens(
   expect(state.evidenceQuestionId).toBeTruthy();
 
   await loginAs(page, "respondent");
+  await expectClosureNotifications(page, state.cycleId);
   const finalNotifications = await fetchNotifications(page);
   expect(finalNotifications.status).toBe(200);
   const completedNotification = finalNotifications.body.notifications.find(

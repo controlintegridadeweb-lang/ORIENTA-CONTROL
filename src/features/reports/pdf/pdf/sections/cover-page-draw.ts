@@ -58,7 +58,14 @@ export const COVER_LAYOUT = {
 
   labelSize: 10,
   valueSize: 12,
-  periodValueSize: 18,
+  /** Período de referência na capa bimestral — mesmo corpo dos demais metadados. */
+  periodValueSize: 12,
+
+  /** Logo ORIENTA (lockup compacto) na capa do acompanhamento bimestral. */
+  trackingLogoMax: {
+    w: 280,
+    h: 92,
+  },
 
   labelToValueGap: 10,
 
@@ -337,7 +344,7 @@ function drawTrackingBrand(
   const titleLines = wrapCoverLines(fonts, latinPdfSafe(title), titleSize, usableWidth, true);
   const titleBlockH =
     titleLines.length * (titleSize + COVER_LAYOUT.valueLineGap) - COVER_LAYOUT.valueLineGap;
-  const logoMax = { w: 168, h: 56 };
+  const logoMax = COVER_LAYOUT.trackingLogoMax;
   const logoGap = 14;
   const logoSize = logo ? getScaledImageSize(logo, logoMax.w, logoMax.h) : null;
   const stackH = (logoSize ? logoSize.height + logoGap : 0) + titleBlockH;

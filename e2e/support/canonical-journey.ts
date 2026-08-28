@@ -28,12 +28,36 @@ export async function fetchWorkbenchPayload(page: Page, cycleId: string) {
 
 export async function fetchNotifications(page: Page) {
   return page.evaluate(async () => {
-    const response = await fetch("/api/notifications", {
+    const response = await fetch("/api/notifications?limit=50", {
       credentials: "include",
       cache: "no-store",
     });
     return { status: response.status, body: (await response.json()) as NotificationsPayload };
   });
+}
+
+/** Aguarda avisos transacionais esperados após encerramento e emissão do relatório. */
+export async function expectClosureNotifications(
+  page: Page,
+  cycleId: string,
+) {
+  await expect.poll(async () => {
+    const result = await fetchNotifications(page);
+    if (result.status !== 200) return null;
+    const completed = result.body.notifications.find(
+      (item) => item.kind === "diagnostic_completed",
+    );
+    const report = result.body.notifications.find(
+      (item) => item.kind === "official_report_available",
+    );
+    if (
+      completed?.action_path !== `/respondente/ciclos/${cycleId}` ||
+      report?.action_path !== `/respondente/relatorios?cycleId=${cycleId}`
+    ) {
+      return null;
+    }
+    return { completed, report };
+  }, { timeout: 30_000 }).toBeTruthy();
 }
 
 /** Preenche o campo controlado de nova pergunta de forma atômica. */

@@ -4,6 +4,8 @@ import { useMemo, useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import { Pagination } from "@/shared/ui/components/pagination";
 import { usePagination } from "@/shared/hooks/use-pagination";
+import { formSurface } from "@/shared/layout/form-surface";
+import { typography } from "@/shared/layout/design-system";
 
 type OrganizationGroup = {
   organizationId: string;
@@ -66,7 +68,7 @@ export function AdminMonitoringOrganizationView<TItem, TGroup extends Organizati
 
   return (
     <>
-      <div className="space-y-3" role="list" aria-label={ariaLabel}>
+      <div className="space-y-4" role="list" aria-label={ariaLabel}>
         {pagedGroups.map((group) => {
           const isOpen = expanded.has(group.organizationId);
           const rows = rowsByOrganization.get(group.organizationId) ?? [];
@@ -75,19 +77,19 @@ export function AdminMonitoringOrganizationView<TItem, TGroup extends Organizati
             <section
               key={group.organizationId}
               role="listitem"
-              className="overflow-hidden rounded-xl border border-slate-200/95 bg-white shadow-card"
+              className={formSurface.entityListCard}
             >
               <button
                 type="button"
                 onClick={() => toggle(group.organizationId)}
                 aria-expanded={isOpen}
-                className={`flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition hover:bg-slate-50/60 sm:px-5 sm:py-4.5 ${
-                  isOpen ? "border-b border-slate-100/90" : ""
+                className={`flex w-full items-start justify-between gap-4 px-4 py-4 text-left transition hover:bg-slate-50/70 sm:items-center sm:px-5 sm:py-5 ${
+                  isOpen ? "border-b border-slate-100" : ""
                 }`}
               >
-                <div className="min-w-0 space-y-2">
+                <div className="min-w-0 flex-1 space-y-3">
                   <p
-                    className="text-sm font-semibold leading-snug text-slate-900 sm:text-base"
+                    className={typography.cardTitle}
                     title={group.organizationName}
                   >
                     {group.organizationName}
@@ -95,7 +97,9 @@ export function AdminMonitoringOrganizationView<TItem, TGroup extends Organizati
                   {renderSummary(group, rows)}
                 </div>
 
-                <span className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-transparent px-2 py-1.5 text-xs font-medium text-slate-500">
+                <span
+                  className={`${formSurface.secondaryButtonSm} shrink-0 gap-1.5 px-3`}
+                >
                   <span className="hidden sm:inline">{isOpen ? "Recolher" : "Expandir"}</span>
                   <ChevronDown
                     className={`h-4 w-4 transition ${isOpen ? "rotate-180" : ""}`}
@@ -104,7 +108,9 @@ export function AdminMonitoringOrganizationView<TItem, TGroup extends Organizati
                 </span>
               </button>
 
-              {isOpen ? <div className="p-3 sm:p-4">{renderRows(rows)}</div> : null}
+              {isOpen ? (
+                <div className="bg-slate-50/40 p-3 sm:p-4">{renderRows(rows)}</div>
+              ) : null}
             </section>
           );
         })}

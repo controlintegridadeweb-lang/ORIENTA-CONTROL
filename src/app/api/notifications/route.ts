@@ -11,9 +11,17 @@ const patchSchema = z.object({
   message: "Selecione notificações ou informe markAllRead.",
 });
 
+const querySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(50).optional(),
+});
+
 export const GET = withRoute(
   { roles: ["admin", "respondent"], route: "/api/notifications" },
-  async ({ auth }) => {
+  async ({ auth, request }) => {
+    const parsedQuery = querySchema.safeParse(
+      Object.fromEntries(new URL(request.url).searchParams.entries()),
+    );
+    const limit = parsedQuery.success ? (parsedQuery.data.limit ?? 20) : 20;
     // Avisos transacionais já existem antes desta leitura. A atualização de
     // lembretes de prazo é complementar e não deve atrasar a abertura do sino.
     after(() => refreshOperationalNotificationsForRead());
@@ -27,7 +35,7 @@ export const GET = withRoute(
         .eq("user_id", auth.userId)
         .lte("visible_at", now)
         .order("visible_at", { ascending: false })
-        .limit(20),
+        .limit(limit),
       client
         .from("user_notifications")
         .select("id", { count: "exact", head: true })

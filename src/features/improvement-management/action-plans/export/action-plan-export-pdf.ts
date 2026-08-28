@@ -8,19 +8,18 @@ import type {
   RecommendationPortfolioExportContextView,
   RecommendationPortfolioExportSectionView,
 } from "@/features/improvement-management/recommendations/export/portfolio-export-types";
-import type { Cursor, ReportFonts } from "@/features/reports/pdf/pdf/document";
-import { drawRoundedRectFill } from "@/features/reports/pdf/pdf/helpers";
 import {
   headerRow,
   labelValueRow,
   quadRow,
-  type PdfGridHost,
-} from "@/features/reports/pdf/pdf/primitives/bordered-grid";
+} from "@/shared/export/official-pdf-bordered-grid";
 import {
   contentWidth,
   reportAxisTheme,
   reportTheme,
-} from "@/features/reports/pdf/pdf/theme";
+} from "@/shared/export/official-pdf-theme";
+import type { Cursor, PdfGridHost, ReportFonts } from "@/shared/export/official-pdf-types";
+import { drawRoundedRectFill } from "@/shared/export/pdf-rounded-rect";
 import type { ActionPlanExportData } from "./action-plan-export-types";
 
 const CIVIL_DATE_FORMAT = {
@@ -127,7 +126,7 @@ class ActionPlanPdfDocument implements PdfGridHost {
   }
 
   drawSectionTitle(c: Cursor, title: string, subtitle?: string): Cursor {
-    let cur = c;
+    const cur = c;
     const titleSize = 17;
     const titleAscent = 13;
     const barH = 18;
@@ -294,7 +293,7 @@ function drawAxisBar(doc: ActionPlanPdfDocument, cursor: Cursor, axisName: strin
   const label = latinPdfSafe(`Eixo - ${axisName}`);
   const textW = doc.fonts.bold.widthOfTextAtSize(label, size);
   const height = 28;
-  let cur = doc.ensureSpace(cursor, height + 16);
+  const cur = doc.ensureSpace(cursor, height + 16);
   const bottom = cur.y - height;
   const axis = reportAxisTheme(axisName);
   drawRoundedRect(cur.page, {

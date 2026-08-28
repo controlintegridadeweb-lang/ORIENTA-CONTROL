@@ -12,13 +12,8 @@ import {
 import type { OfficialReportData } from "@/features/reports/pdf/report-types";
 import { contentWidth, reportTheme } from "./theme";
 
-export type ReportFonts = {
-  regular: Awaited<ReturnType<PDFDocument["embedFont"]>>;
-  bold: Awaited<ReturnType<PDFDocument["embedFont"]>>;
-  italic: Awaited<ReturnType<PDFDocument["embedFont"]>>;
-};
-
-export type Cursor = { page: PDFPage; y: number };
+export type { Cursor, ReportFonts } from "@/shared/export/official-pdf-types";
+import type { Cursor, ReportFonts } from "@/shared/export/official-pdf-types";
 
 export type TocEntry = {
   id: string;

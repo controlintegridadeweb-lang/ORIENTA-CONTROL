@@ -1,4 +1,4 @@
-import { typography } from "@/shared/layout/design-system";
+import { formSurface } from "@/shared/layout/form-surface";
 
 type Props = {
   total: number;
@@ -17,28 +17,26 @@ export function AdminMonitoringOrganizationSummary({
   withoutPlan,
   overdue,
 }: Props) {
+  const progress = Math.min(100, Math.max(0, averageProgress));
+
   return (
-    <p className={`${typography.meta} leading-relaxed`}>
-      {total} {total === 1 ? singular : plural} · progresso médio{" "}
-      <span className="font-semibold tabular-nums text-slate-800">
-        {averageProgress}%
+    <div className="flex flex-wrap items-center gap-2">
+      <span className={`${formSurface.badge.base} ${formSurface.badge.neutral}`}>
+        {total} {total === 1 ? singular : plural}
+      </span>
+      <span className={`${formSurface.badge.base} ${formSurface.badge.brand}`}>
+        Progresso médio {progress}%
       </span>
       {withoutPlan > 0 ? (
-        <>
-          {" "}·{" "}
-          <span className="font-medium text-amber-800">
-            {withoutPlan} aguardando ação
-          </span>
-        </>
+        <span className={`${formSurface.badge.base} ${formSurface.badge.warning}`}>
+          {withoutPlan} aguardando ação
+        </span>
       ) : null}
       {overdue > 0 ? (
-        <>
-          {" "}·{" "}
-          <span className="font-medium text-rose-700">
-            {overdue} atrasada(s)
-          </span>
-        </>
+        <span className={`${formSurface.badge.base} ${formSurface.badge.danger}`}>
+          {overdue} atrasada{overdue === 1 ? "" : "s"}
+        </span>
       ) : null}
-    </p>
+    </div>
   );
 }
