@@ -8,7 +8,7 @@ const LINE = 12;
 const MIN_H = 32;
 const SIZE = 8;
 const ASCENT = 6;
-const GRID_RADIUS = 8;
+const GRID_RADIUS = 0;
 const BORDER = 0.75;
 
 export type GridCell = {
@@ -135,7 +135,20 @@ function drawCellBackground(
   });
 }
 
-/** Bloco de grade com borda externa arredondada e linhas internas. */
+function drawGridLine(
+  page: Cursor["page"],
+  start: { x: number; y: number },
+  end: { x: number; y: number },
+): void {
+  page.drawLine({
+    start,
+    end,
+    thickness: BORDER,
+    color: reportTheme.gridInk,
+  });
+}
+
+/** Bloco de grade com borda externa retangular e linhas internas. */
 export function drawGridBlock(
   doc: PdfGridHost,
   cursor: Cursor,
@@ -152,49 +165,50 @@ export function drawGridBlock(
   const blockTop = cur.y;
   const blockBottom = blockTop - totalH;
 
+  const rowBounds: Array<{ top: number; bottom: number; cells: GridCell[] }> = [];
   let yTop = blockTop;
   for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
     const cells = rows[rowIndex]!;
     const height = heights[rowIndex]!;
-    const isTop = rowIndex === 0;
-    const isBottom = rowIndex === rows.length - 1;
+    const bottom = yTop - height;
+    rowBounds.push({ top: yTop, bottom, cells });
+
     let x = x0;
-
-    for (let colIndex = 0; colIndex < cells.length; colIndex += 1) {
-      const cell = cells[colIndex]!;
-      const isLeft = colIndex === 0;
-      const isRight = colIndex === cells.length - 1;
+    for (const cell of cells) {
       const bg = cell.bold ? reportTheme.gridLabelBg : reportTheme.white;
-
-      drawCellBackground(cur.page, x, yTop - height, cell.width, height, bg, {
-        tl: isTop && isLeft ? GRID_RADIUS : 0,
-        tr: isTop && isRight ? GRID_RADIUS : 0,
-        bl: isBottom && isLeft ? GRID_RADIUS : 0,
-        br: isBottom && isRight ? GRID_RADIUS : 0,
+      drawCellBackground(cur.page, x, bottom, cell.width, height, bg, {
+        tl: 0,
+        tr: 0,
+        bl: 0,
+        br: 0,
       });
       drawCellText(doc, cur.page, cell, x, yTop, height);
-
-      if (!isRight) {
-        cur.page.drawLine({
-          start: { x: x + cell.width, y: yTop - height },
-          end: { x: x + cell.width, y: yTop },
-          thickness: BORDER,
-          color: reportTheme.gridInk,
-        });
-      }
       x += cell.width;
     }
 
-    if (!isBottom) {
-      cur.page.drawLine({
-        start: { x: x0, y: yTop - height },
-        end: { x: x0 + w, y: yTop - height },
-        thickness: BORDER,
-        color: reportTheme.gridInk,
-      });
+    yTop = bottom;
+  }
+
+  for (let rowIndex = 0; rowIndex < rowBounds.length; rowIndex += 1) {
+    const { top, bottom, cells } = rowBounds[rowIndex]!;
+
+    if (rowIndex < rowBounds.length - 1) {
+      drawGridLine(
+        cur.page,
+        { x: x0, y: bottom },
+        { x: x0 + w, y: bottom },
+      );
     }
 
-    yTop -= height;
+    let x = x0;
+    for (let colIndex = 0; colIndex < cells.length - 1; colIndex += 1) {
+      x += cells[colIndex]!.width;
+      drawGridLine(
+        cur.page,
+        { x, y: bottom },
+        { x, y: top },
+      );
+    }
   }
 
   drawRoundedRect(cur.page, {

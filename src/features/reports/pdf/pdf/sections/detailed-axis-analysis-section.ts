@@ -16,10 +16,11 @@ import type { Cursor, OrientaPdfDocument } from "../document";
 import { contentWidth, reportTheme } from "../theme";
 import { drawRoundedRectFill } from "../helpers";
 import {
-  drawGridRow,
-  headerRow,
-  labelValueRow,
-  quadRow,
+  drawGridBlock,
+  headerRowCells,
+  labelValueRowCells,
+  quadRowCells,
+  type GridCell,
 } from "../primitives/bordered-grid";
 import { drawReportTable } from "../table";
 
@@ -154,37 +155,53 @@ function documentsLabel(action: ReportActionView): string {
   return action.documents.map((document) => document.line).join("\n");
 }
 
-function renderActionGrid(
-  doc: OrientaPdfDocument,
-  cursor: Cursor,
-  action: ReportActionView,
-  index: number,
-): Cursor {
+function actionGridRows(action: ReportActionView, index: number): GridCell[][] {
   const status =
     action.isOverdue && !action.isCancelled
       ? `${action.statusLabel} · Atrasada`
       : action.statusLabel;
-  let cur = labelValueRow(doc, cursor, `Ação ${index + 1}`, action.title);
-  cur = quadRow(doc, cur, "Prazo inicial", action.startLabel, "Prazo final", action.endLabel);
-  cur = quadRow(
-    doc,
-    cur,
-    "Situação atual",
-    status,
-    "Progresso",
-    `${action.progressPercentage}%`,
-  );
-  cur = quadRow(
-    doc,
-    cur,
-    "Área responsável",
-    action.responsibleSectorLabel,
-    "Respondente responsável",
-    action.responsibleNameLabel,
-  );
-  cur = labelValueRow(doc, cur, "Documentos", documentsLabel(action));
-  cur = labelValueRow(doc, cur, "Última atualização", latestUpdate(action));
-  return cur;
+  return [
+    labelValueRowCells(`Ação ${index + 1}`, action.title),
+    quadRowCells("Prazo inicial", action.startLabel, "Prazo final", action.endLabel),
+    quadRowCells("Situação atual", status, "Progresso", `${action.progressPercentage}%`),
+    quadRowCells(
+      "Área responsável",
+      action.responsibleSectorLabel,
+      "Respondente responsável",
+      action.responsibleNameLabel,
+    ),
+    labelValueRowCells("Documentos", documentsLabel(action)),
+    labelValueRowCells("Última atualização", latestUpdate(action)),
+  ];
+}
+
+function recommendationGridRows(
+  recommendation: ReportRecommendationView,
+  recIndex: number,
+): GridCell[][] {
+  const rows: GridCell[][] = [
+    labelValueRowCells("Critério", recommendation.originCriterion),
+    quadRowCells(
+      "Resposta",
+      dash(recommendation.answerLabel),
+      "Resultado da análise",
+      dash(recommendation.adminAnalysisLabel),
+    ),
+    labelValueRowCells("Fundamentação", dash(recommendation.reasonLabel)),
+    headerRowCells(`Recomendação ${recIndex + 1}`),
+    [{ text: recommendation.recommendationText, width: contentWidth() }],
+    headerRowCells("Plano de ação"),
+  ];
+
+  if (recommendation.actions.length === 0) {
+    rows.push(headerRowCells(REPORT_EMPTY_RECOMMENDATION_ACTIONS));
+    return rows;
+  }
+
+  for (const [actionIndex, action] of recommendation.actions.entries()) {
+    rows.push(...actionGridRows(action, actionIndex));
+  }
+  return rows;
 }
 
 function renderRecommendationGrid(
@@ -193,32 +210,9 @@ function renderRecommendationGrid(
   recommendation: ReportRecommendationView,
   recIndex: number,
 ): Cursor {
-  let cur = doc.ensureSpace(cursor, 80);
-  cur = labelValueRow(doc, cur, "Critério", recommendation.originCriterion);
-  cur = quadRow(
-    doc,
-    cur,
-    "Resposta",
-    dash(recommendation.answerLabel),
-    "Resultado da análise",
-    dash(recommendation.adminAnalysisLabel),
-  );
-  cur = labelValueRow(doc, cur, "Fundamentação", dash(recommendation.reasonLabel));
-  cur = headerRow(doc, cur, `Recomendação ${recIndex + 1}`);
-  cur = drawGridRow(doc, cur, [
-    { text: recommendation.recommendationText, width: contentWidth() },
-  ]);
-  cur = headerRow(doc, cur, "Plano de ação");
-
-  if (recommendation.actions.length === 0) {
-    cur = headerRow(doc, cur, REPORT_EMPTY_RECOMMENDATION_ACTIONS);
-    return { ...cur, y: cur.y - 16 };
-  }
-
-  recommendation.actions.forEach((action, actionIndex) => {
-    cur = renderActionGrid(doc, cur, action, actionIndex);
-  });
-  return { ...cur, y: cur.y - 16 };
+  const cur = doc.ensureSpace(cursor, 80);
+  const next = drawGridBlock(doc, cur, recommendationGridRows(recommendation, recIndex));
+  return { ...next, y: next.y - 16 };
 }
 
 function renderSection(

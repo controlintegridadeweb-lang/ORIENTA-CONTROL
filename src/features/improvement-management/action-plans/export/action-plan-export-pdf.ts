@@ -9,9 +9,10 @@ import type {
   RecommendationPortfolioExportSectionView,
 } from "@/features/improvement-management/recommendations/export/portfolio-export-types";
 import {
-  headerRow,
-  labelValueRow,
-  quadRow,
+  drawGridBlock,
+  headerRowCells,
+  labelValueRowCells,
+  quadRowCells,
 } from "@/shared/export/official-pdf-bordered-grid";
 import {
   contentWidth,
@@ -274,16 +275,11 @@ function drawContextBlock(
   context: RecommendationPortfolioExportContextView,
   issuedOnLabel: string,
 ): Cursor {
-  let cur = doc.drawSubsectionTitle(cursor, "Contexto");
-  cur = quadRow(
-    doc,
-    cur,
-    "Formulário",
-    context.formName,
-    "Órgão",
-    context.organizationName,
-  );
-  cur = quadRow(doc, cur, "Ciclo", context.period, "Data de emissão", issuedOnLabel);
+  const titled = doc.drawSubsectionTitle(cursor, "Contexto");
+  const cur = drawGridBlock(doc, titled, [
+    quadRowCells("Formulário", context.formName, "Órgão", context.organizationName),
+    quadRowCells("Ciclo", context.period, "Data de emissão", issuedOnLabel),
+  ]);
   return { ...cur, y: cur.y - 16 };
 }
 
@@ -380,15 +376,12 @@ function drawRecommendationOrigin(
 ): Cursor {
   const recommendation = section.recommendations[recommendationIndex]!;
   const originLabel = `R${section.sectionDisplayNumber}.${recommendationIndex + 1}`;
-  let cur = headerRow(doc, cursor, `Recomendação de origem ${originLabel}`);
-  cur = labelValueRow(doc, cur, "Pergunta", recommendation.questionText);
-  cur = labelValueRow(doc, cur, "Recomendação", recommendation.recommendationText);
-  cur = labelValueRow(
-    doc,
-    cur,
-    "Situação da recomendação",
-    recommendation.recommendationStatus,
-  );
+  const cur = drawGridBlock(doc, cursor, [
+    headerRowCells(`Recomendação de origem ${originLabel}`),
+    labelValueRowCells("Pergunta", recommendation.questionText),
+    labelValueRowCells("Recomendação", recommendation.recommendationText),
+    labelValueRowCells("Situação da recomendação", recommendation.recommendationStatus),
+  ]);
   return { ...cur, y: cur.y - 12 };
 }
 
@@ -399,12 +392,14 @@ function drawActionGrid(
   actionNumber: number,
   originLabel: string,
 ): Cursor {
-  let cur = labelValueRow(doc, cursor, `Ação ${actionNumber}`, action.title);
-  cur = labelValueRow(doc, cur, "Origem", originLabel);
-  cur = quadRow(doc, cur, "Prazo inicial", action.startDate, "Prazo final", action.endDate);
-  cur = quadRow(doc, cur, "Situação", action.status, "Progresso", action.progress);
-  cur = labelValueRow(doc, cur, "Responsável", action.responsible);
-  cur = labelValueRow(doc, cur, "Última atualização", action.updatedAt);
+  const cur = drawGridBlock(doc, cursor, [
+    labelValueRowCells(`Ação ${actionNumber}`, action.title),
+    labelValueRowCells("Origem", originLabel),
+    quadRowCells("Prazo inicial", action.startDate, "Prazo final", action.endDate),
+    quadRowCells("Situação", action.status, "Progresso", action.progress),
+    labelValueRowCells("Responsável", action.responsible),
+    labelValueRowCells("Última atualização", action.updatedAt),
+  ]);
   return { ...cur, y: cur.y - 12 };
 }
 
