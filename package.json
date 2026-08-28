@@ -54,6 +54,8 @@
     "build:diagnostic-import-manifest": "node scripts/imports/build-diagnostic-manifest-from-xlsx.mjs",
     "reconcile:diagnostic-evidence": "node scripts/imports/reconcile-diagnostic-evidence.mjs",
     "audit:validation-sections": "node scripts/maintenance/audit-validation-sections.mjs",
+    "audit:data-cleanup": "node scripts/maintenance/audit-data-cleanup.mjs",
+    "maintenance:cleanup-test-form": "node scripts/maintenance/cleanup-test-form.mjs",
     "db:audit:migrations": "node scripts/database/audit-migrations.mjs",
     "security:mfa-recover": "node scripts/maintenance/recover-admin-mfa.mjs",
     "check:production-env": "node scripts/production/check-production-env.mjs",

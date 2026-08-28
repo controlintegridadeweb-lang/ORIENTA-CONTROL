@@ -147,36 +147,16 @@ export async function logout(page: Page) {
   }
 }
 
-/**
- * Marca uma organização na etapa de atribuições do formulário.
- * A lista é paginada (10 por página); com o seed de 42 órgãos + órgãos E2E,
- * o órgão de teste fica por ordem alfabética fora da primeira página.
- */
+/** Marca uma organização na etapa de atribuições do formulário. */
 export async function selectOrganizationInFormAssignments(page: Page, organizationName: string) {
   await expect(page.getByText("Carregando organizações…")).toBeHidden();
 
+  const search = page.getByRole("searchbox", { name: "Buscar organização" });
+  await search.fill(organizationName);
+
   const checkbox = page.getByRole("checkbox", { name: organizationName, exact: true });
-  if (await checkbox.isVisible()) {
-    await checkbox.check();
-    return;
-  }
-
-  const pagination = page.getByRole("navigation", { name: "Paginação" });
-  await expect(pagination).toBeVisible();
-
-  const nextButton = pagination.getByRole("button", { name: "Próxima" });
-  for (let attempt = 0; attempt < 20; attempt += 1) {
-    if (!(await nextButton.isEnabled())) break;
-    await nextButton.click();
-    if (await checkbox.isVisible()) {
-      await checkbox.check();
-      return;
-    }
-  }
-
-  throw new Error(
-    `Organização "${organizationName}" não encontrada na lista paginada de atribuições.`,
-  );
+  await expect(checkbox).toBeVisible({ timeout: 15_000 });
+  await checkbox.check();
 }
 
 

@@ -13,7 +13,13 @@ const patchSchema = z.object({
 
 const querySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).optional(),
+  kinds: z.string().optional(),
 });
+
+function parseNotificationKinds(raw: string | undefined): string[] {
+  if (!raw) return [];
+  return [...new Set(raw.split(",").map((kind) => kind.trim()).filter(Boolean))].slice(0, 20);
+}
 
 export const GET = withRoute(
   { roles: ["admin", "respondent"], route: "/api/notifications" },
@@ -22,20 +28,25 @@ export const GET = withRoute(
       Object.fromEntries(new URL(request.url).searchParams.entries()),
     );
     const limit = parsedQuery.success ? (parsedQuery.data.limit ?? 20) : 20;
+    const kinds = parsedQuery.success
+      ? parseNotificationKinds(parsedQuery.data.kinds)
+      : [];
     // Avisos transacionais já existem antes desta leitura. A atualização de
     // lembretes de prazo é complementar e não deve atrasar a abertura do sino.
     after(() => refreshOperationalNotificationsForRead());
 
     const client = createSupabaseServiceRoleClient();
     const now = new Date().toISOString();
+    let notificationsQuery = client
+      .from("user_notifications")
+      .select("id,kind,title,message,action_path,visible_at,read_at,created_at")
+      .eq("user_id", auth.userId)
+      .lte("visible_at", now);
+    if (kinds.length > 0) {
+      notificationsQuery = notificationsQuery.in("kind", kinds);
+    }
     const [{ data, error }, { count, error: countError }] = await Promise.all([
-      client
-        .from("user_notifications")
-        .select("id,kind,title,message,action_path,visible_at,read_at,created_at")
-        .eq("user_id", auth.userId)
-        .lte("visible_at", now)
-        .order("visible_at", { ascending: false })
-        .limit(limit),
+      notificationsQuery.order("visible_at", { ascending: false }).limit(limit),
       client
         .from("user_notifications")
         .select("id", { count: "exact", head: true })

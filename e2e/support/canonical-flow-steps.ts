@@ -446,7 +446,12 @@ export async function respondentCorrectsAndAdminCloses(
     await expect(page.getByText("Aceite vigente").first()).toBeVisible();
   }
   await page.goto(`/admin/ciclos/${state.cycleId}`);
+  const closeResponsePromise = page.waitForResponse(
+    (response) =>
+      response.url().includes("/transition") && response.request().method() === "POST",
+  );
   await clickWithPlatformConfirm(page, "Encerrar avaliação");
+  await expectSuccessfulResponse(await closeResponsePromise, "encerrar avaliação");
   await expectAdminCycleState(page, /^Avaliação encerrada$/);
   await page.getByRole("link", { name: "Ver Resultado FAMI" }).click();
   await expect(page.getByRole("heading", { name: "Resultado FAMI" })).toBeVisible();
@@ -492,7 +497,10 @@ export async function completedCycleBlocksAndReopens(
 
   await loginAs(page, "respondent");
   await expectClosureNotifications(page, state.cycleId);
-  const finalNotifications = await fetchNotifications(page);
+  const finalNotifications = await fetchNotifications(page, [
+    "diagnostic_completed",
+    "official_report_available",
+  ]);
   expect(finalNotifications.status).toBe(200);
   const completedNotification = finalNotifications.body.notifications.find(
     (item) => item.kind === "diagnostic_completed",

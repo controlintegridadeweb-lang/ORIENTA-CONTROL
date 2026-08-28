@@ -63,14 +63,6 @@ async function fetchAll(supabase, table, select, apply) {
   return rows;
 }
 
-async function countWhere(supabase, table, apply) {
-  let q = supabase.from(table).select("*", { count: "exact", head: true });
-  q = apply(q);
-  const { count, error } = await q;
-  if (error) throw new Error(`${table}: ${error.message}`);
-  return count ?? 0;
-}
-
 async function resolveGlobalAdminId(supabase) {
   const { data, error } = await supabase
     .from("profiles")

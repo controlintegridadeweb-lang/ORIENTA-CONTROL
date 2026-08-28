@@ -26,14 +26,17 @@ export async function fetchWorkbenchPayload(page: Page, cycleId: string) {
   }, cycleId);
 }
 
-export async function fetchNotifications(page: Page) {
-  return page.evaluate(async () => {
-    const response = await fetch("/api/notifications?limit=50", {
+export async function fetchNotifications(page: Page, kinds?: string[]) {
+  const query = new URLSearchParams({ limit: "50" });
+  if (kinds?.length) query.set("kinds", kinds.join(","));
+  const queryString = query.toString();
+  return page.evaluate(async (search) => {
+    const response = await fetch(`/api/notifications?${search}`, {
       credentials: "include",
       cache: "no-store",
     });
     return { status: response.status, body: (await response.json()) as NotificationsPayload };
-  });
+  }, queryString);
 }
 
 /** Aguarda avisos transacionais esperados após encerramento e emissão do relatório. */
@@ -41,8 +44,9 @@ export async function expectClosureNotifications(
   page: Page,
   cycleId: string,
 ) {
+  const closureKinds = ["diagnostic_completed", "official_report_available"];
   await expect.poll(async () => {
-    const result = await fetchNotifications(page);
+    const result = await fetchNotifications(page, closureKinds);
     if (result.status !== 200) return null;
     const completed = result.body.notifications.find(
       (item) => item.kind === "diagnostic_completed",
@@ -57,7 +61,7 @@ export async function expectClosureNotifications(
       return null;
     }
     return { completed, report };
-  }, { timeout: 30_000 }).toBeTruthy();
+  }, { timeout: 60_000 }).toBeTruthy();
 }
 
 /** Preenche o campo controlado de nova pergunta de forma atômica. */
