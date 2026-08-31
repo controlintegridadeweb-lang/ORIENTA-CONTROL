@@ -376,43 +376,43 @@ export function renderDetailedAnalysisOverviewContent(
   const applicableAxes = axes.filter((axis) => axis.maturityLevel != null);
 
   if (applicableAxes.length >= 3) {
-    const blockH = 188;
+    const blockH = 236;
     cur = doc.ensureBlock(cur, blockH);
     drawFamiRadarChart(doc, cur.page, {
-      cx: reportTheme.margin + 110,
-      cy: cur.y - 92,
-      radius: 68,
+      cx: reportTheme.margin + 128,
+      cy: cur.y - 112,
+      radius: 86,
       axes: applicableAxes.map((axis) => ({
         axisName: axis.axisName,
         percentage: axis.percentage,
       })),
     });
-    let legendY = cur.y - 28;
-    const legendX = reportTheme.margin + 248;
+    let legendY = cur.y - 36;
+    const legendX = reportTheme.margin + 286;
     for (const axis of applicableAxes) {
       const theme = reportAxisTheme(axis.axisName);
       cur.page.drawCircle({
-        x: legendX + 4,
+        x: legendX + 5,
         y: legendY + 3,
-        size: 3.2,
+        size: 4,
         color: theme.primary,
       });
       cur.page.drawText(latinPdfSafe(axis.axisName), {
-        x: legendX + 14,
+        x: legendX + 16,
         y: legendY,
-        size: 10,
+        size: 11,
         font: doc.fonts.bold,
         color: theme.primary,
       });
       const value = formatReportPercentage(axis.percentage);
       cur.page.drawText(value, {
-        x: legendX + 14,
-        y: legendY - 14,
-        size: 10,
+        x: legendX + 16,
+        y: legendY - 15,
+        size: 11,
         font: doc.fonts.regular,
         color: reportTheme.slate700,
       });
-      legendY -= 36;
+      legendY -= 42;
     }
     cur = { ...cur, y: cur.y - blockH };
   } else if (applicableAxes.length > 0) {
