@@ -82,7 +82,7 @@ const STATUS_COPY: Record<ConfirmedSubmissionState, StateCopy> = {
   validated: {
     pageTitle: "Diagnóstico validado",
     introduction:
-      "A validação foi concluída. Consulte o resultado FAMI e as recomendações oficiais antes de organizar o plano de ação.",
+      "A validação foi concluída. Consulte o resultado FAMI e as recomendações oficiais antes de organizar o plano de integridade e compliance.",
     label: "Validação concluída",
     description: "O resultado FAMI e as recomendações oficiais já estão disponíveis.",
     actionLabel: "Ver Resultado FAMI",

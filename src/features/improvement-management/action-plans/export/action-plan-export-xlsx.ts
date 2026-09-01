@@ -20,7 +20,7 @@ export async function buildActionPlanXlsx(
   }).toBuffer();
 
   return {
-    filename: `plano-de-acao-${businessToday()}.xlsx`,
+    filename: `plano-de-integridade-e-compliance-${businessToday()}.xlsx`,
     content: Buffer.from(file),
   };
 }

@@ -36,7 +36,7 @@ export function AdminFamiMaturityHero({
       ariaLabel="Resultado FAMI"
       overline="Indicadores de maturidade"
       title="Resultado FAMI"
-      description="Acompanhe o Resultado FAMI oficial, o desempenho por eixo e o acompanhamento quadrimestral do plano de ação."
+      description="Acompanhe o Resultado FAMI oficial, o desempenho por eixo e o acompanhamento quadrimestral do plano de integridade e compliance."
       image={ADMIN_MATURIDADE_HERO_IMAGE}
       imageWidth={1024}
       imageHeight={1024}

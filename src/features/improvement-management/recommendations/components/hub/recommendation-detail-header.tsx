@@ -21,7 +21,7 @@ import {
 
 function supervisionTabLabel(pathname: string): string | null {
   if (pathname.endsWith("/monitoramento")) return "Monitoramento";
-  if (pathname.endsWith("/acoes")) return "Plano de ação";
+  if (pathname.endsWith("/acoes")) return "Plano de integridade e compliance";
   if (pathname.endsWith("/visao-geral")) return "Visão geral";
   return null;
 }
@@ -87,14 +87,14 @@ export function RecommendationDetailHeader() {
           ? [
               adminItem?.axisName,
               adminItem?.sectionName,
-              "Plano de ação",
+              "Plano de integridade e compliance",
               supervisionTabLabel(pathname),
             ].filter(Boolean)
           : adminOperational
             ? [
                 adminItem?.axisName,
                 adminItem?.sectionName,
-                "Plano de ação",
+                "Plano de integridade e compliance",
                 "Monitoramento",
               ].filter(Boolean)
             : [adminItem?.axisName, adminItem?.sectionName, "Recomendação"].filter(Boolean);

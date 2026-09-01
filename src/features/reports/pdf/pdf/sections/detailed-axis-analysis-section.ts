@@ -61,6 +61,26 @@ function renderAxisSummary(
 ): Cursor {
   const s = axis.summary;
   const w = contentWidth();
+  const includeFami = doc.data.tracking == null;
+  const rows = [
+    ...(includeFami
+      ? [
+          {
+            indicator: "Pontuação obtida / máxima aplicável",
+            value: formatReportPoints(s.pointsObtained, s.pointsPossible),
+          },
+          { indicator: "Critérios aplicáveis", value: String(s.applicableCriteriaCount) },
+        ]
+      : []),
+    { indicator: "Seções do eixo", value: String(s.sectionsCount) },
+    { indicator: "Seções com plano de integridade e compliance", value: String(s.sectionsWithActionPlan) },
+    { indicator: "Recomendações", value: String(s.recommendationsCount) },
+    { indicator: "Ações cadastradas", value: String(s.actionsCount) },
+    {
+      indicator: "Progresso médio das ações",
+      value: s.averageActionProgress == null ? "—" : `${s.averageActionProgress}%`,
+    },
+  ];
   return drawReportTable(
     doc,
     cursor,
@@ -68,21 +88,7 @@ function renderAxisSummary(
       { key: "indicator", header: "Indicador", width: w * 0.68 },
       { key: "value", header: "Valor", width: w * 0.32, align: "right" },
     ],
-    [
-      {
-        indicator: "Pontuação obtida / máxima aplicável",
-        value: formatReportPoints(s.pointsObtained, s.pointsPossible),
-      },
-      { indicator: "Critérios aplicáveis", value: String(s.applicableCriteriaCount) },
-      { indicator: "Seções do eixo", value: String(s.sectionsCount) },
-      { indicator: "Seções com plano de ação", value: String(s.sectionsWithActionPlan) },
-      { indicator: "Recomendações", value: String(s.recommendationsCount) },
-      { indicator: "Ações cadastradas", value: String(s.actionsCount) },
-      {
-        indicator: "Progresso médio das ações",
-        value: s.averageActionProgress == null ? "—" : `${s.averageActionProgress}%`,
-      },
-    ],
+    rows,
     { zebra: true },
   );
 }
@@ -97,6 +103,7 @@ function renderSectionSummaryCard(
   section: ReportSectionView,
 ): Cursor {
   const s = section.summary;
+  const includeFami = doc.data.tracking == null;
   const cardH = 64;
   const cur = doc.ensureBlock(cursor, cardH);
   const w = contentWidth();
@@ -111,15 +118,20 @@ function renderSectionSummaryCard(
     reportTheme.sectionSummaryCard,
   );
 
-  const cols = [
-    {
-      label: "Pontuação do critério",
-      value: `${compactPoints(s.pointsObtained, s.pointsPossible)} - ${formatReportPercentage(s.percentage, 0)}`,
-    },
-    { label: "Recomendações", value: String(s.recommendationsCount) },
-    { label: "Ações vinculadas", value: String(s.actionsCount) },
-  ];
-  const colW = w / 3;
+  const cols = includeFami
+    ? [
+        {
+          label: "Pontuação do critério",
+          value: `${compactPoints(s.pointsObtained, s.pointsPossible)} - ${formatReportPercentage(s.percentage, 0)}`,
+        },
+        { label: "Recomendações", value: String(s.recommendationsCount) },
+        { label: "Ações vinculadas", value: String(s.actionsCount) },
+      ]
+    : [
+        { label: "Recomendações", value: String(s.recommendationsCount) },
+        { label: "Ações vinculadas", value: String(s.actionsCount) },
+      ];
+  const colW = w / cols.length;
   const midY = bottom + cardH / 2;
   cols.forEach((col, index) => {
     const cx = reportTheme.margin + colW * index + colW / 2;
@@ -190,7 +202,7 @@ function recommendationGridRows(
     labelValueRowCells("Fundamentação", dash(recommendation.reasonLabel)),
     headerRowCells(`Recomendação ${recIndex + 1}`),
     [{ text: recommendation.recommendationText, width: contentWidth() }],
-    headerRowCells("Plano de ação"),
+    headerRowCells("Plano de integridade e compliance"),
   ];
 
   if (recommendation.actions.length === 0) {

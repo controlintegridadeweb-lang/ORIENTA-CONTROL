@@ -83,7 +83,7 @@ describe("CycleCloseActions", () => {
     }) as HTMLButtonElement;
     expect(closeButton.disabled).toBe(true);
     expect(
-      screen.getByRole("link", { name: /abrir plano de ação/i }).getAttribute("href"),
+      screen.getByRole("link", { name: /abrir plano de integridade e compliance/i }).getAttribute("href"),
     ).toBe("/admin/plano-acao?organizationId=org-1&formId=form-1&cycleId=cycle-1");
   });
 

@@ -9,7 +9,7 @@ const schema = compactSql(read("20260812000200_schema.sql"));
 const functions = compactSql(read("20260812000500_functions.sql"));
 const triggers = compactSql(read("20260812000600_triggers.sql"));
 
-describe("contrato canônico da supervisão do plano de ação", () => {
+describe("contrato canônico da supervisão do plano de integridade e compliance", () => {
   it("versiona alterações materiais e preserva rastreabilidade", () => {
     expect(schema).toContain("revisionbigintnotnulldefault1");
     expect(functions).toContain("new.revision:=old.revision+1");

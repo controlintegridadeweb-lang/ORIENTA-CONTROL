@@ -256,7 +256,10 @@ describe("fotografia bimestral sobre o relatório oficial", () => {
 
     expect(bytes.length).toBeGreaterThan(5_000);
     expect(pdf.getPageCount()).toBeGreaterThanOrEqual(6);
-    expect(overlaid.tracking?.disclaimer.toLowerCase()).toContain("não substitui o resultado fami oficial");
-    expect(BIMONTHLY_TRACKING_DISCLAIMER.toLowerCase()).toContain("não oficial");
+    expect(overlaid.tracking?.disclaimer.toLowerCase()).toContain(
+      "plano de integridade e compliance",
+    );
+    expect(overlaid.tracking?.disclaimer.toLowerCase()).not.toContain("fami");
+    expect(BIMONTHLY_TRACKING_DISCLAIMER.toLowerCase()).not.toContain("fami");
   });
 });

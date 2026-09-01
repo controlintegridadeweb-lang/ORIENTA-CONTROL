@@ -2,6 +2,7 @@
 
 import { Inbox, SearchX } from "lucide-react";
 import { formSurface } from "@/shared/layout/form-surface";
+import { reportCatalogLabels } from "@/shared/labels/official-labels";
 
 type Variant = "no-reports" | "no-filter-results";
 
@@ -11,8 +12,8 @@ const CFG: Record<
 > = {
   "no-reports": {
     icon: Inbox,
-    title: "Nenhum relatório disponível",
-    body: "O PDF oficial ficará disponível aqui após o encerramento da avaliação e a conclusão da emissão automática. Diagnósticos em andamento podem ser acompanhados no Dashboard e em Meus diagnósticos.",
+    title: reportCatalogLabels.emptyTitle,
+    body: reportCatalogLabels.emptyDescription,
     iconBg: "bg-slate-100",
     iconColor: "text-slate-500",
   },

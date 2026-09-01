@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import {
+  RESPONDENT_ACTION_PLAN_MODULE_LABEL,
+  RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL,
+} from "@/shared/navigation/respondent-portfolio-paths";
 import { navigationByRole } from "./navigation";
 
 function analysisLabels(role: keyof typeof navigationByRole) {
@@ -11,15 +15,19 @@ describe("navigationByRole", () => {
   it("mantém FAMI antes de recomendações e plano no perfil administrador", () => {
     const labels = analysisLabels("admin");
     expect(labels.indexOf("Resultado FAMI")).toBeLessThan(labels.indexOf("Recomendações"));
-    expect(labels.indexOf("Recomendações")).toBeLessThan(labels.indexOf("Plano de ação"));
+    expect(labels.indexOf("Recomendações")).toBeLessThan(labels.indexOf("Plano de integridade e compliance"));
   });
-
 
   it("mantém FAMI antes de recomendações e plano no perfil respondente", () => {
     const labels = analysisLabels("respondent");
-    const combined = "Recomendações e Plano de ação";
-    expect(labels.indexOf("Resultado FAMI")).toBeLessThan(labels.indexOf(combined));
-    expect(labels).toContain(combined);
+    expect(labels.indexOf("Resultado FAMI")).toBeLessThan(
+      labels.indexOf(RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL),
+    );
+    expect(labels.indexOf(RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL)).toBeLessThan(
+      labels.indexOf(RESPONDENT_ACTION_PLAN_MODULE_LABEL),
+    );
+    expect(labels).toContain(RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL);
+    expect(labels).toContain(RESPONDENT_ACTION_PLAN_MODULE_LABEL);
   });
 
   it("inclui Suporte no grupo Sistema para os dois perfis", () => {

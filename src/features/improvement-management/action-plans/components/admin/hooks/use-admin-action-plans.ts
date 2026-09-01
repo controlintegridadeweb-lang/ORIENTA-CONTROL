@@ -27,7 +27,7 @@ export function useAdminActionPlans(
     (signal: AbortSignal) => listAdminActionPlanMonitoring(query, signal),
     [query],
   );
-  const state = useAdminMonitoringRequest(request, "Falha ao carregar planos de ação.");
+  const state = useAdminMonitoringRequest(request, "Falha ao carregar planos de integridade e compliance.");
   const filterOptions = useRecommendationFilterOptions();
   return { ...state, filterOptions };
 }

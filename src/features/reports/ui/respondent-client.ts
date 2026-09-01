@@ -23,6 +23,7 @@ export async function listRespondentReports(
   if (input.from) params.set("from", input.from);
   if (input.to) params.set("to", input.to);
   if (input.referenceYear != null) params.set("referenceYear", String(input.referenceYear));
+  if (input.kind) params.set("kind", input.kind);
   if (input.limit != null) params.set("limit", String(input.limit));
   if (input.offset != null) params.set("offset", String(input.offset));
   const response = await fetch(`/api/reports/history${params.size ? `?${params}` : ""}`, {
@@ -62,6 +63,9 @@ export async function listRespondentReports(
       generatedAt: row.generatedAt,
       format: "pdf" as const,
       reportKind: defaultReportKindForOfficialPdf(),
+      catalogKind: row.catalogKind,
+      bimester: row.bimester ?? null,
+      generationKind: row.generationKind ?? null,
       status: "completed" as const,
     })),
     total: Number(body.total ?? 0),

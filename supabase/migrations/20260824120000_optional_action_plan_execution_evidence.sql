@@ -1,4 +1,4 @@
--- Comprovação da execução do plano de ação é opcional.
+-- Comprovação da execução do plano de integridade e compliance é opcional.
 -- O aceite administrativo e o encerramento do ciclo exigem ação concluída,
 -- sem pendência aberta e com aceite vigente; o anexo permanece disponível,
 -- sem bloquear o registro.
@@ -195,6 +195,6 @@ comment on function public.enforce_action_plan_supervision_note() is
   'Valida o parecer de supervisão. O aceite exige ação concluída e sem pendência aberta; comprovação da execução é opcional.';
 
 comment on function public.cycle_action_plan_supervision_blockers(uuid) is
-  'Bloqueios de encerramento do ciclo no plano de ação. Comprovação da execução não é pré-requisito.';
+  'Bloqueios de encerramento do ciclo no plano de integridade e compliance. Comprovação da execução não é pré-requisito.';
 
 notify pgrst, 'reload schema';

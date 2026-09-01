@@ -55,7 +55,7 @@ export const PORTFOLIO_PDF_CARD_OPTIONS: InstitutionalPdfCardOptions = {
 
 export const ACTION_PLAN_PDF_CARD_OPTIONS: InstitutionalPdfCardOptions = {
   includeActions: true,
-  actionsHeading: "Plano de ação",
+  actionsHeading: "Plano de integridade e compliance",
   columnSpecs: ACTION_PLAN_ACTION_COLUMN_SPECS,
   showSingleActionLastUpdate: true,
 };

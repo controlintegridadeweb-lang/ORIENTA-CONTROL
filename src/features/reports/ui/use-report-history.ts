@@ -68,6 +68,7 @@ export function useReportHistory() {
         from: filters.from,
         to: filters.to,
         referenceYear: filters.yearPreset ?? undefined,
+        kind: filters.kind || undefined,
         limit: HISTORY_PAGE_SIZE,
         offset,
       });
@@ -84,7 +85,7 @@ export function useReportHistory() {
     } finally {
       if (isLatest(requestId)) setLoadingHistory(false);
     }
-  }, [filters.from, filters.search, filters.status, filters.to, filters.yearPreset, offset, begin, isLatest]);
+  }, [filters.from, filters.kind, filters.search, filters.status, filters.to, filters.yearPreset, offset, begin, isLatest]);
 
   const refresh = useCallback(async () => {
     await loadHistory();

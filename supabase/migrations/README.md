@@ -1,8 +1,8 @@
 # Migrations do ORIENTA
 
-Este diretório contém **21 migrations SQL timestampadas**: as 10 primeiras formam a baseline canônica validada da primeira implantação e permanecem imutáveis; as seguintes são evoluções pós-baseline.
+Este diretório contém **22 migrations SQL timestampadas**: as 10 primeiras formam a baseline canônica validada da primeira implantação e permanecem imutáveis; as seguintes são evoluções pós-baseline.
 
-Não há migrations corretivas, backfills históricos ou dados reais neste diretório. A sequência atual vai de `20260812000100` a `20260826120000`.
+Não há migrations corretivas, backfills históricos ou dados reais neste diretório. A sequência atual vai de `20260812000100` a `20260901140000`.
 
 ## Ordem canônica
 
@@ -20,7 +20,7 @@ Não há migrations corretivas, backfills históricos ou dados reais neste diret
 | `20260812001000_contract_checks.sql` | Asserts de contrato da baseline e reload do schema PostgREST. |
 | `20260812001100_action_plan_deadline_change_requests.sql` | Solicitação, decisão administrativa, RLS e auditoria para alteração do prazo de conclusão de ações. |
 | `20260813000100_fami_preliminary_open_period_and_close.sql` | Cálculo do FAMI preliminar no período aberto, snapshot imutável no corte e fechamento automático. |
-| `20260814000100_action_plan_monitoring_export_fields.sql` | Inclui início da ação e ordem oficial de seção/pergunta na RPC de monitoramento do plano de ação. |
+| `20260814000100_action_plan_monitoring_export_fields.sql` | Inclui início da ação e ordem oficial de seção/pergunta na RPC de monitoramento do plano de integridade e compliance. |
 | `20260819000100_repair_cycles_manual_fami_workspace.sql` | Reparo da carga 2026: processamentos ausentes, FAMI oficial só por validação manual e prazo do período. |
 | `20260819120000_list_organization_respondents_profiles.sql` | Lista responsáveis do órgão a partir de `public.profiles`, sem depender do RLS de `auth.users`. |
 | `20260820120000_action_plan_progress_monotonic.sql` | Impede redução do percentual persistido da ação; o andamento só avança. |
@@ -28,7 +28,8 @@ Não há migrations corretivas, backfills históricos ou dados reais neste diret
 | `20260822190000_validation_draft_reads_cycle_state.sql` | O rascunho de validação lê ciclo e alvo sem `FOR UPDATE`, para o autosave não serializar com o veredito. |
 | `20260824120000_optional_action_plan_execution_evidence.sql` | Torna a comprovação da execução opcional: aceite e encerramento não dependem do anexo. |
 | `20260824143000_recommendation_status_optional_execution_evidence.sql` | Situação `completed` da recomendação segue o aceite vigente, não a comprovação da execução. |
-| `20260826120000_bimonthly_tracking_and_prelim_v2.sql` | Relatório bimestral imutável do plano de ação e FAMI preliminar `prelim_v2` por critério efetivamente concluído. |
+| `20260826120000_bimonthly_tracking_and_prelim_v2.sql` | Relatório bimestral imutável do plano de integridade e compliance e FAMI preliminar `prelim_v2` por critério efetivamente concluído. |
+| `20260901140000_report_catalog_entries.sql` | Inclui os relatórios bimestrais gerados no catálogo de histórico, ao lado do relatório anual oficial. |
 
 ## Regras
 

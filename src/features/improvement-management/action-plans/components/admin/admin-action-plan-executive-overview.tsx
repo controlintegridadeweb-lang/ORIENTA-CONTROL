@@ -74,7 +74,7 @@ function buildInstitutionalSummary(
   hasPlan: boolean,
 ): string {
   if (!hasPlan || stats.total === 0) {
-    return "Ainda não há ação cadastrada para esta recomendação. Quando criada, ela passará a compor o plano de ação da seção; acompanhe a evolução e registre orientações na supervisão quando necessário.";
+    return "Ainda não há ação cadastrada para esta recomendação. Quando criada, ela passará a compor o plano de integridade e compliance da seção; acompanhe a evolução e registre orientações na supervisão quando necessário.";
   }
   if (stats.active > 0 && stats.completed === stats.active) {
     return "Plano concluído pela organização. Revise entregas e evidências antes de encerrar a avaliação.";

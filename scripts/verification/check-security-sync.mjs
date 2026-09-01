@@ -388,7 +388,7 @@ requireMatch(
 requireMatch(
   "supabase/verify/action_plans_cycle_editability.sql",
   /revisão antiga foi aceita[\s\S]*sqlstate '40001'/,
-  "verificação SQL não cobre concorrência do plano de ação",
+  "verificação SQL não cobre concorrência do plano de integridade e compliance",
 );
 requireMatch(
   "supabase/verify/action_plan_progress_monotonic.sql",
@@ -409,7 +409,7 @@ requireMatch(
 requireMatch(
   "src/features/improvement-management/recommendations/components/hub/recommendation-actions-workspace.tsx",
   /handleRemotePlanChange[\s\S]*activePanel\.kind !== "none"[\s\S]*plano foi alterado em outra aba[\s\S]*table: "action_plans"[\s\S]*onChange: handleRemotePlanChange[\s\S]*table: "action_plan_documents"[\s\S]*onChange: handleRemotePlanChange/,
-  "Realtime pode sobrescrever edição aberta do plano de ação ou de suas comprovações",
+  "Realtime pode sobrescrever edição aberta do plano de integridade e compliance ou de suas comprovações",
 );
 
 requireMatch(

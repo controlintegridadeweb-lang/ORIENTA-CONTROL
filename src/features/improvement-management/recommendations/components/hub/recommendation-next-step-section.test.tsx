@@ -46,7 +46,7 @@ describe("RecommendationNextStepSection", () => {
     expect(cta.getAttribute("href")).toContain("new=1");
   });
 
-  it("oferece Ir para plano de ação quando já há ações", () => {
+  it("oferece Ir para plano de integridade e compliance quando já há ações", () => {
     render(
       <RecommendationNextStepSection
         actionCount={2}
@@ -54,7 +54,7 @@ describe("RecommendationNextStepSection", () => {
         highlightActionText="Publicar informações institucionais"
       />,
     );
-    expect(screen.getByRole("link", { name: /Ir para plano de ação/i })).toBeTruthy();
+    expect(screen.getByRole("link", { name: /Ir para plano de integridade e compliance/i })).toBeTruthy();
     expect(screen.getByText(/Atualizar ação/i)).toBeTruthy();
     expect(screen.queryByRole("link", { name: /Cadastrar ação$/i })).toBeNull();
   });

@@ -1,5 +1,5 @@
 -- Inclui início da ação e ordem oficial de seção/pergunta na RPC de monitoramento
--- do plano de ação. Sem esses campos a exportação não consegue datas reais nem
+-- do plano de integridade e compliance. Sem esses campos a exportação não consegue datas reais nem
 -- a hierarquia do formulário.
 
 create or replace function public.get_admin_action_plan_monitoring_page(

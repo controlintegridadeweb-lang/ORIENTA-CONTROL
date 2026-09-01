@@ -27,8 +27,8 @@ const DEFS: CardDef[] = [
   },
   {
     key: "in_progress",
-    label: "Em plano de ação",
-    hint: "Já têm plano de ação ativo.",
+    label: "Em plano de integridade e compliance",
+    hint: "Já têm plano de integridade e compliance ativo.",
     variant: "info",
     value: (s) => s.inProgress,
   },

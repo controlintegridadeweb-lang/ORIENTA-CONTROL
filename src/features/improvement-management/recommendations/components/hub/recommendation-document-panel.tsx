@@ -118,7 +118,7 @@ export function RecommendationDocumentPanel() {
         <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-4 py-4">
           <p className={formSurface.label}>Efeito esperado</p>
           <p className="mt-2 text-sm leading-relaxed text-slate-700">
-            A execução do plano de ação pode contribuir para melhores resultados em um próximo
+            A execução do plano de integridade e compliance pode contribuir para melhores resultados em um próximo
             diagnóstico. Ela não altera o resultado FAMI já concluído.
           </p>
         </div>

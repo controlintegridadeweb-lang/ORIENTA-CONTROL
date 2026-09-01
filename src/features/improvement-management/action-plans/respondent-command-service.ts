@@ -1,6 +1,6 @@
 import { hasDatabaseErrorCode, isForeignKeyViolation } from "@/infrastructure/supabase/database-error";
 /**
- * Comandos operacionais do plano de ação.
+ * Comandos operacionais do plano de integridade e compliance.
  *
  * Casos de uso distintos (create / update_progress / edit_details / cancel)
  * convergem na RPC transacional, preservando autorização e revisão no banco.
@@ -104,7 +104,7 @@ export class RespondentActionPlanCommandService {
         .map((state) => cycleStateLabelOrFallback(state))
         .join(" ou ");
       throw new DomainConflictError(
-        `O plano de ação só pode ser preenchido quando o diagnóstico estiver em ${eligibleStates} (estado atual: ${current}).`,
+        `O plano de integridade e compliance só pode ser preenchido quando o diagnóstico estiver em ${eligibleStates} (estado atual: ${current}).`,
       );
     }
 
@@ -122,7 +122,7 @@ export class RespondentActionPlanCommandService {
 
     const row = (Array.isArray(data) ? data[0] : data) as DeleteResult | null;
     if (!row?.plan_id || row.mode !== "deleted" || !Number.isInteger(row.revision)) {
-      throw new Error("A operação não retornou a exclusão do plano de ação.");
+      throw new Error("A operação não retornou a exclusão do plano de integridade e compliance.");
     }
 
     logInfo("action_plans.respondent.deleted", {
@@ -287,7 +287,7 @@ export class RespondentActionPlanCommandService {
         .map((state) => cycleStateLabelOrFallback(state))
         .join(" ou ");
       throw new DomainConflictError(
-        `O plano de ação só pode ser preenchido quando o diagnóstico estiver em ${eligibleStates} (estado atual: ${current}).`,
+        `O plano de integridade e compliance só pode ser preenchido quando o diagnóstico estiver em ${eligibleStates} (estado atual: ${current}).`,
       );
     }
 
@@ -320,7 +320,7 @@ export class RespondentActionPlanCommandService {
 
     const row = (Array.isArray(data) ? data[0] : data) as SaveResult | null;
     if (!row?.plan_id || !row.mode || !Number.isInteger(row.revision)) {
-      throw new Error("A operação não retornou o plano de ação persistido.");
+      throw new Error("A operação não retornou o plano de integridade e compliance persistido.");
     }
 
     logInfo(`action_plans.respondent.${row.mode}`, {
@@ -350,7 +350,7 @@ export class RespondentActionPlanCommandService {
     }
     if (hasDatabaseErrorCode(message, "action_plan_cycle_not_editable")) {
       throw new DomainConflictError(
-        "O diagnóstico não está disponível para edição do plano de ação.",
+        "O diagnóstico não está disponível para edição do plano de integridade e compliance.",
       );
     }
     if (hasDatabaseErrorCode(message, "action_plan_cancel_has_open_supervision_request")) {

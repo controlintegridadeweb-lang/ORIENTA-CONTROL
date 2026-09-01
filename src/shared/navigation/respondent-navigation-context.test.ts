@@ -11,6 +11,10 @@ import {
   respondentCycleReturnPathOrFallback,
   withRespondentReturnPath,
 } from "./respondent-navigation-context";
+import {
+  RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL,
+  RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL,
+} from "./respondent-portfolio-paths";
 
 describe("respondent navigation context", () => {
   it("serializes only active filters for the analysis list", () => {
@@ -29,7 +33,7 @@ describe("respondent navigation context", () => {
     );
   });
 
-  it("locks the action-plan list to items that already have a plan", () => {
+  it("normaliza retornos legados do plano para a lista de recomendações", () => {
     expect(
       respondentRecommendationListPath("action-plan", {
         search: "",
@@ -83,8 +87,14 @@ describe("respondent navigation context", () => {
       respondentReturnPathOrFallback("https://example.com", "/respondente/plano-acao"),
     ).toBe("/respondente/plano-acao");
     expect(respondentReturnLabel("/respondente/plano-acao?cycleId=cycle-1")).toBe(
-      "Voltar ao Plano de ação",
+      `Voltar ao ${RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL}`,
     );
+    expect(
+      respondentReturnLabel("/respondente/portfolio-recomendacoes?view=action-plan&cycleId=cycle-1"),
+    ).toBe(`Voltar ao ${RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL}`);
+    expect(
+      respondentReturnLabel("/respondente/portfolio-recomendacoes?cycleId=cycle-1"),
+    ).toBe(`Voltar a ${RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL}`);
     expect(
       respondentReturnLabel(
         "/respondente/plano-acao/secao/22222222-2222-4222-8222-222222222222/acoes?cycleId=33333333-3333-4333-8333-333333333333",
@@ -130,8 +140,15 @@ describe("respondent navigation context", () => {
       "/respondente/ciclos/cycle-1?questionId=question-1&returnTo=%2Frespondente%2Fevidencias%3Fview%3Dall%26status%3Dadjustment_requested",
     );
     expect(respondentCycleReturnLabel(returnTo)).toBe("Voltar às evidências");
-    expect(respondentCycleReturnLabel("/respondente/plano-acao?cycleId=cycle-1")).toBe("Voltar ao Plano de ação");
-    expect(respondentCycleReturnLabel("/respondente/portfolio-recomendacoes?cycleId=cycle-1")).toBe("Voltar a Recomendações");
+    expect(respondentCycleReturnLabel("/respondente/plano-acao?cycleId=cycle-1")).toBe(
+      `Voltar ao ${RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL}`,
+    );
+    expect(respondentCycleReturnLabel("/respondente/portfolio-recomendacoes?cycleId=cycle-1")).toBe(
+      `Voltar a ${RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL}`,
+    );
+    expect(
+      respondentCycleReturnLabel("/respondente/portfolio-recomendacoes?view=action-plan&cycleId=cycle-1"),
+    ).toBe(`Voltar ao ${RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL}`);
   });
 
 });

@@ -8,7 +8,7 @@ type Props = {
 
 /**
  * A recomendação é congelada no processamento do diagnóstico. Sua situação é
- * derivada do plano de ação; por isso esta área é somente de acompanhamento.
+ * derivada do plano de integridade e compliance; por isso esta área é somente de acompanhamento.
  */
 export function RecommendationActions({ item }: Props) {
   return (
@@ -19,7 +19,7 @@ export function RecommendationActions({ item }: Props) {
           {RECOMMENDATION_STATUS_LABELS[item.status]}
         </p>
         <p className="mt-2 text-sm leading-relaxed text-slate-600">
-          Esta situação é atualizada a partir do plano de ação vinculado. Para
+          Esta situação é atualizada a partir do plano de integridade e compliance vinculado. Para
           alterar o andamento, cadastre ou atualize as ações do plano.
         </p>
       </div>

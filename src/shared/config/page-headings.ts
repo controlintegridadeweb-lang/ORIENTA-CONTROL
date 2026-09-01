@@ -61,12 +61,12 @@ const ADMIN_HEADINGS: RouteHeading[] = [
     prefix: "/admin/recomendacoes",
     title: "Recomendações",
     description:
-      "Recomendações geradas após a conclusão da validação do diagnóstico. Consulte o motivo e acompanhe as ações vinculadas no Plano de ação.",
+      "Recomendações geradas após a conclusão da validação do diagnóstico. Consulte o motivo e acompanhe as ações vinculadas no Plano de integridade e compliance.",
     shellHeaderMode: "controls-only",
   },
   {
     prefix: "/admin/plano-acao",
-    title: "Plano de ação",
+    title: "Plano de integridade e compliance",
     description:
       "Execução operacional: ações, prazos, responsáveis, progresso e supervisão. Acompanhe a situação de cada ação na aba do plano vinculado.",
     shellHeaderMode: "controls-only",
@@ -94,7 +94,8 @@ const ADMIN_HEADINGS: RouteHeading[] = [
   {
     prefix: "/admin/relatorios",
     title: "Relatórios",
-    description: "Exportações e visões executivas para todas as organizações.",
+    description:
+      "Relatório anual dos diagnósticos concluídos e relatórios bimestrais gerados do plano de integridade e compliance.",
     shellHeaderMode: "controls-only",
   },
   {
@@ -130,12 +131,12 @@ const RESPONDENT_HEADINGS: RouteHeading[] = [
     prefix: "/respondente/portfolio-recomendacoes",
     title: "Recomendações",
     description:
-      "Recomendações geradas após a conclusão da validação do diagnóstico. O Plano de ação é liberado após a consolidação do diagnóstico.",
+      "Recomendações geradas após a conclusão da validação do diagnóstico. O Plano de integridade e compliance é liberado após a consolidação do diagnóstico.",
     shellHeaderMode: "controls-only",
   },
   {
     prefix: "/respondente/plano-acao",
-    title: "Plano de ação",
+    title: "Plano de integridade e compliance",
     description:
       "Ações com prazos, responsáveis e acompanhamento de progresso. Cada ação está vinculada à recomendação que a originou.",
     shellHeaderMode: "controls-only",
@@ -144,7 +145,7 @@ const RESPONDENT_HEADINGS: RouteHeading[] = [
     prefix: "/respondente/relatorios",
     title: "Relatórios e Histórico",
     description:
-      "PDFs oficiais emitidos para diagnósticos concluídos, com atalhos para Resultado FAMI, Recomendações e Plano de ação do mesmo diagnóstico.",
+      "Relatórios anuais do diagnóstico e relatórios bimestrais já gerados, com download e visualização do PDF.",
     shellHeaderMode: "controls-only",
   },
   {
@@ -169,7 +170,7 @@ const RESPONDENT_HEADINGS: RouteHeading[] = [
     prefix: "/respondente",
     title: "Área do respondente",
     description:
-      "Diagnósticos em andamento · Recomendações · Plano de ação · Relatórios e histórico · Resultado FAMI.",
+      "Diagnósticos em andamento · Recomendações · Plano de integridade e compliance · Relatórios e histórico · Resultado FAMI.",
     shellHeaderMode: "controls-only",
   },
 ];
@@ -193,17 +194,6 @@ function pickHeading(pathname: string, rows: RouteHeading[]): PageHeading | null
 export function getPageHeadingForPath(pathname: string): PageHeading {
   const url = new URL(pathname, "http://orienta.local");
   const path = url.pathname;
-  if (
-    path === "/respondente/portfolio-recomendacoes" &&
-    url.searchParams.get("view") === "action-plan"
-  ) {
-    return {
-      title: "Plano de ação",
-      description:
-        "Ações com prazos, responsáveis e acompanhamento de progresso, vinculadas às recomendações que as originaram.",
-      shellHeaderMode: "controls-only",
-    };
-  }
   if (path.startsWith("/admin")) {
     return pickHeading(path, ADMIN_HEADINGS) ?? {
       title: "Administração",

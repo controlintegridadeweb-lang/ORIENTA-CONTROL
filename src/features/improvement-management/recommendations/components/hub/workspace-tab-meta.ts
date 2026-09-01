@@ -17,7 +17,7 @@ export const WORKSPACE_TABS: WorkspaceTabMeta[] = [
   },
   {
     key: "actions",
-    label: "Plano de ação",
+    label: "Plano de integridade e compliance",
     tagline: "Como vamos melhorar?",
     description: "Ações executáveis com responsável, início, final, progresso e comprovações.",
   },
@@ -46,7 +46,7 @@ export function workspaceTabsForBasePath(
   options?: { actionsHrefSegment?: string; actionsLabel?: string },
 ): { href: string; label: string; tagline: string }[] {
   const actionsSegment = options?.actionsHrefSegment ?? "acoes";
-  const actionsLabel = options?.actionsLabel ?? "Plano de ação";
+  const actionsLabel = options?.actionsLabel ?? "Plano de integridade e compliance";
   return order.map((key) => {
     const meta = WORKSPACE_TABS.find((t) => t.key === key)!;
     const segment =

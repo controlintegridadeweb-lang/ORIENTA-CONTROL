@@ -48,7 +48,7 @@ async function fetchOverviewItems(): Promise<ActionPlanListItem[]> {
 
 /**
  * Cache em memória do overview do respondente (`action-plans?view=overview`).
- * Compartilhado entre portfólio, plano de ação e boot do FAMI.
+ * Compartilhado entre portfólio, plano de integridade e compliance e boot do FAMI.
  */
 export async function getRespondentOverviewItems(
   options?: { force?: boolean },

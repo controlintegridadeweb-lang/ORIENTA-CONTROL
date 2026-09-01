@@ -4,10 +4,13 @@ import { useMemo } from "react";
 import { formSurface } from "@/shared/layout/form-surface";
 import { YearSelect } from "@/shared/ui/components/year-select";
 import { ResponsiveFilterPanel } from "@/shared/ui/components/responsive-filter-panel";
+import type { ReportCatalogKind } from "@/features/reports/report-catalog";
+import { reportCatalogLabels } from "@/shared/labels/official-labels";
 
 export type HistoryFilterState = {
   search: string;
   status: "" | "completed" | "outdated";
+  kind: "" | ReportCatalogKind;
   from: string;
   to: string;
   /** Ano contido no período institucional de referência do diagnóstico. */
@@ -17,6 +20,7 @@ export type HistoryFilterState = {
 export const INITIAL_HISTORY_FILTERS: HistoryFilterState = {
   search: "",
   status: "",
+  kind: "",
   from: "",
   to: "",
   yearPreset: null,
@@ -24,7 +28,12 @@ export const INITIAL_HISTORY_FILTERS: HistoryFilterState = {
 
 function hasActiveHistoryFilters(value: HistoryFilterState): boolean {
   return Boolean(
-    value.search.trim() || value.status || value.from || value.to || value.yearPreset != null,
+    value.search.trim() ||
+      value.status ||
+      value.kind ||
+      value.from ||
+      value.to ||
+      value.yearPreset != null,
   );
 }
 
@@ -61,6 +70,19 @@ export function RespondentReportsFilters({ value, onChange, onClear, availableYe
         value={value.yearPreset}
         onChange={(year) => patch({ yearPreset: year })}
       />
+
+      <label className={formSurface.fieldGroup}>
+        <span className={formSurface.label}>{reportCatalogLabels.typeFilter}</span>
+        <select
+          value={value.kind}
+          onChange={(event) => patch({ kind: event.target.value as HistoryFilterState["kind"] })}
+          className={formSurface.inputSelect}
+        >
+          <option value="">{reportCatalogLabels.allTypes}</option>
+          <option value="annual">{reportCatalogLabels.annual}</option>
+          <option value="bimonthly">{reportCatalogLabels.bimonthly}</option>
+        </select>
+      </label>
 
       <label className={formSurface.fieldGroup}>
         <span className={formSurface.label}>Situação</span>

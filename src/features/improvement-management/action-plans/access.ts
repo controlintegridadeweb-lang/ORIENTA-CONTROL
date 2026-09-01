@@ -15,7 +15,7 @@ export type Caller = { role: AppRole; organizationId: string | null };
 // @/infrastructure/api/domain-errors; o mapeamento para HTTP vive em handleDomainError.
 export class ActionPlansValidationError extends DomainValidationError {
   constructor(issues: { path: string; message: string }[]) {
-    super(issues, "Dados inválidos para plano de ação.");
+    super(issues, "Dados inválidos para plano de integridade e compliance.");
     this.name = "ActionPlansValidationError";
   }
 }

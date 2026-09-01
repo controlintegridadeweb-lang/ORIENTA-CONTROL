@@ -21,7 +21,7 @@ export const formSurface = {
   /** Padding padrão dos blocos “Maturidade / Atividades” no admin. */
   dashboardPanelPadding: "p-6 md:p-7",
   /**
-   * Card de entidade em lista (recomendações, planos de ação): mesma base que
+   * Card de entidade em lista (recomendações, planos de integridade e compliance): mesma base que
    * `dashboardPanel` / `card` (radius xl, sombra token), hover alinhado ao KPI.
    */
   entityListCard:

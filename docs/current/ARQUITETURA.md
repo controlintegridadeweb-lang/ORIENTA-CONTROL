@@ -76,7 +76,7 @@ contrato validado em runtime.
 - **Evidências:** arquivos, links, validação estrutural e associação à resposta.
 - **Resultado FAMI:** cálculo transacional na conclusão da validação e snapshot
   oficial congelado.
-- **Gestão da melhoria:** recomendações, planos de ação e supervisão dentro de um
+- **Gestão da melhoria:** recomendações, planos de integridade e compliance e supervisão dentro de um
   único bounded context, evitando dependências circulares artificiais.
 - **Progresso do respondente:** leitura consolidada por ano e diagnóstico.
 - **Relatórios:** emissões oficiais versionadas e arquivos persistidos.
@@ -116,8 +116,8 @@ o manifesto é copiado temporariamente para `var/imports/`, ignorado pelo Git.
 ## Inventário verificável em 27 de agosto de 2026
 
 - **55 páginas** do App Router.
-- **109 rotas de API**.
-- Vitest | **329 arquivos** em `src/`.
+- **110 rotas de API**.
+- Vitest | **334 arquivos** em `src/`.
 - **4 testes Node.js** de scripts, executados fora do Vitest.
 - **1 jornada Playwright canônica**.
 

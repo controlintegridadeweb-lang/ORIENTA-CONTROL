@@ -160,7 +160,7 @@ export function RespondentRecommendationFilters({
 
       {!lockedPlanScope ? (
         <label className={formSurface.fieldGroup}>
-          <span className={formSurface.label}>Plano de ação</span>
+          <span className={formSurface.label}>Plano de integridade e compliance</span>
           <select
             className={formSurface.inputSelect}
             value={value.withPlan}

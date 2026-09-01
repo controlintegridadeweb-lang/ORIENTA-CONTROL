@@ -71,7 +71,7 @@ export const famiAnnualLabels = {
 export const famiPreliminaryLabels = {
   title: "Acompanhamento",
   description:
-    "Relatórios bimestrais do plano de ação e FAMI preliminar quadrimestral. O FAMI preliminar não substitui o FAMI anual.",
+    "Relatórios bimestrais do plano de integridade e compliance e FAMI preliminar quadrimestral. O FAMI preliminar não substitui o FAMI anual.",
   panoramaLabel: "FAMI preliminar",
   unofficial:
     "Tem histórico e exportação próprios e não entra no PDF do Resultado FAMI.",
@@ -109,11 +109,40 @@ export const famiPreliminaryLabels = {
   exportMenu: "Exportar",
   exportPdf: "Exportar PDF",
   exportXlsx: "Exportar Excel",
-  exportPdfHint: "Relatório bimestral em PDF.",
+  exportPdfHint:
+    "Relatório bimestral de acompanhamento do plano de integridade e compliance.",
   exportXlsxHint: "Planilha do snapshot bimestral.",
+  exportPreliminaryPdfHint: "FAMI preliminar quadrimestral em PDF.",
+  exportPreliminaryXlsxHint: "Planilha do FAMI preliminar quadrimestral.",
   officialFami: "FAMI oficial",
   previousPreliminary: "FAMI preliminar anterior",
   currentPreliminary: "FAMI preliminar atual",
   recoveredPoints: "Pontos recuperados",
   criteriaNowScoring: "Critérios que passaram a pontuar",
+};
+
+/** Títulos do documento PDF (capa). O filtro do histórico usa `reportCatalogLabels`. */
+export const reportDocumentTitles = {
+  annual: (year: number) => `Relatório anual ${year}`,
+  bimonthly:
+    "Relatório bimestral de acompanhamento do plano de integridade e compliance",
+} as const;
+
+/** Tipos visíveis no histórico de Relatórios. */
+export const reportCatalogLabels = {
+  annual: "Relatório anual",
+  bimonthly: "Relatório bimestral",
+  annualHint: "PDF oficial emitido no encerramento do diagnóstico, com o Resultado FAMI consolidado.",
+  bimonthlyHint:
+    "Fotografia do plano de integridade e compliance no bimestre. Não inclui Resultado FAMI.",
+  historyTitle: "Histórico de relatórios",
+  historyDescription:
+    "Relatórios anuais do diagnóstico e relatórios bimestrais já gerados do plano de integridade e compliance.",
+  typeFilter: "Tipo",
+  allTypes: "Todos",
+  emptyTitle: "Nenhum relatório disponível",
+  emptyDescription:
+    "O relatório anual fica disponível após o encerramento do diagnóstico. Os relatórios bimestrais aparecem depois de gerados no acompanhamento.",
+  adminEmptyDescription:
+    "Não há PDF anual nem relatório bimestral para o filtro atual. A primeira emissão anual ocorre no encerramento do diagnóstico.",
 };

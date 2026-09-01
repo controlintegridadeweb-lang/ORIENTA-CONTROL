@@ -144,7 +144,7 @@ export function AdminActionPlanShell({
   if (error && !data) {
     return (
       <AsyncErrorState
-        title="Não foi possível carregar o plano de ação"
+        title="Não foi possível carregar o plano de integridade e compliance"
         message={error}
         onRetry={refetch}
         retrying={loading}

@@ -1,4 +1,5 @@
 import { FileBarChart, type LucideIcon } from "lucide-react";
+import type { ReportCatalogKind } from "@/features/reports/report-catalog";
 
 /**
  * Catálogo de relatórios.
@@ -76,6 +77,9 @@ export type RespondentReportHistoryRow = {
   generatedAt: string;
   format: "pdf";
   reportKind: RespondentReportKind;
+  catalogKind: ReportCatalogKind;
+  bimester?: number | null;
+  generationKind?: "manual" | "automatic" | null;
   status: "completed";
 };
 

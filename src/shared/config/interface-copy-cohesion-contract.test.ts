@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL } from "@/shared/navigation/respondent-portfolio-paths";
 
 function collectFiles(directory: string): string[] {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -10,7 +11,7 @@ function collectFiles(directory: string): string[] {
 }
 
 describe("contrato de coesão da linguagem visível", () => {
-  it("mantém o termo oficial Plano de ação e elimina o rótulo técnico anterior", () => {
+  it("mantém o termo oficial Plano de integridade e compliance e elimina o rótulo técnico anterior", () => {
     const source = collectFiles(path.join(process.cwd(), "src"))
       .filter(
         (file) => /\.(ts|tsx)$/.test(file) && !/\.test\.(ts|tsx)$/.test(file),
@@ -18,8 +19,17 @@ describe("contrato de coesão da linguagem visível", () => {
       .map((file) => fs.readFileSync(file, "utf8"))
       .join("\n");
 
+    const normalized = source.replaceAll(RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL, "");
+
+    expect(source).toContain("Plano de integridade e compliance");
+    expect(normalized).not.toMatch(/Planos de integridade(?! e compliance)/);
+    expect(normalized).not.toMatch(/planos de integridade(?! e compliance)/);
+    expect(normalized).not.toMatch(/Plano de integridade(?! e compliance)/);
+    expect(normalized).not.toMatch(/plano de integridade(?! e compliance)/);
+    expect(source).not.toContain("Plano de ação");
     expect(source).not.toContain("Plano de Ação");
     expect(source).not.toContain("Planos de Ação");
+    expect(normalized).not.toContain("Plano de Integridade");
     expect(source).not.toContain("Score FAMI");
   });
 

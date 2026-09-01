@@ -58,7 +58,7 @@ export type MappedRecommendationRow = {
   formVersion: number;
   organizationId: string;
   organizationName: string;
-  /** Estado do diagnóstico que define se o plano de ação já pode existir. */
+  /** Estado do diagnóstico que define se o plano de integridade e compliance já pode existir. */
   cycleId: string;
   cycleState: string;
   questionId: string;

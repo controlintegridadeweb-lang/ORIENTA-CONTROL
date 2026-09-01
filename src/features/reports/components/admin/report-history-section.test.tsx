@@ -38,6 +38,9 @@ function report(over: Partial<ReportHistoryOption> = {}): ReportHistoryOption {
     fileSizeBytes: 1024,
     outdatedReason: null,
     downloadPath: "/reports/report-1",
+    catalogKind: "annual",
+    bimester: null,
+    generationKind: null,
     ...over,
   };
 }
@@ -65,8 +68,9 @@ describe("ReportHistorySection", () => {
   it("apresenta a emissão com a hierarquia visual dos demais cards institucionais", () => {
     render(<ReportHistorySection controller={controller()} />);
 
-    expect(screen.getByRole("heading", { name: "Histórico de emissões" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Histórico de relatórios" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "teste" })).toBeTruthy();
+    expect(screen.getByText("Relatório anual 2026")).toBeTruthy();
     expect(screen.getByText("Emissão")).toBeTruthy();
     expect(screen.getByText("v1")).toBeTruthy();
     expect(screen.getByText("Processamento")).toBeTruthy();
@@ -76,6 +80,30 @@ describe("ReportHistorySection", () => {
     expect(screen.getByText("SHA-256")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Baixar" })).toBeTruthy();
     expect(screen.queryByText("Versão anterior")).toBeNull();
+  });
+
+  it("identifica o relatório bimestral no histórico", () => {
+    render(
+      <ReportHistorySection
+        controller={controller({
+          history: [
+            report({
+              catalogKind: "bimonthly",
+              periodLabel: "2º bimestre de 2026",
+              bimester: 2,
+              generationKind: "manual",
+              fileSha256: null,
+            }),
+          ],
+        })}
+      />,
+    );
+
+    expect(screen.getByText("Relatório bimestral")).toBeTruthy();
+    expect(screen.getByText("Bimestre")).toBeTruthy();
+    expect(screen.getByText("2º")).toBeTruthy();
+    expect(screen.queryByText("Processamento")).toBeNull();
+    expect(screen.queryByText("Política FAMI")).toBeNull();
   });
 
   it("dispara o download da emissão listada", () => {

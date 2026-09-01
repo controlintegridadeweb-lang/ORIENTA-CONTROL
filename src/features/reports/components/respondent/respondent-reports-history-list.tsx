@@ -2,8 +2,9 @@
 
 import { formatPlatformDateTime } from "@/shared/datetime/platform-date-time";
 import Link from "next/link";
-import { Download, Eye, History, Share2 } from "lucide-react";
+import { Download, History } from "lucide-react";
 import type { RespondentReportHistoryRow } from "@/features/reports/ui/respondent-presentation";
+import { catalogKindLabel } from "@/features/reports/report-catalog";
 import { formSurface } from "@/shared/layout/form-surface";
 import { typography } from "@/shared/layout/design-system";
 import { RespondentReportsEmptyState } from "./respondent-reports-empty-state";
@@ -20,22 +21,16 @@ function formatWhen(value: string): string {
 type Props = {
   items: RespondentReportHistoryRow[];
   onDownload: (row: RespondentReportHistoryRow) => void;
-  onPreview: (row: RespondentReportHistoryRow) => void;
-  onShare: (row: RespondentReportHistoryRow) => void;
 };
 
 function HistoryReportRow({
   row,
   outdated,
   onDownload,
-  onPreview,
-  onShare,
 }: {
   row: RespondentReportHistoryRow;
   outdated: boolean;
   onDownload: () => void;
-  onPreview: () => void;
-  onShare: () => void;
 }) {
   return (
     <li className={`${formSurface.entityListCard} overflow-hidden`}>
@@ -43,6 +38,13 @@ function HistoryReportRow({
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className={typography.cardTitle}>{row.formName}</h3>
+            <span
+              className={`${formSurface.badge.base} ${
+                row.catalogKind === "bimonthly" ? formSurface.badge.info : formSurface.badge.brand
+              }`}
+            >
+              {catalogKindLabel(row.catalogKind, row.referenceStartYear)}
+            </span>
             {outdated ? (
               <span className={`${formSurface.badge.base} ${formSurface.badge.warning}`}>
                 Versão anterior
@@ -67,14 +69,6 @@ function HistoryReportRow({
             <Download className="h-4 w-4" aria-hidden />
             <span className="sr-only">Baixar</span>
           </button>
-          <button type="button" className={ACTION_BTN} title="Visualizar PDF oficial" onClick={onPreview}>
-            <Eye className="h-4 w-4" aria-hidden />
-            <span className="sr-only">Visualizar</span>
-          </button>
-          <button type="button" className={ACTION_BTN} title="Compartilhar PDF oficial" onClick={onShare}>
-            <Share2 className="h-4 w-4" aria-hidden />
-            <span className="sr-only">Compartilhar</span>
-          </button>
         </div>
       </div>
 
@@ -83,14 +77,23 @@ function HistoryReportRow({
           <dt className={typography.meta}>Emissão</dt>
           <dd className="mt-0.5 font-medium text-slate-800">v{row.emissionVersion}</dd>
         </div>
-        <div>
-          <dt className={typography.meta}>Processamento</dt>
-          <dd className="mt-0.5 font-medium text-slate-800">nº {row.processingVersion}</dd>
-        </div>
-        <div>
-          <dt className={typography.meta}>Política FAMI</dt>
-          <dd className="mt-0.5 font-medium text-slate-800">{row.policyVersion}</dd>
-        </div>
+        {row.catalogKind === "bimonthly" && row.bimester != null ? (
+          <div>
+            <dt className={typography.meta}>Bimestre</dt>
+            <dd className="mt-0.5 font-medium text-slate-800">{row.bimester}º</dd>
+          </div>
+        ) : (
+          <div>
+            <dt className={typography.meta}>Processamento</dt>
+            <dd className="mt-0.5 font-medium text-slate-800">nº {row.processingVersion}</dd>
+          </div>
+        )}
+        {row.catalogKind === "annual" ? (
+          <div>
+            <dt className={typography.meta}>Política FAMI</dt>
+            <dd className="mt-0.5 font-medium text-slate-800">{row.policyVersion}</dd>
+          </div>
+        ) : null}
         {row.formTemplateVersion != null ? (
           <div>
             <dt className={typography.meta}>Template</dt>
@@ -116,20 +119,22 @@ function HistoryReportRow({
         </div>
       ) : null}
 
-      <nav
-        className="border-t border-slate-100 px-4 py-3 sm:px-5"
-        aria-label={`Abrir versão do relatório ${row.formName}`}
-      >
-        <Link
-          href={`/respondente/relatorios/${encodeURIComponent(row.id)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-800 hover:underline"
+      {row.catalogKind === "annual" ? (
+        <nav
+          className="border-t border-slate-100 px-4 py-3 sm:px-5"
+          aria-label={`Abrir versão do relatório ${row.formName}`}
         >
-          <History className="h-4 w-4" aria-hidden />
-          Abrir emissão imutável em nova aba
-        </Link>
-      </nav>
+          <Link
+            href={`/respondente/relatorios/${encodeURIComponent(row.id)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-800 hover:underline"
+          >
+            <History className="h-4 w-4" aria-hidden />
+            Abrir emissão imutável em nova aba
+          </Link>
+        </nav>
+      ) : null}
     </li>
   );
 }
@@ -137,8 +142,6 @@ function HistoryReportRow({
 export function RespondentReportsHistoryList({
   items,
   onDownload,
-  onPreview,
-  onShare,
 }: Props) {
   if (items.length === 0) return <RespondentReportsEmptyState variant="no-reports" />;
 
@@ -150,8 +153,6 @@ export function RespondentReportsHistoryList({
           row={row}
           outdated={!row.isCurrent}
           onDownload={() => onDownload(row)}
-          onPreview={() => onPreview(row)}
-          onShare={() => onShare(row)}
         />
       ))}
     </ul>

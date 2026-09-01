@@ -1,9 +1,11 @@
 "use client";
 
+import { z } from "zod";
 import writeXlsxFile from "write-excel-file/browser";
 import { businessToday } from "@/shared/datetime/business-date";
+import { famiPreliminaryLabels } from "@/shared/labels/official-labels";
+import { readPreliminaryApiError } from "@/features/fami/preliminary/panel-presentation";
 import type { RespondentRecommendationItem } from "@/features/improvement-management/recommendations/respondent-presentation";
-import { generateActionPlanPdf } from "./action-plan-export-pdf";
 import {
   actionPlanExcelAutoFilterFeature,
   buildActionPlanXlsxSheets,
@@ -13,6 +15,15 @@ import {
   toActionPlanExportSourceFromRespondent,
 } from "./get-action-plan-export-data";
 import type { ActionPlanExportFormat } from "./action-plan-export-types";
+import {
+  resolveActionPlanExportCycleId,
+  ACTION_PLAN_BIMONTHLY_EXPORT_NO_REPORT,
+  actionPlanBimonthlyExportErrorMessage,
+} from "@/features/improvement-management/monitoring/bimonthly/export-pdf-shared";
+
+const bimonthlyListSchema = z.object({
+  history: z.array(z.object({ id: z.string().uuid() })),
+});
 
 function downloadBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
@@ -25,16 +36,47 @@ function downloadBlob(blob: Blob, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
+async function downloadLatestBimonthlyTrackingPdf(cycleId: string): Promise<void> {
+  const listResponse = await fetch(`/api/monitoring/bimonthly?cycleId=${encodeURIComponent(cycleId)}`, {
+    cache: "no-store",
+  });
+  const listRaw: unknown = await listResponse.json();
+  if (!listResponse.ok) {
+    throw new Error(readPreliminaryApiError(listRaw, famiPreliminaryLabels.loadError));
+  }
+  const parsed = bimonthlyListSchema.safeParse(listRaw);
+  if (!parsed.success || parsed.data.history.length === 0) {
+    throw new Error(actionPlanBimonthlyExportErrorMessage(ACTION_PLAN_BIMONTHLY_EXPORT_NO_REPORT));
+  }
+
+  const reportId = parsed.data.history[0]!.id;
+  const exportResponse = await fetch(
+    `/api/monitoring/bimonthly/${reportId}/export?format=pdf`,
+    { cache: "no-store" },
+  );
+  if (!exportResponse.ok) {
+    const body: unknown = await exportResponse.json().catch(() => null);
+    throw new Error(readPreliminaryApiError(body, "Falha ao exportar o relatório bimestral."));
+  }
+  const blob = await exportResponse.blob();
+  const disposition = exportResponse.headers.get("Content-Disposition") ?? "";
+  const filename =
+    disposition.match(/filename="?([^";]+)"?/i)?.[1] ??
+    `relatorio-bimestral-${businessToday()}.pdf`;
+  downloadBlob(blob, filename);
+}
+
 /**
- * Exportação do plano de ação do respondente a partir dos itens já carregados.
- * Sem N+1: usa os `plans` embutidos. Sem histórico inventado.
+ * Exportação do plano de integridade e compliance do respondente a partir dos itens já carregados.
+ * PDF: relatório bimestral de acompanhamento (mesmo documento da aba Evolução).
+ * Excel: planilha analítica por ação.
  */
 export async function downloadRespondentActionPlanExport(
   items: readonly RespondentRecommendationItem[],
   format: ActionPlanExportFormat,
 ): Promise<void> {
   const data = getActionPlanExportData(items.map(toActionPlanExportSourceFromRespondent));
-  const fileBaseName = "plano-de-acao";
+  const fileBaseName = "plano-de-integridade-e-compliance";
 
   if (format === "xlsx") {
     type BrowserFileContent = Blob | ArrayBuffer | File;
@@ -47,7 +89,12 @@ export async function downloadRespondentActionPlanExport(
     return;
   }
 
-  const pdf = await generateActionPlanPdf(data);
-  const bytes = Uint8Array.from(pdf.content);
-  downloadBlob(new Blob([bytes], { type: "application/pdf" }), pdf.filename);
+  const resolvedCycle = resolveActionPlanExportCycleId(
+    undefined,
+    items.map((item) => item.cycleId),
+  );
+  if ("error" in resolvedCycle) {
+    throw new Error(actionPlanBimonthlyExportErrorMessage(resolvedCycle.error));
+  }
+  await downloadLatestBimonthlyTrackingPdf(resolvedCycle.cycleId);
 }

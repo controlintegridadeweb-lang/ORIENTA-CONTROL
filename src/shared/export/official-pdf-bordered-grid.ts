@@ -224,6 +224,40 @@ export function drawGridBlock(
   return { ...cur, y: blockBottom - 12 };
 }
 
+/** Quebra grades longas em blocos que cabem acima da área reservada ao rodapé. */
+export function drawGridBlockPaginated(
+  doc: PdfGridHost,
+  cursor: Cursor,
+  rows: GridCell[][],
+): Cursor {
+  if (rows.length === 0) return cursor;
+
+  const heights = rows.map((cells) => rowHeight(doc, cells));
+  let cur = cursor;
+  let index = 0;
+
+  while (index < rows.length) {
+    let batchHeight = 0;
+    let batchEnd = index;
+
+    while (batchEnd < rows.length) {
+      const nextHeight = heights[batchEnd]!;
+      const totalIfAdded = batchHeight + nextHeight;
+      const available = cur.y - doc.contentBottom - 14;
+
+      if (batchEnd > index && totalIfAdded > available) break;
+
+      batchHeight = totalIfAdded;
+      batchEnd += 1;
+    }
+
+    cur = drawGridBlock(doc, cur, rows.slice(index, batchEnd));
+    index = batchEnd;
+  }
+
+  return cur;
+}
+
 /** Linha de grade com borda preta e texto centralizado (modelo de referência). */
 export function drawGridRow(
   doc: PdfGridHost,

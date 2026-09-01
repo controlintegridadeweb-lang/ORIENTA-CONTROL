@@ -12,7 +12,7 @@ export async function generateBimonthlyReportExcel(
   const summaryRows = [
     [
       "Caráter",
-      "NÃO OFICIAL — fotografia histórica do plano de ação; não substitui o Resultado FAMI oficial.",
+      "Fotografia histórica do plano de integridade e compliance no corte do bimestre.",
     ],
     ["Ações ativas", detail.summary.activeActionCount],
     ["Não iniciadas", detail.summary.notStartedCount],

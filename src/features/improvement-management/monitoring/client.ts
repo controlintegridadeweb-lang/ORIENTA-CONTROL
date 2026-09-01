@@ -131,9 +131,9 @@ export function exportAdminActionPlans(
   const params = actionPlanParams(query, { export: true, format });
   const fallback =
     format === "xlsx"
-      ? "plano-de-acao.xlsx"
+      ? "plano-de-integridade-e-compliance.xlsx"
       : format === "pdf"
-        ? "plano-de-acao.pdf"
+        ? "relatorio-bimestral.pdf"
         : "acoes-monitoradas.csv";
   return downloadExportFile(
     `/api/admin/action-plans/monitoring?${params.toString()}`,

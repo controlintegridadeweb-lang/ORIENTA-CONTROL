@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { sidebar } from "@/shared/layout/design-system";
 import { useSidebar } from "./sidebar-shell";
@@ -13,8 +13,29 @@ import { useSidebar } from "./sidebar-shell";
  */
 const EXACT_MATCH_ROOTS = new Set(["/", "/admin", "/respondente"]);
 
-function isActive(pathname: string, href: string): boolean {
-  const hrefPathname = href.split("?", 1)[0] ?? href;
+export function isSidebarNavActive(pathname: string, href: string, search = ""): boolean {
+  const [hrefPathname = href, hrefSearch = ""] = href.split("?", 2);
+  const currentParams = new URLSearchParams(search);
+  const hrefParams = new URLSearchParams(hrefSearch);
+
+  if (
+    hrefPathname === "/respondente/portfolio-recomendacoes" &&
+    !hrefParams.has("view")
+  ) {
+    return (
+      pathname === "/respondente/portfolio-recomendacoes" &&
+      currentParams.get("view") !== "action-plan"
+    );
+  }
+
+  if (hrefPathname === "/respondente/plano-acao") {
+    if (pathname.startsWith("/respondente/plano-acao")) return true;
+    return (
+      pathname === "/respondente/portfolio-recomendacoes" &&
+      currentParams.get("view") === "action-plan"
+    );
+  }
+
   if (hrefPathname === "/respondente/formularios" && pathname.startsWith("/respondente/ciclos/")) {
     return true;
   }
@@ -33,7 +54,8 @@ export function SidebarNavLink({
   children: ReactNode;
 }) {
   const pathname = usePathname() ?? "";
-  const active = isActive(pathname, href);
+  const searchParams = useSearchParams();
+  const active = isSidebarNavActive(pathname, href, searchParams.toString());
   const { closeDrawer } = useSidebar();
 
   return (

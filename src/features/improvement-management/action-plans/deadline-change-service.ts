@@ -56,7 +56,7 @@ function mapDeadlineChangeError(error: unknown): never {
     ["action_plan_deadline_change_revision_conflict", "A ação foi alterada em outra aba. Atualize a página antes de solicitar o novo final."],
     ["action_plan_deadline_change_already_decided", "Esta solicitação já recebeu uma decisão administrativa."],
     ["action_plan_deadline_change_stale_request", "O final vigente da ação mudou depois desta solicitação. Ela não pode mais ser aprovada."],
-    ["action_plan_deadline_change_cycle_not_editable", "O diagnóstico não está em um estado que permita alterar o plano de ação."],
+    ["action_plan_deadline_change_cycle_not_editable", "O diagnóstico não está em um estado que permita alterar o plano de integridade e compliance."],
     ["action_plan_deadline_change_action_closed", "Ações concluídas ou canceladas não podem ter o final alterado."],
   ];
   for (const [needle, userMessage] of conflicts) {

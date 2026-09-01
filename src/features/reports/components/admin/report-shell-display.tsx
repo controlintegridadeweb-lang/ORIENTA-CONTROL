@@ -20,6 +20,9 @@ export function formatReportDate(value: string): string {
 }
 
 export function reportDownloadFilename(report: ReportHistoryOption): string {
+  if (report.catalogKind === "bimonthly") {
+    return `relatorio-bimestral-${report.referenceStartYear ?? "ano"}-b${report.bimester ?? "x"}-${report.id.slice(0, 8)}.pdf`;
+  }
   const safeName = report.formName
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")

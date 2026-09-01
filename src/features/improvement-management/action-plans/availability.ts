@@ -6,7 +6,7 @@ export type ActionPlanAvailability = {
 };
 
 /**
- * Explica por que o plano de ação ainda não pode ser iniciado.
+ * Explica por que o plano de integridade e compliance ainda não pode ser iniciado.
  * A regra de elegibilidade permanece centralizada em `isActionPlanEligible`;
  * esta função apenas traduz o estado para uma orientação de interface coerente.
  */
@@ -20,13 +20,13 @@ export function actionPlanAvailabilityForCycleState(
       return {
         title: "Diagnóstico ainda não aberto",
         description:
-          "O plano de ação será liberado depois que o diagnóstico for aberto, respondido, validado e consolidado.",
+          "O plano de integridade e compliance será liberado depois que o diagnóstico for aberto, respondido, validado e consolidado.",
       };
     case "in_response":
       return {
         title: "Aguardando envio do diagnóstico",
         description:
-          "O plano de ação será liberado depois do envio, da validação e da consolidação do diagnóstico.",
+          "O plano de integridade e compliance será liberado depois do envio, da validação e da consolidação do diagnóstico.",
       };
     case "awaiting_adjustment":
       return {
@@ -39,7 +39,7 @@ export function actionPlanAvailabilityForCycleState(
       return {
         title: "Aguardando validação",
         description:
-          "O plano de ação será liberado após a administração validar e consolidar o diagnóstico.",
+          "O plano de integridade e compliance será liberado após a administração validar e consolidar o diagnóstico.",
       };
     case "completed":
       return {
@@ -49,9 +49,9 @@ export function actionPlanAvailabilityForCycleState(
       };
     default:
       return {
-        title: "Plano de ação indisponível",
+        title: "Plano de integridade e compliance indisponível",
         description:
-          "O plano de ação será liberado quando o diagnóstico alcançar a etapa de consolidação.",
+          "O plano de integridade e compliance será liberado quando o diagnóstico alcançar a etapa de consolidação.",
       };
   }
 }

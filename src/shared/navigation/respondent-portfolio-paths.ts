@@ -4,11 +4,20 @@ import {
 } from "./respondent-navigation-context";
 import { parseUuidParam } from "@/shared/validation/uuid";
 
-/** Portfólio de recomendações do respondente. */
+/** Caminho canônico da lista de recomendações do respondente. */
+export const RESPONDENT_RECOMMENDATIONS_LIST_PATH = "/respondente/portfolio-recomendacoes";
+
+/** Caminho canônico da lista do plano (redireciona para a visão action-plan do workspace). */
+export const RESPONDENT_ACTION_PLAN_LIST_PATH = "/respondente/plano-acao";
+
+/** Aba de recomendações dentro do workspace unificado do respondente. */
 export const RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL = "Recomendações";
 
+/** Aba do plano dentro do workspace unificado do respondente. */
+export const RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL = "Plano de integridade e compliance";
+
 /** Área operacional de ações vinculadas às recomendações. */
-export const RESPONDENT_ACTION_PLAN_MODULE_LABEL = "Plano de ação";
+export const RESPONDENT_ACTION_PLAN_MODULE_LABEL = "Plano de integridade e compliance";
 
 /**
  * Tela canônica exibida depois que o servidor confirma o envio.
@@ -40,7 +49,7 @@ export function respondentActionWorkspacePath(
 ): string {
   const safeRecommendationId = parseUuidParam(recommendationId);
   if (!safeRecommendationId) {
-    throw new Error("recommendationId inválido para o workspace do Plano de ação.");
+    throw new Error("recommendationId inválido para o workspace do Plano de integridade e compliance.");
   }
   return withRespondentReturnPath(
     `${RESPONDENT_ACTION_WORKSPACE_BASE}/${encodeURIComponent(safeRecommendationId)}/${tab}`,
@@ -59,7 +68,7 @@ export function respondentSectionActionWorkspacePath(
   const safeSectionId = parseUuidParam(sectionId);
   const safeCycleId = parseUuidParam(cycleId);
   if (!safeSectionId || !safeCycleId) {
-    throw new Error("sectionId/cycleId inválidos para o Plano de ação da seção.");
+    throw new Error("sectionId/cycleId inválidos para o Plano de integridade e compliance da seção.");
   }
   const path = `${RESPONDENT_ACTION_WORKSPACE_BASE}/secao/${encodeURIComponent(safeSectionId)}/${tab}?cycleId=${encodeURIComponent(safeCycleId)}`;
   return withRespondentReturnPath(path, options?.returnTo);

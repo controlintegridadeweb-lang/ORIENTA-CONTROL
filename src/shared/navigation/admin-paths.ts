@@ -2,7 +2,7 @@ export type AdminPlanoAcaoDetailSection = "visao-geral" | "acoes" | "monitoramen
 
 const ADMIN_BASE_PATH = "/admin";
 
-/** Página completa do plano de ação (workspace de supervisão). */
+/** Página completa do plano de integridade e compliance (workspace de supervisão). */
 export function adminPlanoAcaoDetailHref(
   recommendationId: string,
   section: AdminPlanoAcaoDetailSection = "visao-geral",

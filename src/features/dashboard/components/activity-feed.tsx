@@ -24,7 +24,7 @@ const TABLE_LABELS: Record<string, string> = {
   evidence_validations: "validação de evidência",
   validation_analysis_drafts: "rascunho de análise",
   recommendations: "recomendação",
-  action_plans: "plano de ação",
+  action_plans: "plano de integridade e compliance",
   forms: "formulário",
   organizations: "organização",
   users: "usuário",

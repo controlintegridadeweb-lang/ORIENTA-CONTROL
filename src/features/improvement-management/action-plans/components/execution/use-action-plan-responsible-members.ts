@@ -7,7 +7,7 @@ import {
 } from "@/features/improvement-management/action-plans/client";
 import { describeError } from "@/infrastructure/notifications/notify";
 
-/** Carrega respondentes elegíveis para área responsável do plano de ação. */
+/** Carrega respondentes elegíveis para área responsável do plano de integridade e compliance. */
 export function useActionPlanResponsibleMembers(enabled: boolean) {
   const [members, setMembers] = useState<ActionPlanResponsibleMember[]>([]);
   const [loading, setLoading] = useState(false);

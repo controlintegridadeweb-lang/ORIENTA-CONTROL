@@ -18,7 +18,7 @@ export const ADMIN_RECOMMENDATION_CARD_LABELS = {
   situation: "Situação",
   progress: "Progresso",
   detail: "Detalhe",
-  actionPlan: "Plano de ação",
+  actionPlan: "Plano de integridade e compliance",
 } as const;
 
 export type AdminRecommendationCardViewModel = {

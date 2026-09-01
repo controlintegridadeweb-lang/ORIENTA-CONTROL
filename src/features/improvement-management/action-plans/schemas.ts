@@ -2,7 +2,7 @@ import { z } from "zod";
 import { recommendationStatusSchema } from "@/shared/domain/recommendation-status";
 import { isLocalDate } from "@/shared/datetime/business-date";
 
-/** Estados persistidos do plano de ação. Atraso é SLA calculado pelo prazo. */
+/** Estados persistidos do plano de integridade e compliance. Atraso é SLA calculado pelo prazo. */
 const planStatusSchema = z.enum([
   "not_started",
   "in_progress",

@@ -9,7 +9,7 @@ type Props = {
   params: Promise<{ recommendationId: string }>;
 };
 
-/** Workspace operacional: Visão geral / Plano de ação / Monitoramento. */
+/** Workspace operacional: Visão geral / Plano de integridade e compliance / Monitoramento. */
 export default async function RespondentePlanoAcaoDetailLayout({ children, params }: Props) {
   const { recommendationId: rawId } = await params;
   const recommendationId = parseUuidParam(rawId);
@@ -31,7 +31,7 @@ export default async function RespondentePlanoAcaoDetailLayout({ children, param
         listPath="/respondente/portfolio-recomendacoes"
         detailBasePath={`/respondente/plano-acao/${recommendationId}`}
         actionsTabHrefSegment="acoes"
-        actionsTabLabel="Plano de ação"
+        actionsTabLabel="Plano de integridade e compliance"
         workspaceSurface="operational"
       >
         {children}

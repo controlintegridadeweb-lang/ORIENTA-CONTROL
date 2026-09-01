@@ -38,7 +38,7 @@ As 10 migrations da baseline consolidada (`20260812000100`–`20260812001000`) p
 npm run test:e2e
 ```
 
-Homologar login, MFA, RLS, upload com validação estrutural, devolução, reabertura, FAMI, recomendações, plano de ação, relatório e concorrência otimista.
+Homologar login, MFA, RLS, upload com validação estrutural, devolução, reabertura, FAMI, recomendações, plano de integridade e compliance, relatório e concorrência otimista.
 
 ## 5. Operacional
 

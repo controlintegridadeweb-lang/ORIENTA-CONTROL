@@ -1,5 +1,5 @@
 /**
- * Consultas de planos de ação, recomendações e histórico de auditoria.
+ * Consultas de planos de integridade e compliance, recomendações e histórico de auditoria.
  * Escritas operacionais pertencem exclusivamente ao serviço de comando do
  * respondente; pareceres administrativos permanecem em serviço próprio.
  */

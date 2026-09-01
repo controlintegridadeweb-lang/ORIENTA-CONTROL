@@ -10,7 +10,7 @@ export function AdminDashboardHero() {
       ariaLabel="Dashboard administrativo"
       overline="Painel administrativo"
       title="Dashboard administrativo"
-      description="Acompanhe diagnósticos, evidências, recomendações, planos de ação e indicadores institucionais."
+      description="Acompanhe diagnósticos, evidências, recomendações, planos de integridade e compliance e indicadores institucionais."
       image={HERO_IMAGE}
       loading="lazy"
     />

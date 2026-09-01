@@ -133,7 +133,7 @@ function compareActions(a: ActionPlanAction, b: ActionPlanAction): number {
 }
 
 /**
- * Read model de apresentação do Plano de ação na lógica de guarda-chuva:
+ * Read model de apresentação do Plano de integridade e compliance na lógica de guarda-chuva:
  * Diagnóstico → Eixo → Seção → Plano da seção → Ações.
  *
  * A recomendação continua como vínculo de origem de cada ação, mas deixa de ser

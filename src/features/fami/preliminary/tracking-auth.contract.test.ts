@@ -12,6 +12,7 @@ describe("autorização do acompanhamento e do FAMI preliminar", () => {
     const bimonthly = source("src/app/api/monitoring/bimonthly/route.ts");
     const detail = source("src/app/api/monitoring/bimonthly/[reportId]/route.ts");
     const exported = source("src/app/api/monitoring/bimonthly/[reportId]/export/route.ts");
+    const preliminaryExport = source("src/app/api/fami/preliminary/[processingId]/export/route.ts");
 
     expect(fami).toContain('roles: ["admin", "respondent"]');
     expect(fami).toContain('roles: ["admin"]');
@@ -24,6 +25,9 @@ describe("autorização do acompanhamento e do FAMI preliminar", () => {
     expect(exported).toContain('roles: ["admin", "respondent"]');
     expect(exported).toContain("ensureOrganizationAccess");
     expect(exported).not.toContain("export const POST");
+    expect(preliminaryExport).toContain('roles: ["admin", "respondent"]');
+    expect(preliminaryExport).toContain("ensureOrganizationAccess");
+    expect(preliminaryExport).not.toContain("export const POST");
   });
 
   it("o cron fecha primeiro o bimestre e depois o quadrimestre", () => {

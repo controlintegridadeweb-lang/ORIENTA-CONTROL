@@ -13,6 +13,14 @@ const migration = fs
   .toLowerCase();
 
 describe("catálogo de diagnósticos para relatório", () => {
+  it("une relatório anual e relatório bimestral no histórico paginado", () => {
+    expect(migration).toContain("report_kind");
+    expect(migration).toContain("'annual'");
+    expect(migration).toContain("'bimonthly'");
+    expect(migration).toContain("action_plan_bimonthly_reports");
+    expect(migration).toContain("union all");
+  });
+
   it("oferece busca, paginação e consulta exata por ciclo", () => {
     expect(migration).toContain("p_cycle_id uuid");
     expect(migration).toContain("p_search text");

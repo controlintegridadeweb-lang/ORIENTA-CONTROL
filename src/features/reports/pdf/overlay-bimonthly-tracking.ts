@@ -16,7 +16,7 @@ import {
 import type { OfficialReportData, ReportActionMovementSource } from "./report-types";
 
 export const BIMONTHLY_TRACKING_DISCLAIMER =
-  "Fotografia do plano de ação no corte do bimestre. Não oficial: não substitui o Resultado FAMI oficial.";
+  "Fotografia do plano de integridade e compliance no corte do bimestre.";
 
 export const BIMONTHLY_TRACKING_OFFICIAL_FAMI_MISSING =
   "bimonthly_tracking_official_fami_missing";

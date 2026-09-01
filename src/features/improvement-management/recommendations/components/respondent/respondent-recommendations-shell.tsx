@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { PanelSection } from "@/shared/ui/components/panel-section";
 import { layout, typography } from "@/shared/layout/design-system";
@@ -42,7 +41,11 @@ import {
   type RespondentRecommendationListView,
 } from "@/shared/navigation/respondent-navigation-context";
 
-import { underlineTabLinkClass } from "@/shared/ui/components/underline-tabs";
+import { UnderlineTabs } from "@/shared/ui/components/underline-tabs";
+import {
+  RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL,
+  RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL,
+} from "@/shared/navigation/respondent-portfolio-paths";
 import { isInvalidUuidParam, parseUuidParam, uuidParamOrEmpty } from "@/shared/validation/uuid";
 import { buildSectionActionPlanHierarchy, sectionActionPlanSourcesFromListItems } from "@/features/improvement-management/action-plans/section-action-plan-model";
 
@@ -370,7 +373,7 @@ export function RespondentRecommendationsShell() {
     if (filteredRows.length === 0) {
       notify.info(
         actionPlanView
-          ? "Nenhum plano de ação para exportar."
+          ? "Nenhuma seção com plano para exportar."
           : "Nenhuma recomendação para exportar.",
       );
       return;
@@ -418,10 +421,29 @@ export function RespondentRecommendationsShell() {
     return "no-recommendations";
   })();
 
-  const listTitle = actionPlanView ? "Planos de ação" : "Recomendações";
+  const listTitle = actionPlanView
+    ? RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL
+    : "Recomendações";
   const listDescription = actionPlanView
-    ? "Organizado em Diagnóstico → Eixo → Seção → Plano da seção → Ações. As recomendações permanecem como origem rastreável."
+    ? "A estrutura parte do diagnóstico e avança por eixo, seção, plano da seção e ações, mantendo as recomendações como referência para identificar a origem de cada ação."
     : "Apresentadas na mesma sequência do diagnóstico, por eixo, seção e recomendação.";
+
+  const workspaceTabs = useMemo(
+    () => [
+      {
+        href: analysisTabPath,
+        label: RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL,
+        active: !actionPlanView,
+      },
+      {
+        href: actionPlanTabPath,
+        label: RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL,
+        title: "Planos de integridade e compliance agrupados por eixo e seção",
+        active: actionPlanView,
+      },
+    ],
+    [actionPlanTabPath, actionPlanView, analysisTabPath],
+  );
 
   return (
     <div className={layout.pageStack}>
@@ -433,34 +455,22 @@ export function RespondentRecommendationsShell() {
           onExport={handleExport}
           exportDisabled={filteredRows.length === 0}
         />
+        <div className="-mt-px overflow-hidden rounded-b-2xl border border-slate-200/90 bg-white shadow-sm">
+          <UnderlineTabs
+            embedded
+            aria-label="Visões do workspace de recomendações"
+            tabs={workspaceTabs}
+          />
+        </div>
       </div>
 
-      <section className={`${layout.panelStack} pt-1`}>
-        <nav
-          className="flex flex-wrap gap-0 border-b border-slate-200/90 bg-slate-50/40"
-          aria-label="Visões do workspace de recomendações"
-        >
-          <Link
-            href={analysisTabPath}
-            className={underlineTabLinkClass(!actionPlanView)}
-            aria-current={!actionPlanView ? "page" : undefined}
-          >
-            Recomendações
-          </Link>
-          <Link
-            href={actionPlanTabPath}
-            className={underlineTabLinkClass(actionPlanView)}
-            aria-current={actionPlanView ? "page" : undefined}
-          >
-            Plano de ação
-          </Link>
-        </nav>
+      <section className={`${layout.panelStack} pt-4`}>
 
         {error ? (
           <AsyncErrorState
             title={
               actionPlanView
-                ? "Não foi possível carregar os planos de ação"
+                ? "Não foi possível carregar o plano de integridade e compliance"
                 : "Não foi possível carregar as recomendações"
             }
             message={error}

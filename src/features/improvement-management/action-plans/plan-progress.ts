@@ -87,7 +87,7 @@ export function progressFromPlans(plans: ProgressBearingAction[]): number {
 }
 
 /**
- * Status que encerram um plano de ação (sem mais ação pendente).
+ * Status que encerram um plano de integridade e compliance (sem mais ação pendente).
  * Substitui comparações inline com strings literais.
  */
 export const PLAN_TERMINAL_STATUSES: ReadonlySet<PlanStatus> = new Set([

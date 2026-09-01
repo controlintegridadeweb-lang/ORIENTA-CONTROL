@@ -121,7 +121,7 @@ export async function loadRecommendationActionPlanCompletionReadiness(
     .maybeSingle();
   if (error) throw error;
   if (!data?.cycle_id) {
-    throw new Error("Recomendação não encontrada ao verificar os bloqueios do plano de ação.");
+    throw new Error("Recomendação não encontrada ao verificar os bloqueios do plano de integridade e compliance.");
   }
 
   const readiness = await loadActionPlanCompletionReadiness(

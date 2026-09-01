@@ -62,7 +62,7 @@ function throwExceptionWriteError(error: unknown): never {
   }
   if (message.includes("recommendation_exception_cycle_not_editable")) {
     throw new LibraryConflictError(
-      "A exceção só pode ser solicitada durante a execução do plano de ação.",
+      "A exceção só pode ser solicitada durante a execução do plano de integridade e compliance.",
     );
   }
   if (message.includes("recommendation_exception_not_current")) {
@@ -143,7 +143,7 @@ export class ExceptionsService {
     }
     if (scope.cycles.state !== "validated") {
       throw new LibraryConflictError(
-        "A exceção só pode ser solicitada durante a execução do plano de ação.",
+        "A exceção só pode ser solicitada durante a execução do plano de integridade e compliance.",
       );
     }
     if (questionId && scope.question_versions.question_id !== questionId) {

@@ -13,7 +13,7 @@ type Props = {
 export function AdminActionPlanSummaryCards({ summary, activeFilter, onSelect }: Props) {
   return (
     <AdminMonitoringSummaryCards
-      ariaLabel="Indicadores do plano de ação"
+      ariaLabel="Indicadores do plano de integridade e compliance"
       activeFilter={activeFilter}
       clearFilter={null}
       onSelect={onSelect}

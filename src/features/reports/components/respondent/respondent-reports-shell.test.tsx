@@ -1,43 +1,57 @@
 // @vitest-environment jsdom
 
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 
 const mocks = vi.hoisted(() => ({
-  fetchPersistedReportPdf: vi.fn(),
-  revokeObjectURL: vi.fn(),
-  createObjectURL: vi.fn(),
+  fetchCatalogReportPdf: vi.fn(),
+  downloadPdfBlob: vi.fn(),
+  notifySuccess: vi.fn(),
   notifyError: vi.fn(),
 }));
 
 vi.mock("@/features/reports/ui/client", () => ({
-  fetchPersistedReportPdf: mocks.fetchPersistedReportPdf,
-  downloadPdfBlob: vi.fn(),
+  fetchCatalogReportPdf: mocks.fetchCatalogReportPdf,
+  downloadPdfBlob: mocks.downloadPdfBlob,
 }));
 vi.mock("@/infrastructure/notifications/notify", () => ({
   describeError: (_error: unknown, fallback: string) => fallback,
   notify: {
     loading: vi.fn(() => "notification"),
-    success: vi.fn(),
+    success: mocks.notifySuccess,
     error: mocks.notifyError,
   },
 }));
 vi.mock("@/features/reports/ui/use-report-history", () => ({
   useReportHistory: () => ({
     history: [
-      { id: "report-a", downloadPath: "a.pdf", formName: "A", processingVersion: 1, policyVersion: "v3", emissionVersion: 1 },
-      { id: "report-b", downloadPath: "b.pdf", formName: "B", processingVersion: 1, policyVersion: "v3", emissionVersion: 1 },
+      {
+        id: "report-a",
+        downloadPath: "a.pdf",
+        formName: "Diagnóstico",
+        processingVersion: 1,
+        policyVersion: "v3",
+        emissionVersion: 1,
+        catalogKind: "annual",
+      },
     ],
     loading: false,
     filters: {},
     setFilters: vi.fn(),
     filteredHistory: [
-      { id: "report-a", downloadPath: "a.pdf", formName: "A", processingVersion: 1, policyVersion: "v3", emissionVersion: 1 },
-      { id: "report-b", downloadPath: "b.pdf", formName: "B", processingVersion: 1, policyVersion: "v3", emissionVersion: 1 },
+      {
+        id: "report-a",
+        downloadPath: "a.pdf",
+        formName: "Diagnóstico",
+        processingVersion: 1,
+        policyVersion: "v3",
+        emissionVersion: 1,
+        catalogKind: "annual",
+      },
     ],
     reportHistoryYears: [],
-    total: 2,
+    total: 1,
     offset: 0,
     pageSize: 25,
     hasMore: false,
@@ -53,50 +67,47 @@ vi.mock("./respondent-reports-filters", () => ({
   RespondentReportsFilters: () => null,
 }));
 vi.mock("./respondent-reports-history-list", () => ({
-  RespondentReportsHistoryList: ({ items, onPreview }: { items: Array<{ id: string }>; onPreview: (row: unknown) => void }) => (
-    <div>{items.map((row) => <button key={row.id} onClick={() => onPreview(row)}>Abrir {row.id}</button>)}</div>
-  ),
-}));
-vi.mock("./respondent-reports-preview-drawer", () => ({
-  RespondentReportsPreviewDrawer: ({ row, previewUrl }: { row: { id: string } | null; previewUrl: string | null }) => (
-    <output data-testid="preview">{row?.id ?? "none"}:{previewUrl ?? "loading"}</output>
+  RespondentReportsHistoryList: ({
+    items,
+    onDownload,
+  }: {
+    items: Array<{ id: string }>;
+    onDownload: (row: unknown) => void;
+  }) => (
+    <div>
+      {items.map((row) => (
+        <button key={row.id} onClick={() => onDownload(row)}>
+          Baixar {row.id}
+        </button>
+      ))}
+    </div>
   ),
 }));
 vi.mock("./respondent-reports-empty-state", () => ({ RespondentReportsEmptyState: () => null }));
-vi.mock("@/shared/ui/components/panel-section", () => ({ PanelSection: ({ children }: { children: ReactNode }) => <section>{children}</section> }));
+vi.mock("@/shared/ui/components/panel-section", () => ({
+  PanelSection: ({ children }: { children: ReactNode }) => <section>{children}</section>,
+}));
 
 import { RespondentReportsShell } from "./respondent-reports-shell";
 
-describe("RespondentReportsShell — preview concorrente", () => {
+describe("RespondentReportsShell", () => {
   beforeEach(() => {
-    mocks.fetchPersistedReportPdf.mockReset();
-    mocks.revokeObjectURL.mockReset();
-    mocks.createObjectURL.mockReset();
+    mocks.fetchCatalogReportPdf.mockReset();
+    mocks.downloadPdfBlob.mockReset();
+    mocks.notifySuccess.mockReset();
     mocks.notifyError.mockReset();
-    Object.defineProperty(URL, "createObjectURL", { configurable: true, value: mocks.createObjectURL });
-    Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: mocks.revokeObjectURL });
   });
 
-  it("mantém o PDF do relatório mais recente e revoga a URL obsoleta", async () => {
-    let resolveA!: (blob: Blob) => void;
-    let resolveB!: (blob: Blob) => void;
-    mocks.fetchPersistedReportPdf
-      .mockReturnValueOnce(new Promise((resolve) => { resolveA = resolve; }))
-      .mockReturnValueOnce(new Promise((resolve) => { resolveB = resolve; }));
-    mocks.createObjectURL
-      .mockReturnValueOnce("blob:b")
-      .mockReturnValueOnce("blob:a");
+  it("baixa o PDF da emissão listada", async () => {
+    const blob = new Blob(["pdf"], { type: "application/pdf" });
+    mocks.fetchCatalogReportPdf.mockResolvedValue(blob);
 
     render(<RespondentReportsShell />);
-    fireEvent.click(screen.getByRole("button", { name: "Abrir report-a" }));
-    fireEvent.click(screen.getByRole("button", { name: "Abrir report-b" }));
+    fireEvent.click(screen.getByRole("button", { name: "Baixar report-a" }));
 
-    await act(async () => resolveB(new Blob(["b"], { type: "application/pdf" })));
-    await waitFor(() => expect(screen.getByTestId("preview").textContent).toBe("report-b:blob:b"));
-
-    await act(async () => resolveA(new Blob(["a"], { type: "application/pdf" })));
-
-    expect(screen.getByTestId("preview").textContent).toBe("report-b:blob:b");
-    expect(mocks.revokeObjectURL).toHaveBeenCalledWith("blob:a");
+    await waitFor(() => {
+      expect(mocks.fetchCatalogReportPdf).toHaveBeenCalledWith("a.pdf");
+      expect(mocks.downloadPdfBlob).toHaveBeenCalledWith(blob, expect.stringContaining("relatorio-orienta-diagnostico"));
+    });
   });
 });

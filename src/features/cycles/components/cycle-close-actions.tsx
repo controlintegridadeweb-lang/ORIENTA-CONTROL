@@ -118,16 +118,16 @@ export function CycleCloseActions({
             Encerramento da avaliação
           </h2>
           <p className="mt-1 text-xs leading-relaxed text-slate-500">
-            Disponível após o acompanhamento do plano de ação.
+            Disponível após o acompanhamento do plano de integridade e compliance.
           </p>
           {!actionPlanReady && summary.length > 0 ? (
             <p className="mt-2 text-sm leading-relaxed text-slate-600">
-              Pendências no plano de ação: {summary.join("; ")}.{" "}
+              Pendências no plano de integridade e compliance: {summary.join("; ")}.{" "}
               <Link
                 href={planHref}
                 className="font-medium text-brand-700 hover:underline"
               >
-                Abrir plano de ação
+                Abrir plano de integridade e compliance
               </Link>
             </p>
           ) : !referenceReady ? (
@@ -142,7 +142,7 @@ export function CycleCloseActions({
             </p>
           ) : (
             <p className="mt-2 text-sm leading-relaxed text-slate-600">
-              O plano de ação e a referência institucional estão aptos. Ao encerrar,
+              O plano de integridade e compliance e a referência institucional estão aptos. Ao encerrar,
               o relatório oficial será emitido automaticamente.
             </p>
           )}

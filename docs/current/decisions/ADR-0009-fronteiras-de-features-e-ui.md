@@ -6,7 +6,7 @@
 ## Contexto
 A árvore possuía camadas genéricas de `components` e `presentation`, imports
 profundos entre features e ciclos arquiteturais entre validação, formulários,
-recomendações, planos de ação e monitoramento. Isso permitia que um componente
+recomendações, planos de integridade e compliance e monitoramento. Isso permitia que um componente
 ou serviço mudasse por motivos pertencentes a vários domínios.
 
 ## Decisão
@@ -16,7 +16,7 @@ consumidos por outra feature são expostos por `ui.ts`. Dependências entre
 features devem formar um grafo acíclico. Casos de uso que coordenam domínios
 independentes ficam em `application`.
 
-Recomendações, planos de ação e monitoramento formam o bounded context
+Recomendações, planos de integridade e compliance e monitoramento formam o bounded context
 `improvement-management`. A validação possui contexto próprio. O progresso do
 respondente possui um read model separado.
 

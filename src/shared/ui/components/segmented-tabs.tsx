@@ -31,7 +31,7 @@ type SegmentedTabsProps<T extends string> = {
   value: T;
   onChange: (id: T) => void;
   /**
-   * `card` — contorno branco tipo barra elevada (Biblioteca, Plano de acao).
+   * `card` — contorno branco tipo barra elevada (Biblioteca, Plano de integridade e compliance).
    * `bare` — apenas tablist para embutir em faixa pai (ex.: FAMI).
    */
   variant?: "card" | "bare";

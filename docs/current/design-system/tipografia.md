@@ -214,7 +214,7 @@ A hierarquia visual deve refletir a arquitetura da informação sem criar novos 
 - Ações de `PageHeader`: no mobile ocupam a largura disponível e retornam ao tamanho natural a partir de `sm`.
 - Estados vazios: use `EmptyState`; loading e erro devem usar os componentes compartilhados equivalentes.
 
-### Hierarquia do Plano de Ação
+### Hierarquia do Plano de integridade e compliance
 
 A apresentação gerencial usa sempre a mesma ordem:
 
@@ -222,7 +222,7 @@ A apresentação gerencial usa sempre a mesma ordem:
 Diagnóstico
 → Eixo
 → Seção
-→ Plano de ação da seção
+→ Plano de integridade e compliance da seção
 → Ações
 ```
 

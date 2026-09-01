@@ -119,7 +119,7 @@ export async function POST(request: Request) {
         }
         if (hasDatabaseErrorCode(causeMessage, "report_action_plan_changed")) {
           return NextResponse.json(
-            { error: "O plano de ação foi alterado durante a emissão. Recarregue os dados e emita novamente." },
+            { error: "O plano de integridade e compliance foi alterado durante a emissão. Recarregue os dados e emita novamente." },
             { status: 409 },
           );
         }
@@ -164,7 +164,7 @@ export async function POST(request: Request) {
     }
     if (hasDatabaseErrorCode(cause, "report_action_plan_not_closed")) {
       return NextResponse.json(
-        { error: "O relatório oficial não pode ser emitido porque ainda há recomendações sem tratamento concluído no plano de ação." },
+        { error: "O relatório oficial não pode ser emitido porque ainda há recomendações sem tratamento concluído no plano de integridade e compliance." },
         { status: 409 },
       );
     }

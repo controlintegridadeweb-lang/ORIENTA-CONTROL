@@ -1,10 +1,14 @@
 import { parseUuidParam } from "@/shared/validation/uuid";
+import {
+  RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL,
+  RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL,
+} from "./respondent-portfolio-paths";
 
 /**
- * Contexto de retorno entre a análise de recomendações e a execução do plano.
+ * Contexto de retorno entre a aba de recomendações e a aba do plano de integridade e compliance.
  *
- * A lista usa um único workspace com duas visões. O caminho legado de Plano de
- * ação continua aceito apenas para redirecionamentos e retornos já salvos.
+ * A lista usa um único workspace com duas visões. O caminho legado de
+ * `/respondente/plano-acao` continua aceito apenas para redirecionamentos e retornos já salvos.
  */
 export type RespondentRecommendationListView = "analysis" | "action-plan";
 
@@ -112,15 +116,15 @@ export function respondentReturnLabel(returnPath: string): string {
     returnPath === RESPONDENT_ACTION_PLAN_LEGACY_PATH ||
     returnPath.startsWith(`${RESPONDENT_ACTION_PLAN_LEGACY_PATH}?`)
   ) {
-    return "Voltar ao Plano de ação";
+    return `Voltar ao ${RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL}`;
   }
   try {
     const url = new URL(returnPath, "http://orienta.local");
     return url.searchParams.get("view") === "action-plan"
-      ? "Voltar ao Plano de ação"
-      : "Voltar a Recomendações";
+      ? `Voltar ao ${RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL}`
+      : `Voltar a ${RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL}`;
   } catch {
-    return "Voltar a Recomendações";
+    return `Voltar a ${RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL}`;
   }
 }
 
@@ -240,11 +244,13 @@ export function respondentCycleReturnLabel(returnPath: string): string {
   if (returnPath === RESPONDENT_EVIDENCES_PATH || returnPath.startsWith(`${RESPONDENT_EVIDENCES_PATH}?`)) {
     return "Voltar às evidências";
   }
-  if (respondentReturnLabel(returnPath) === "Voltar ao Plano de ação") {
-    return "Voltar ao Plano de ação";
-  }
-  if (returnPath === RESPONDENT_RECOMMENDATIONS_PATH || returnPath.startsWith(`${RESPONDENT_RECOMMENDATIONS_PATH}?`)) {
-    return "Voltar a Recomendações";
+  if (
+    returnPath === RESPONDENT_RECOMMENDATIONS_PATH ||
+    returnPath.startsWith(`${RESPONDENT_RECOMMENDATIONS_PATH}?`) ||
+    returnPath === RESPONDENT_ACTION_PLAN_LEGACY_PATH ||
+    returnPath.startsWith(`${RESPONDENT_ACTION_PLAN_LEGACY_PATH}?`)
+  ) {
+    return respondentReturnLabel(returnPath);
   }
   return "Voltar para meus diagnósticos";
 }

@@ -24,7 +24,9 @@ export function renderAnnexesSection(doc: OrientaPdfDocument): Cursor {
   );
 
   cur = renderEvidencesSubsection(doc, cur);
-  cur = renderEvolutionSubsection(doc, cur);
+  if (!doc.data.tracking) {
+    cur = renderEvolutionSubsection(doc, cur);
+  }
   cur = doc.drawSubsectionTitle(cur, "Emissão do relatório");
 
   const items = reportEmissionLines({

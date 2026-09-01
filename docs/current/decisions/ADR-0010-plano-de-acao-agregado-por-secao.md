@@ -1,4 +1,4 @@
-# ADR-0010 — Plano de ação agregado por seção
+# ADR-0010 — Plano de integridade e compliance agregado por seção
 
 ## Status
 
@@ -12,15 +12,15 @@ O ORIENTA precisa permitir a leitura de contribuição em cadeia: ações execut
 
 ## Decisão
 
-A apresentação oficial do plano de ação passa a seguir:
+A apresentação oficial do plano de integridade e compliance passa a seguir:
 
-**Diagnóstico → Eixo → Seção → Plano de ação da seção → Ações.**
+**Diagnóstico → Eixo → Seção → Plano de integridade e compliance da seção → Ações.**
 
 A cadeia de rastreabilidade permanece:
 
 **Pergunta → Resposta/validação → Recomendação → Ação → Comprovação → Supervisão.**
 
-O Plano de ação da seção é um *read model*. Não será criada tabela, coluna de progresso da seção nem registro duplicado de plano somente para suportar essa apresentação. Ações continuam persistidas e auditadas no vínculo da recomendação que as originou.
+O Plano de integridade e compliance da seção é um *read model*. Não será criada tabela, coluna de progresso da seção nem registro duplicado de plano somente para suportar essa apresentação. Ações continuam persistidas e auditadas no vínculo da recomendação que as originou.
 
 Os indicadores de seção e eixo — quantidade de ações, concluídas, atrasadas e execução média — são calculados a partir das ações atuais. Relatórios PDF e exportações devem usar a mesma hierarquia.
 
@@ -41,4 +41,4 @@ Os indicadores de seção e eixo — quantidade de ações, concluídas, atrasad
 
 ## Regra preservada
 
-A recomendação continua sendo a origem auditável da ação e todas as regras de revisão, comprovação, supervisão, aceite e encerramento permanecem vinculadas às ações existentes. O FAMI oficial não é recalculado pela execução do plano de ação, conforme ADR-0003.
+A recomendação continua sendo a origem auditável da ação e todas as regras de revisão, comprovação, supervisão, aceite e encerramento permanecem vinculadas às ações existentes. O FAMI oficial não é recalculado pela execução do plano de integridade e compliance, conforme ADR-0003.

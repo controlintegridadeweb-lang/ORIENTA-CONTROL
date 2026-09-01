@@ -163,7 +163,7 @@ describe("buildRecommendationPortfolioPdf", () => {
     expect(withoutActions).toBeLessThan(withActions);
   });
 
-  it("monta o bloco de contexto do plano de ação sem versão", () => {
+  it("monta o bloco de contexto do plano de integridade e compliance sem versão", () => {
     expect(
       actionPlanPdfContextFields(
         {

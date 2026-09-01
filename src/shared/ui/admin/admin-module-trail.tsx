@@ -10,7 +10,7 @@ import { adminReturnPathOrFallback, withAdminReturnPath } from "@/shared/navigat
 
 type Props = {
   recommendationId: string;
-  /** Superfície do documento da recomendação (a trilha não aparece no Plano de ação). */
+  /** Superfície do documento da recomendação (a trilha não aparece no Plano de integridade e compliance). */
   active: "recommendation" | "plan";
 };
 
@@ -25,7 +25,7 @@ function tabLinkClass(active: boolean): string {
 /**
  * Troca entre o documento da recomendação e o workspace do plano.
  *
- * No Plano de ação, Visão geral / Ações / Monitoramento são as únicas abas —
+ * No Plano de integridade e compliance, Visão geral / Ações / Monitoramento são as únicas abas —
  * esta trilha fica só na superfície da recomendação.
  */
 export function AdminModuleTrail({ recommendationId, active }: Props) {
@@ -41,7 +41,7 @@ export function AdminModuleTrail({ recommendationId, active }: Props) {
     },
     {
       id: "plan" as const,
-      label: "Plano de ação",
+      label: "Plano de integridade e compliance",
       href: withAdminReturnPath(adminPlanoAcaoHref(recommendationId), returnTo),
     },
   ];

@@ -8,7 +8,7 @@ export default async function Page({ params, searchParams }: Props) {
   const sectionId = parseUuidParam(rawSectionId);
   const rawCycle = Array.isArray(sp.cycleId) ? sp.cycleId[0] : sp.cycleId;
   const cycleId = parseUuidParam(rawCycle);
-  if (!sectionId || !cycleId) redirect("/respondente/portfolio-recomendacoes?view=action-plan");
+  if (!sectionId || !cycleId) redirect("/respondente/portfolio-recomendacoes");
   const query = new URLSearchParams({ cycleId });
   const rawReturnTo = Array.isArray(sp.returnTo) ? sp.returnTo[0] : sp.returnTo;
   const returnTo = respondentReturnPathOrFallback(rawReturnTo, "");

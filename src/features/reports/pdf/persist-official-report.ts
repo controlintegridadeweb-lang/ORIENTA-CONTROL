@@ -133,7 +133,7 @@ export async function persistOfficialReport(
 
   if (reserved.data.action_plan_revision !== data.actionPlanRevision) {
     throw new OfficialReportPersistError(
-      "A revisão reservada do plano de ação diverge dos dados carregados.",
+      "A revisão reservada do plano de integridade e compliance diverge dos dados carregados.",
       "reservation_failed",
     );
   }

@@ -1,4 +1,4 @@
-/** Parâmetros de URL compartilhados entre listagens admin (Recomendações e Plano de ação). */
+/** Parâmetros de URL compartilhados entre listagens admin (Recomendações e Plano de integridade e compliance). */
 
 export type AdminListLayout = "list" | "organization";
 

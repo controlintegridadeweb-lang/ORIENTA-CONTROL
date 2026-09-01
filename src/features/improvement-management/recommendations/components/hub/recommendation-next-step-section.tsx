@@ -48,7 +48,7 @@ export function RecommendationNextStepSection({
   const situation = hasActions
     ? highlightActionText?.trim()
       ? `Atualizar ação “${highlightActionText.trim()}”`
-      : "Há ações cadastradas. Atualize o andamento no plano de ação."
+      : "Há ações cadastradas. Atualize o andamento no plano de integridade e compliance."
     : "Aguardando cadastro de ações / Sem ações vinculadas";
 
   return (
@@ -67,7 +67,7 @@ export function RecommendationNextStepSection({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <RecommendationCardText variant="metaSecondary" className="min-w-0 flex-1">
             {hasActions
-              ? "Use o plano de ação para atualizar o andamento."
+              ? "Use o plano de integridade e compliance para atualizar o andamento."
               : "Cadastre a primeira ação para iniciar a execução."}
           </RecommendationCardText>
 
@@ -81,7 +81,7 @@ export function RecommendationNextStepSection({
             )}
             className={`${formSurface.primaryButton} w-full justify-center sm:w-auto sm:min-w-44`}
           >
-            {hasActions ? "Ir para plano de ação" : "Cadastrar ação"}
+            {hasActions ? "Ir para plano de integridade e compliance" : "Cadastrar ação"}
             <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
           </Link>
         </div>

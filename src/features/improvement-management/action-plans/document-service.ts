@@ -117,7 +117,7 @@ function throwDocumentWriteError(error: unknown): never {
     hasDatabaseErrorCode(message, "pending_action_plan_document_cycle_not_editable")
   ) {
     throw new DomainConflictError(
-      "Comprovações só podem ser alteradas enquanto o plano de ação estiver em execução.",
+      "Comprovações só podem ser alteradas enquanto o plano de integridade e compliance estiver em execução.",
     );
   }
   if (
@@ -203,7 +203,7 @@ export class ActionPlanDocumentService {
     }
     if (!isActionPlanEligible(scope.cycleState as Parameters<typeof isActionPlanEligible>[0])) {
       throw new DomainConflictError(
-        "Comprovações só podem ser alteradas enquanto o plano de ação estiver em execução.",
+        "Comprovações só podem ser alteradas enquanto o plano de integridade e compliance estiver em execução.",
       );
     }
 

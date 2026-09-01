@@ -8,6 +8,7 @@ export type RespondentReportUrlState = {
 const DEFAULT_FILTERS: HistoryFilterState = {
   search: "",
   status: "",
+  kind: "",
   from: "",
   to: "",
   yearPreset: null,
@@ -21,6 +22,7 @@ export function parseRespondentReportUrl(
   params: Pick<URLSearchParams, "get">,
 ): RespondentReportUrlState {
   const rawStatus = params.get("status");
+  const rawKind = params.get("kind");
   const rawYear = Number(params.get("year"));
   const rawOffset = Number(params.get("offset"));
   return {
@@ -29,6 +31,7 @@ export function parseRespondentReportUrl(
       search: params.get("search")?.slice(0, 200) ?? "",
       status:
         rawStatus === "completed" || rawStatus === "outdated" ? rawStatus : "",
+      kind: rawKind === "annual" || rawKind === "bimonthly" ? rawKind : "",
       from: localDate(params.get("from")),
       to: localDate(params.get("to")),
       yearPreset:
@@ -45,6 +48,7 @@ export function respondentReportHistoryPath(
   const params = new URLSearchParams();
   if (filters.search.trim()) params.set("search", filters.search.trim());
   if (filters.status) params.set("status", filters.status);
+  if (filters.kind) params.set("kind", filters.kind);
   if (filters.from) params.set("from", filters.from);
   if (filters.to) params.set("to", filters.to);
   if (filters.yearPreset != null) params.set("year", String(filters.yearPreset));

@@ -53,7 +53,7 @@ export type RecommendationListItem = {
 
 /**
  * Leitura administrativa de recomendações e opções de filtro.
- * O texto permanece congelado; alterações operacionais ocorrem no plano de ação.
+ * O texto permanece congelado; alterações operacionais ocorrem no plano de integridade e compliance.
  */
 export class RecommendationsAdminService {
   private supabase: Client;

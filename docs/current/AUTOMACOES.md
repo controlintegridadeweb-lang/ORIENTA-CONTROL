@@ -40,7 +40,7 @@ de hashes, tamanho, período e revisão do plano terem sido validados.
 Vereditos negativos provisórios não geram uma notificação definitiva antes da
 consolidação. O administrador recebe a primeira submissão no detalhe do ciclo,
 cada reenvio diretamente na fila de validação, além de mudanças relevantes e
-atrasos do plano de ação. As regras administrativas consolidadas na baseline atual
+atrasos do plano de integridade e compliance. As regras administrativas consolidadas na baseline atual
 concentra os modelos de leitura e as operações administrativas que consomem a infraestrutura.
 
 Não existem tabelas de campanha, participantes de campanha ou políticas

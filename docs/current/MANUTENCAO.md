@@ -5,7 +5,7 @@
 ## Projeto
 
 A Plataforma ORIENTA gerencia diagnósticos institucionais, evidências,
-validação, FAMI, recomendações, planos de ação, supervisão e relatórios.
+validação, FAMI, recomendações, planos de integridade e compliance, supervisão e relatórios.
 
 Stack: **Next.js 16 · TypeScript · Supabase · Tailwind v4 · Vitest · Playwright**.
 

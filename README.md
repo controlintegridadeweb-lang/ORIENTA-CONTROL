@@ -8,7 +8,7 @@ Next.js, TypeScript e Supabase. O fluxo oficial é:
 3. respondentes registram respostas e evidências;
 4. administração valida evidências;
 5. a administração conclui a validação; nessa mesma operação, o sistema calcula e congela o FAMI, materializa snapshots e recomendações oficiais;
-6. o respondente elabora e acompanha o plano de ação a partir do resultado do diagnóstico;
+6. o respondente elabora e acompanha o plano de integridade e compliance a partir do resultado do diagnóstico;
 7. após cada quadrimestre encerrado, a administração pode congelar um FAMI preliminar gerencial (`prelim_v1`), com histórico próprio e sem alterar o Resultado FAMI oficial;
 8. a administração encerra o ciclo somente após concluir a supervisão das ações, sem recalcular ou sobrescrever o FAMI oficial;
 9. relatórios oficiais em PDF são emitidos após o encerramento da avaliação e preservam exclusivamente o processamento FAMI congelado na conclusão da validação.
@@ -52,7 +52,7 @@ Next.js, TypeScript e Supabase. O fluxo oficial é:
   “Sim” sem exigência de evidência vale 1,0; “Sim” com evidência aprovada
   vale 2,0; “Sim” que exige evidência sem aprovação (pendente, ausente ou
   insuficiente) vale 0, com máximo 2,0. Processamentos históricos preservam a
-  política congelada. O plano de ação vem depois e o encerramento da avaliação
+  política congelada. O plano de integridade e compliance vem depois e o encerramento da avaliação
   não recalcula nem sobrescreve snapshots oficiais. O acompanhamento quadrimestral
   usa `fami_preliminary_*`, é explicitamente não oficial e possui exportação própria;
   ele nunca entra em `fami_results` nem no PDF oficial.
@@ -106,7 +106,7 @@ ajustes no Supabase Auth estão em
 
 ## Banco de dados
 
-Há **21 migrations timestampadas** em `supabase/migrations/`: 10 migrations imutáveis da baseline greenfield, já validadas em PostgreSQL 17 real, mais 11 evoluções pós-baseline para alteração de prazo, FAMI preliminar, exportação/monitoramento, reparo controlado da carga 2026, listagem de respondentes, progresso monotônico do plano de ação, integridade do encerramento com emissão oficial automática, leitura do estado do ciclo no rascunho de validação, comprovação opcional da execução no aceite/encerramento e acompanhamento bimestral com FAMI preliminar `prelim_v2` — ver
+Há **22 migrations timestampadas** em `supabase/migrations/`: 10 migrations imutáveis da baseline greenfield, já validadas em PostgreSQL 17 real, mais 12 evoluções pós-baseline para alteração de prazo, FAMI preliminar, exportação/monitoramento, reparo controlado da carga 2026, listagem de respondentes, progresso monotônico do plano de integridade e compliance, integridade do encerramento com emissão oficial automática, leitura do estado do ciclo no rascunho de validação, comprovação opcional da execução no aceite/encerramento, acompanhamento bimestral com FAMI preliminar `prelim_v2` e catálogo de histórico com relatórios anuais e bimestrais — ver
 [`docs/current/BANCO.md`](docs/current/BANCO.md) e
 [`docs/current/BASELINE_PRIMEIRA_IMPLANTACAO.md`](docs/current/BASELINE_PRIMEIRA_IMPLANTACAO.md). A validação da baseline em PostgreSQL real está documentada em [`docs/current/VALIDACAO_BASELINE_POSTGRESQL.md`](docs/current/VALIDACAO_BASELINE_POSTGRESQL.md).
 A sequência antiga `0001`–`0054` foi aposentada como fonte executável antes da primeira implantação. A baseline atual nasce diretamente no estado final, em ordem de dependências, sem patches, backfills históricos ou migrations corretivas intermediárias.

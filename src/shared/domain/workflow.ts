@@ -176,7 +176,7 @@ const POST_RESPONSE_FORM_STATES: CycleState[] = [
 ];
 
 /**
- * Estados em que o Plano de ação pode ser criado/editado.
+ * Estados em que o Plano de integridade e compliance pode ser criado/editado.
  *
  * A execução e a supervisão acontecem em `validated`. A transição para
  * `completed` só é permitida depois que as ações aplicáveis estão concluídas,
@@ -204,7 +204,7 @@ export function isCyclePastResponsePhase(cycleState: string | null | undefined):
 }
 
 /**
- * O Plano de ação pode ser criado/editado neste estado de ciclo?
+ * O Plano de integridade e compliance pode ser criado/editado neste estado de ciclo?
  * Disponível somente em `validated`, durante o acompanhamento.
  */
 export function isActionPlanEligible(cycleState: string | null | undefined): boolean {

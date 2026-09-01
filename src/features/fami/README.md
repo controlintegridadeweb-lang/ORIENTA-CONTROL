@@ -3,7 +3,7 @@
 Este módulo concentra a leitura do diagnóstico de maturidade. O FAMI oficial é
 sempre resultado de um `cycle_processing` concluído na finalização da validação
 do formulário. O ciclo pode permanecer em `validated` durante a elaboração e o
-acompanhamento do plano de ação e, depois, avançar para `completed` sem recalcular
+acompanhamento do plano de integridade e compliance e, depois, avançar para `completed` sem recalcular
 o resultado diagnóstico.
 
 ## 1. Contrato de identidade
@@ -17,7 +17,7 @@ Toda leitura que represente um diagnóstico concreto recebe uma destas chaves:
 `formId + organizationId + processingVersion` **não** identifica um diagnóstico
 com segurança: dois ciclos históricos do mesmo formulário e órgão podem possuir
 a mesma versão de processamento. Esse triplo não deve ser usado para leituras,
-conferências, relatórios, recomendações ou plano de ação.
+conferências, relatórios, recomendações ou plano de integridade e compliance.
 
 ## 2. Caminhos oficiais
 
@@ -52,7 +52,7 @@ conclusão da validação executa, na mesma transação:
 - conclusão do processamento;
 - transição `in_validation → validated`.
 
-A partir de `validated`, o Resultado FAMI já está disponível. O plano de ação é
+A partir de `validated`, o Resultado FAMI já está disponível. O plano de integridade e compliance é
 elaborado e acompanhado depois, sem modificar retroativamente o diagnóstico.
 A transição `validated → completed` encerra apenas o ciclo de acompanhamento e
 não recalcula nem reescreve o FAMI.

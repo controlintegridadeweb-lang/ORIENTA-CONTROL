@@ -2,6 +2,7 @@ import { z } from "zod";
 import { apiErrorSchema, apiResponseSchema, buildHeaders, parseJson, formatError } from "@/infrastructure/api/fetch-client";
 import { notify } from "@/infrastructure/notifications/notify";
 import { reportLifecycleStatusSchema, type ReportLifecycleStatus } from "@/shared/domain/report-lifecycle";
+import type { ReportCatalogKind } from "@/features/reports/report-catalog";
 
 const reportOrganizationOptionSchema = z.object({
   id: z.string(),
@@ -51,6 +52,9 @@ export const reportHistoryOptionSchema = z.object({
   fileSizeBytes: z.number().nullable(),
   outdatedReason: z.string().nullable(),
   downloadPath: z.string(),
+  catalogKind: z.enum(["annual", "bimonthly"]),
+  bimester: z.number().int().min(1).max(6).nullable().optional(),
+  generationKind: z.enum(["manual", "automatic"]).nullable().optional(),
 });
 
 const reportOptionsSchema = apiResponseSchema({
@@ -125,6 +129,9 @@ export type ReportHistoryOption = {
   fileSizeBytes: number | null;
   outdatedReason: string | null;
   downloadPath: string;
+  catalogKind: ReportCatalogKind;
+  bimester?: number | null;
+  generationKind?: "manual" | "automatic" | null;
 };
 
 export type ReportHistoryPage = {
@@ -144,6 +151,7 @@ export type LoadReportHistoryInput = {
   from?: string;
   to?: string;
   referenceYear?: number;
+  kind?: ReportCatalogKind;
   limit?: number;
   offset?: number;
 };
@@ -203,6 +211,7 @@ export async function loadReportHistory(
   if (input.from) params.set("from", input.from);
   if (input.to) params.set("to", input.to);
   if (input.referenceYear != null) params.set("referenceYear", String(input.referenceYear));
+  if (input.kind) params.set("kind", input.kind);
   if (input.limit != null) params.set("limit", String(input.limit));
   if (input.offset != null) params.set("offset", String(input.offset));
   const query = params.toString();
@@ -266,6 +275,26 @@ export async function fetchPersistedReportPdf(downloadPath: string): Promise<Blo
     throw new Error("Não foi possível obter o PDF oficial.");
   }
   return fileResponse.blob();
+}
+
+/** Baixa o PDF do catálogo: anual persistido ou bimestral gerado sob demanda. */
+export async function fetchCatalogReportPdf(downloadPath: string): Promise<Blob> {
+  if (downloadPath.includes("/api/monitoring/bimonthly/")) {
+    const response = await fetch(downloadPath, {
+      credentials: "include",
+      headers: buildHeaders(),
+    });
+    if (!response.ok) {
+      const body = await parseErrorResponse(response);
+      throw new Error(formatError(body, "Não foi possível obter o relatório bimestral."));
+    }
+    const contentType = response.headers.get("Content-Type") ?? "";
+    if (!contentType.includes("application/pdf")) {
+      throw new Error("Não foi possível obter o relatório bimestral.");
+    }
+    return response.blob();
+  }
+  return fetchPersistedReportPdf(downloadPath);
 }
 
 export function downloadPdfBlob(blob: Blob, filename = "relatorio-orienta.pdf"): void {

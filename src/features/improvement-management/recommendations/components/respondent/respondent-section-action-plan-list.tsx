@@ -6,7 +6,7 @@ import type { RespondentRecommendationItem } from "@/features/improvement-manage
 import {
   buildSectionActionPlanHierarchy,
   sectionActionPlanSourcesFromListItems,
-  type SectionActionPlanMetrics,
+  type SectionActionPlanRecommendation,
 } from "@/features/improvement-management/action-plans/section-action-plan-model";
 import {
   SectionPlanStatusBadge,
@@ -24,6 +24,7 @@ import {
   recommendationCardShell,
   recommendationHierarchySurface,
 } from "@/features/improvement-management/recommendations/components/recommendation-list-surface";
+import { OverviewSoftPanel } from "@/features/improvement-management/recommendations/components/hub/overview-section-primitives";
 import { RECOMMENDATION_CARD_LABELS } from "@/features/improvement-management/recommendations/components/respondent/recommendation-card-view-model";
 import { RespondentRecommendationProgress } from "@/features/improvement-management/recommendations/components/respondent/respondent-recommendation-progress";
 
@@ -36,15 +37,63 @@ function countLabel(value: number, singular: string, plural: string): string {
   return `${value} ${value === 1 ? singular : plural}`;
 }
 
-function sectionExecutionSummary(metrics: SectionActionPlanMetrics): string {
-  const parts = [
-    countLabel(metrics.totalActions, "ação", "ações"),
-    countLabel(metrics.completedActions, "concluída", "concluídas"),
-  ];
-  if (metrics.overdueActions > 0) {
-    parts.push(countLabel(metrics.overdueActions, "em atraso", "em atraso"));
+function isRecommendationCompleted(
+  recommendation: SectionActionPlanRecommendation,
+): boolean {
+  const active = recommendation.actions.filter((action) => action.status !== "cancelled");
+  if (active.length === 0) return false;
+  return active.every(
+    (action) => action.progressPercentage >= 100 || action.status === "completed",
+  );
+}
+
+function sectionSituationSummary(
+  recommendations: readonly SectionActionPlanRecommendation[],
+): string {
+  const completed = recommendations.filter(isRecommendationCompleted).length;
+  return [
+    countLabel(recommendations.length, "recomendação", "recomendações"),
+    countLabel(completed, "concluída", "concluídas"),
+  ].join(" · ");
+}
+
+function OriginQuestionList({
+  questions,
+  accent,
+  soft,
+}: {
+  questions: Array<{ id: string; prompt: string }>;
+  accent: string;
+  soft: string;
+}) {
+  if (questions.length === 0) {
+    return <RecommendationCardText>—</RecommendationCardText>;
   }
-  return parts.join(" · ");
+
+  return (
+    <OverviewSoftPanel padded={false} className="overflow-hidden">
+      <ol className="divide-y divide-slate-200/70" role="list">
+        {questions.map((question, index) => (
+          <li
+            key={question.id}
+            className="flex gap-3 px-4 py-3.5 sm:gap-3.5 sm:px-5 sm:py-4"
+            role="listitem"
+          >
+            <span
+              aria-hidden
+              className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold tabular-nums"
+              style={{ backgroundColor: soft, color: accent }}
+            >
+              {index + 1}
+            </span>
+            <RecommendationCardText preWrap className="min-w-0 flex-1">
+              {question.prompt || "—"}
+            </RecommendationCardText>
+          </li>
+        ))}
+      </ol>
+    </OverviewSoftPanel>
+  );
 }
 
 export function RespondentSectionActionPlanList({ items, returnPath }: Props) {
@@ -54,7 +103,7 @@ export function RespondentSectionActionPlanList({ items, returnPath }: Props) {
   return (
     <div
       className={recommendationHierarchySurface.stack}
-      aria-label="Planos de ação por eixo e seção"
+      aria-label="Planos de integridade e compliance por eixo e seção"
     >
       {hierarchy.map((axis) => {
         const surface = recommendationAxisSurface(axis.axisName);
@@ -111,9 +160,8 @@ export function RespondentSectionActionPlanList({ items, returnPath }: Props) {
                       />
                       <div className={`${recommendationCardShell.body} pl-5 sm:pl-6`}>
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                          <RecommendationCardField label="Seção">
-                            <RecommendationCardText>{sectionLabel}</RecommendationCardText>
-                            <RecommendationCardText variant="highlight" className="mt-1">
+                          <RecommendationCardField label={sectionLabel}>
+                            <RecommendationCardText variant="highlight">
                               {section.sectionName}
                             </RecommendationCardText>
                           </RecommendationCardField>
@@ -121,20 +169,14 @@ export function RespondentSectionActionPlanList({ items, returnPath }: Props) {
                         </div>
 
                         <RecommendationCardField label={RECOMMENDATION_CARD_LABELS.originQuestion}>
-                          {section.recommendations.length === 0 ? (
-                            <RecommendationCardText>—</RecommendationCardText>
-                          ) : (
-                            <div className="space-y-2">
-                              {section.recommendations.map((recommendation) => (
-                                <RecommendationCardText
-                                  key={recommendation.recommendationId}
-                                  preWrap
-                                >
-                                  {recommendation.questionPrompt.trim() || "—"}
-                                </RecommendationCardText>
-                              ))}
-                            </div>
-                          )}
+                          <OriginQuestionList
+                            accent={surface.accent}
+                            soft={surface.soft}
+                            questions={section.recommendations.map((recommendation) => ({
+                              id: recommendation.recommendationId,
+                              prompt: recommendation.questionPrompt.trim(),
+                            }))}
+                          />
                         </RecommendationCardField>
 
                         <section
@@ -143,14 +185,7 @@ export function RespondentSectionActionPlanList({ items, returnPath }: Props) {
                         >
                           <RecommendationCardField label={RECOMMENDATION_CARD_LABELS.situation}>
                             <RecommendationCardText variant="meta">
-                              {sectionExecutionSummary(section.metrics)}
-                            </RecommendationCardText>
-                            <RecommendationCardText variant="metaSecondary" className="mt-1">
-                              {countLabel(
-                                section.recommendations.length,
-                                "recomendação de origem",
-                                "recomendações de origem",
-                              )}
+                              {sectionSituationSummary(section.recommendations)}
                             </RecommendationCardText>
                           </RecommendationCardField>
 

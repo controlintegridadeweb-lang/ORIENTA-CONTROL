@@ -27,7 +27,7 @@ export async function SectionActionPlanRoutePage({
   const cycleId = parseUuidParam(first(sp.cycleId));
   const listFallback = role === "admin"
     ? "/admin/plano-acao"
-    : "/respondente/portfolio-recomendacoes?view=action-plan";
+    : "/respondente/portfolio-recomendacoes";
   if (!sectionId || !cycleId) redirect(listFallback);
 
   const rawReturnTo = first(sp.returnTo);

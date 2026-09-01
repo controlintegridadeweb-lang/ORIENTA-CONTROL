@@ -175,7 +175,7 @@ export function aggregateSlaFromActions(
 
 function parsePlanStatus(raw: string): PlanStatus {
   if (!isDbActionPlanStatus(raw)) {
-    throw new Error(`Status de plano de ação inválido retornado pelo banco: ${raw}`);
+    throw new Error(`Status de plano de integridade e compliance inválido retornado pelo banco: ${raw}`);
   }
   return planStatusFromDb(raw);
 }

@@ -1520,7 +1520,7 @@ grant execute on function public.materialize_action_plan_bimonthly_report(uuid, 
 grant execute on function public.close_due_action_plan_bimesters() to service_role;
 
 comment on table public.action_plan_bimonthly_reports is
-  'Fotografia imutável do plano de ação na data de corte de cada bimestre. Não recalcula o FAMI oficial.';
+  'Fotografia imutável do plano de integridade e compliance na data de corte de cada bimestre. Não recalcula o FAMI oficial.';
 comment on table public.action_plan_bimonthly_action_snapshots is
   'Estado da ação na data de corte do relatório bimestral, independente do estado vivo posterior.';
 comment on table public.action_plan_bimonthly_criterion_snapshots is

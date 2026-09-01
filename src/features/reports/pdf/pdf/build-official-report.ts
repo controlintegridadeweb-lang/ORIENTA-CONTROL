@@ -10,7 +10,7 @@ import { renderConclusionSection } from "./sections/conclusion-section";
 import { renderAnnexesSection } from "./sections/annexes-section";
 
 /**
- * Ordem oficial do relatório institucional (apresentação).
+ * Ordem oficial do relatório anual (apresentação).
  * FAMI + análise detalhada (eixos/seções) compartilham a mesma composição inicial.
  * Portfólio, plano e monitoramento ficam aninhados na análise por eixo.
  */
@@ -22,11 +22,19 @@ export const OFFICIAL_REPORT_SECTION_ORDER = [
   "metadata_audit",
 ] as const;
 
+/** Relatório bimestral do plano: sem Resultado FAMI nem desempenho por eixo/seção. */
+export const TRACKING_REPORT_SECTION_ORDER = [
+  "diagnostic_summary",
+  "detailed_axis_analysis",
+  "conclusion",
+  "metadata_audit",
+] as const;
+
 type OfficialReportSection = (typeof OFFICIAL_REPORT_SECTION_ORDER)[number];
 type SectionRenderer = (doc: OrientaPdfDocument) => void;
 
 /**
- * PDF institucional: capa → sumário → FAMI/análise → diagnóstico →
+ * PDF institucional: capa → sumário → (FAMI/análise no anual) → diagnóstico →
  * detalhamento hierárquico por eixo → conclusão → emissão.
  */
 export async function buildOfficialReportPdfDocument(
@@ -34,6 +42,9 @@ export async function buildOfficialReportPdfDocument(
 ): Promise<Uint8Array> {
   const doc = await OrientaPdfDocument.create(payload);
   const detailedAnalysis = prepareDetailedAnalysis(payload);
+  const sectionOrder = payload.tracking
+    ? TRACKING_REPORT_SECTION_ORDER
+    : OFFICIAL_REPORT_SECTION_ORDER;
 
   const sectionRenderers: Record<OfficialReportSection, SectionRenderer> = {
     fami_summary: renderFamiSummarySection,
@@ -48,7 +59,7 @@ export async function buildOfficialReportPdfDocument(
   renderCoverPage(doc);
   doc.reserveTocPage();
 
-  for (const section of OFFICIAL_REPORT_SECTION_ORDER) {
+  for (const section of sectionOrder) {
     sectionRenderers[section](doc);
   }
 

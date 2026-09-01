@@ -23,7 +23,7 @@ const OPTIONS: Array<ExportMenuOption<ActionPlanExportFormat>> = [
     format: "pdf",
     label: "Exportar PDF",
     icon: FileText,
-    hint: "Relatório institucional agrupado por eixo, seção e recomendação.",
+    hint: "Relatório bimestral de acompanhamento do plano de integridade e compliance.",
   },
 ];
 
@@ -34,9 +34,9 @@ export function AdminActionPlanHero({
 }: Props) {
   return (
     <AdminMonitoringHero
-      ariaLabel="Plano de ação"
+      ariaLabel="Plano de integridade e compliance"
       overline="Execução e monitoramento"
-      title="Plano de ação"
+      title="Plano de integridade e compliance"
       description="Acompanhe ações, responsáveis, prazos, progresso e riscos vinculados às recomendações."
       image={ADMIN_PLANO_ACAO_HERO_IMAGE}
       loading={loading}

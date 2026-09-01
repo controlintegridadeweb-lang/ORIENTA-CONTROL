@@ -50,7 +50,7 @@ function RecommendationDetailBody({ children }: { children: React.ReactNode }) {
 
   const isDocument = ctx.workspaceSurface === "document" && ctx.role === "admin";
   const isSupervision = ctx.workspaceSurface === "supervision" && ctx.role === "admin";
-  // No Plano de ação (supervisão), só as abas Visão geral / Ações / Monitoramento.
+  // No Plano de integridade e compliance (supervisão), só as abas Visão geral / Ações / Monitoramento.
   // A trilha Recomendação ↔ Plano fica só na superfície do documento da recomendação.
   const showAdminTrail = isDocument;
 

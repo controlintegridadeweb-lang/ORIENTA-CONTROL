@@ -60,7 +60,7 @@ export function adminReturnLabel(returnPath: string): string {
     return "Voltar às evidências";
   }
   if (returnPath === "/admin/plano-acao" || returnPath.startsWith("/admin/plano-acao?")) {
-    return "Voltar ao Plano de ação";
+    return "Voltar ao Plano de integridade e compliance";
   }
   if (returnPath === "/admin/recomendacoes" || returnPath.startsWith("/admin/recomendacoes?")) {
     return "Voltar às Recomendações";

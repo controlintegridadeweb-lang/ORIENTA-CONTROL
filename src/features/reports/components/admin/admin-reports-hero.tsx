@@ -7,9 +7,9 @@ export function AdminReportsHero() {
       theme="admin"
       size="compact"
       ariaLabel="Relatórios"
-      overline="Emissões oficiais"
+      overline="Catálogo de documentos"
       title="Relatórios"
-      description="Emita versões oficiais somente para diagnósticos concluídos e consulte todas as emissões já registradas."
+      description="Emita o relatório anual dos diagnósticos concluídos e consulte também os relatórios bimestrais já gerados."
       image={ADMIN_RELATORIOS_HERO_IMAGE}
       imageWidth={1024}
       imageHeight={1024}

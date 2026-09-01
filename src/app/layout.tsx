@@ -7,7 +7,7 @@ import { ConfirmProvider } from "@/shared/ui/components/confirm-dialog";
 
 export const metadata: Metadata = {
   title: "Plataforma Orienta V1",
-  description: "Diagnóstico, recomendações, plano de ação e Resultado FAMI",
+  description: "Diagnóstico, recomendações, plano de integridade e compliance e Resultado FAMI",
 };
 
 export default function RootLayout({

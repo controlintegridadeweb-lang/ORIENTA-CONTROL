@@ -2,6 +2,7 @@ import type { PDFPage } from "pdf-lib";
 
 import { levelMeta } from "@/features/fami";
 import type { OfficialReportData } from "@/features/reports/pdf/report-types";
+import { reportDocumentTitles } from "@/shared/labels/official-labels";
 import { formatPlatformDate } from "@/shared/datetime/platform-date-time";
 
 import type { OrientaPdfDocument } from "../document";
@@ -36,7 +37,19 @@ export const OFFICIAL_REPORT_COVER_FIELD_LABELS = [
   "Data de emissão",
 ] as const;
 
-const TRACKING_COVER_TITLE = "Relatório bimestral de acompanhamento";
+export const TRACKING_REPORT_COVER_FIELD_LABELS = [
+  "Período de referência",
+  "Formulário",
+  "Organização",
+  "Data de emissão",
+] as const;
+
+type CoverField = { label: string; value: string };
+
+export function officialReportCoverTitle(data: OfficialReportData): string {
+  if (data.tracking) return reportDocumentTitles.bimonthly;
+  return reportDocumentTitles.annual(data.referenceYear);
+}
 
 type CoverPageProps = {
   organizationName: string;
@@ -44,7 +57,8 @@ type CoverPageProps = {
   famiResultLabel: string;
   generatedAt: string;
   referencePeriodLabel: string;
-  trackingTitle: string | null;
+  coverTitle: string;
+  includeFamiResult: boolean;
   disclaimer: string | null;
 };
 
@@ -82,8 +96,53 @@ function buildCoverPageProps(data: OfficialReportData): CoverPageProps {
     referencePeriodLabel: tracking
       ? `${tracking.bimesterLabel} de ${data.referenceYear} (${tracking.periodRangeLabel})`
       : data.referencePeriodLabel,
-    trackingTitle: tracking ? TRACKING_COVER_TITLE : null,
+    coverTitle: officialReportCoverTitle(data),
+    includeFamiResult: tracking == null,
     disclaimer: tracking?.disclaimer ?? null,
+  };
+}
+
+function coverFieldRows(props: CoverPageProps): {
+  period: CoverField;
+  rows: Array<[CoverField, CoverField | null]>;
+} {
+  const period: CoverField = {
+    label: OFFICIAL_REPORT_COVER_FIELD_LABELS[0],
+    value: props.referencePeriodLabel,
+  };
+  const form: CoverField = {
+    label: OFFICIAL_REPORT_COVER_FIELD_LABELS[1],
+    value: props.formName,
+  };
+  const fami: CoverField = {
+    label: OFFICIAL_REPORT_COVER_FIELD_LABELS[2],
+    value: props.famiResultLabel,
+  };
+  const org: CoverField = {
+    label: OFFICIAL_REPORT_COVER_FIELD_LABELS[3],
+    value: props.organizationName,
+  };
+  const issued: CoverField = {
+    label: OFFICIAL_REPORT_COVER_FIELD_LABELS[4],
+    value: props.generatedAt,
+  };
+
+  if (props.includeFamiResult) {
+    return {
+      period,
+      rows: [
+        [form, fami],
+        [org, issued],
+      ],
+    };
+  }
+
+  return {
+    period,
+    rows: [
+      [form, org],
+      [issued, null],
+    ],
   };
 }
 
@@ -110,7 +169,6 @@ function renderCoverPageContent(
   });
 
   const {
-    brandMark,
     decoTop,
     decoBottom,
   } = doc.coverAssets;
@@ -138,10 +196,11 @@ function renderCoverPageContent(
   const brandBottom = drawCoverBrand(
     page,
     fonts,
-    props.trackingTitle ? undefined : brandMark ?? undefined,
-    props.trackingTitle
-      ? { title: props.trackingTitle, logo: doc.logo }
-      : undefined,
+    undefined,
+    {
+      title: props.coverTitle,
+      logo: doc.logo,
+    },
   );
 
   const usableWidth =
@@ -164,6 +223,8 @@ function renderCoverPageContent(
     margin -
     rightX;
 
+  const fields = coverFieldRows(props);
+
   let y =
     brandBottom -
     COVER_LAYOUT.brandToFieldsGap;
@@ -173,72 +234,45 @@ function renderCoverPageContent(
     fonts,
     leftX,
     y,
-    OFFICIAL_REPORT_COVER_FIELD_LABELS[0],
-    props.referencePeriodLabel,
+    fields.period.label,
+    fields.period.value,
     usableWidth,
     COVER_LAYOUT.periodValueSize,
   );
 
-  y -= COVER_LAYOUT.rowGap;
-
-  const secondRowTop = y;
-
-  const formBottom = drawCoverLabelValue(
-    page,
-    fonts,
-    leftX,
-    secondRowTop,
-    OFFICIAL_REPORT_COVER_FIELD_LABELS[1],
-    props.formName,
-    leftColumnWidth,
-    COVER_LAYOUT.valueSize,
-  );
-
-  const famiBottom = drawCoverLabelValue(
-    page,
-    fonts,
-    rightX,
-    secondRowTop,
-    OFFICIAL_REPORT_COVER_FIELD_LABELS[2],
-    props.famiResultLabel,
-    rightColumnWidth,
-    COVER_LAYOUT.valueSize,
-  );
-
-  y =
-    Math.min(formBottom, famiBottom) -
-    COVER_LAYOUT.rowGap;
-
-  const thirdRowTop = y;
-
-  const orgBottom = drawCoverLabelValue(
-    page,
-    fonts,
-    leftX,
-    thirdRowTop,
-    OFFICIAL_REPORT_COVER_FIELD_LABELS[3],
-    props.organizationName,
-    leftColumnWidth,
-    COVER_LAYOUT.valueSize,
-  );
-
-  const dateBottom = drawCoverLabelValue(
-    page,
-    fonts,
-    rightX,
-    thirdRowTop,
-    OFFICIAL_REPORT_COVER_FIELD_LABELS[4],
-    props.generatedAt,
-    rightColumnWidth,
-    COVER_LAYOUT.valueSize,
-  );
+  for (const [left, right] of fields.rows) {
+    y -= COVER_LAYOUT.rowGap;
+    const leftBottom = drawCoverLabelValue(
+      page,
+      fonts,
+      leftX,
+      y,
+      left.label,
+      left.value,
+      right ? leftColumnWidth : usableWidth,
+      COVER_LAYOUT.valueSize,
+    );
+    const rightBottom = right
+      ? drawCoverLabelValue(
+          page,
+          fonts,
+          rightX,
+          y,
+          right.label,
+          right.value,
+          rightColumnWidth,
+          COVER_LAYOUT.valueSize,
+        )
+      : leftBottom;
+    y = Math.min(leftBottom, rightBottom);
+  }
 
   if (props.disclaimer) {
     drawCoverDisclaimer(
       page,
       fonts,
       leftX,
-      Math.min(orgBottom, dateBottom) - COVER_LAYOUT.rowGap,
+      y - COVER_LAYOUT.rowGap,
       props.disclaimer,
       usableWidth,
     );

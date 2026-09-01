@@ -21,7 +21,7 @@ export function RecommendationOverviewPanel() {
       {ctx.role === "admin" ? (
         <PanelSection
           title="Acompanhamento da recomendação"
-          description="A situação é derivada do plano de ação e o texto permanece congelado no diagnóstico."
+          description="A situação é derivada do plano de integridade e compliance e o texto permanece congelado no diagnóstico."
           variant="card"
         >
           <RecommendationActions item={{

@@ -11,7 +11,7 @@ export const E2E = {
     process.env.E2E_OUTSIDER_ORGANIZATION_NAME ?? "Órgão Externo E2E",
   formName: "Diagnóstico E2E - Jornada Canônica",
   evidenceQuestion: "E2E: a unidade possui procedimento de integridade formalizado?",
-  recommendationQuestion: "E2E: existe plano de ação institucional monitorado?",
+  recommendationQuestion: "E2E: existe plano de integridade e compliance institucional monitorado?",
   approvedNaQuestion: "E2E: este critério não se aplica por ausência de competência legal?",
   rejectedNaQuestion: "E2E: este critério não se aplica por decisão interna da unidade?",
 };

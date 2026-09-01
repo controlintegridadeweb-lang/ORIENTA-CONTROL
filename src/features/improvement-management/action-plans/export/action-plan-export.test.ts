@@ -276,7 +276,7 @@ describe("getActionPlanExportData", () => {
   });
 });
 
-describe("Excel analítico do plano de ação", () => {
+describe("Excel analítico do plano de integridade e compliance", () => {
   it("usa as 14 colunas canônicas, congela o cabeçalho e tipa datas e progresso", () => {
     const data = getActionPlanExportData([
       makeSource({
@@ -341,12 +341,12 @@ describe("Excel analítico do plano de ação", () => {
       }),
     ]);
     const file = await generateActionPlanExcel(data);
-    expect(file.filename).toMatch(/^plano-de-acao-\d{4}-\d{2}-\d{2}\.xlsx$/);
+    expect(file.filename).toMatch(/^plano-de-integridade-e-compliance-\d{4}-\d{2}-\d{2}\.xlsx$/);
     expect(file.content.subarray(0, 2).toString()).toBe("PK");
   });
 });
 
-describe("PDF institucional do plano de ação", () => {
+describe("PDF institucional do plano de integridade e compliance", () => {
   it("gera PDF com título institucional e não inclui recomendações sem ação", async () => {
     const data = getActionPlanExportData(
       [
@@ -359,13 +359,13 @@ describe("PDF institucional do plano de ação", () => {
       "2026-08-14",
     );
     const empty = await generateActionPlanPdf(getActionPlanExportData([], "2026-08-14"));
-    expect(empty.filename).toMatch(/^plano-de-acao-\d{4}-\d{2}-\d{2}\.pdf$/);
+    expect(empty.filename).toMatch(/^plano-de-integridade-e-compliance-\d{4}-\d{2}-\d{2}\.pdf$/);
     expect(Buffer.from(empty.content).subarray(0, 4).toString()).toBe("%PDF");
 
     const populated = await generateActionPlanPdf(data);
     const pdf = await PDFDocument.load(populated.content);
     expect(pdf.getPageCount()).toBeGreaterThanOrEqual(1);
-    expect(populated.filename).toMatch(/^plano-de-acao-\d{4}-\d{2}-\d{2}\.pdf$/);
+    expect(populated.filename).toMatch(/^plano-de-integridade-e-compliance-\d{4}-\d{2}-\d{2}\.pdf$/);
     // Hierarquia institucional: contexto → eixo → seção → origem → ações.
     expect(data.document.contexts[0]?.axes[0]?.sections[0]?.recommendations).toHaveLength(1);
   });

@@ -2,7 +2,7 @@ import type { RecommendationPortfolioExportDocument } from "@/features/improveme
 import type { RecommendationPortfolioExportRow } from "@/features/improvement-management/recommendations/export/portfolio-export-types";
 import type { RecommendationPortfolioExportSource } from "@/features/improvement-management/recommendations/export/portfolio-export-types";
 
-/** Cabeçalhos pt-BR na ordem guarda-chuva do plano de ação (1 linha por ação). */
+/** Cabeçalhos pt-BR na ordem guarda-chuva do plano de integridade e compliance (1 linha por ação). */
 export const ACTION_PLAN_EXPORT_HEADERS = [
   "Formulário",
   "Órgão",
@@ -25,7 +25,7 @@ export type ActionPlanExportHeader = (typeof ACTION_PLAN_EXPORT_HEADERS)[number]
 export type ActionPlanExportFormat = "xlsx" | "pdf";
 
 /**
- * Camada única de dados da exportação do plano de ação.
+ * Camada única de dados da exportação do plano de integridade e compliance.
  * Excel e PDF consomem a mesma estrutura; só a apresentação muda.
  */
 export type ActionPlanExportData = {

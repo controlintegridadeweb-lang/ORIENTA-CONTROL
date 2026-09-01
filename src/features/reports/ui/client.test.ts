@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { downloadPdfBlob, fetchPersistedReportPdf } from "./client";
+import { downloadPdfBlob, fetchCatalogReportPdf, fetchPersistedReportPdf } from "./client";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -39,6 +39,28 @@ describe("fetchPersistedReportPdf", () => {
     );
     expect(fetchMock).toHaveBeenNthCalledWith(2, signedUrl);
     expect(fetchMock.mock.calls[1]?.[1]).toBeUndefined();
+  });
+});
+
+describe("fetchCatalogReportPdf", () => {
+  it("baixa o PDF bimestral direto da exportação, sem URL assinada", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      new Response(new Uint8Array([37, 80, 68, 70]), {
+        status: 200,
+        headers: { "Content-Type": "application/pdf" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const blob = await fetchCatalogReportPdf(
+      "/api/monitoring/bimonthly/11111111-1111-4111-8111-111111111111/export?format=pdf",
+    );
+    expect(await blob.arrayBuffer()).toEqual(new Uint8Array([37, 80, 68, 70]).buffer);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/monitoring/bimonthly/11111111-1111-4111-8111-111111111111/export?format=pdf",
+      expect.objectContaining({ credentials: "include" }),
+    );
   });
 });
 

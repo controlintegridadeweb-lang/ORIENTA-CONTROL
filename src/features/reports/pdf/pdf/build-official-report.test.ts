@@ -4,6 +4,7 @@ import type { OfficialReportData } from "../report-types";
 import {
   buildOfficialReportPdfDocument,
   OFFICIAL_REPORT_SECTION_ORDER,
+  TRACKING_REPORT_SECTION_ORDER,
 } from "./build-official-report";
 import { buildReportDiagnostic } from "../cycle-report-read";
 import {
@@ -20,6 +21,7 @@ describe("relatório oficial", () => {
       "conclusion",
       "metadata_audit",
     ]);
+    expect(TRACKING_REPORT_SECTION_ORDER).not.toContain("fami_summary");
   });
 
   it("classifica cada critério com base no snapshot histórico", () => {

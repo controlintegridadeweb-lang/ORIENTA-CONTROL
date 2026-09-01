@@ -39,7 +39,7 @@ export function AdminActionPlanOrganizationView(props: Props) {
       renderRows={(rows) => (
         <AdminActionPlanTable items={rows} hideOrganizationColumn />
       )}
-      ariaLabel="Planos de ação por organização"
+      ariaLabel="Planos de integridade e compliance por organização"
     />
   );
 }

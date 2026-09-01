@@ -420,7 +420,7 @@ function drawSection(
     cur = drawRecommendationOrigin(doc, cur, section, index);
   });
 
-  cur = doc.drawSubsectionTitle(cur, "Plano de ação da seção");
+  cur = doc.drawSubsectionTitle(cur, "Plano de integridade e compliance da seção");
   if (summary.total === 0) {
     return doc.drawParagraph(cur, "Nenhuma ação cadastrada nesta seção.", {
       size: 9,
@@ -440,7 +440,7 @@ function drawSection(
 }
 
 /**
- * PDF do plano de ação com a identidade visual do relatório oficial:
+ * PDF do plano de integridade e compliance com a identidade visual do relatório oficial:
  * título com barra institucional, contexto em grade, eixo colorido,
  * card de resumo da seção e ações/recomendações em grade bordada.
  */
@@ -457,7 +457,7 @@ export async function generateActionPlanPdf(
   let cur = doc.newPage();
   cur = doc.drawSectionTitle(
     cur,
-    "Plano de ação",
+    "Plano de integridade e compliance",
     "Leitura por encadeamento: as ações formam o plano de cada seção; as seções compõem os eixos. As recomendações identificam a origem de cada ação.",
   );
 
@@ -468,7 +468,7 @@ export async function generateActionPlanPdf(
   for (const [contextIndex, context] of data.document.contexts.entries()) {
     if (contextIndex > 0) {
       cur = doc.newPage();
-      cur = doc.drawSectionTitle(cur, "Plano de ação");
+      cur = doc.drawSectionTitle(cur, "Plano de integridade e compliance");
     }
     cur = drawContextBlock(doc, cur, context, issuedOnLabel);
 
@@ -483,7 +483,7 @@ export async function generateActionPlanPdf(
 
   doc.applyFooters();
   return {
-    filename: `plano-de-acao-${businessToday()}.pdf`,
+    filename: `plano-de-integridade-e-compliance-${businessToday()}.pdf`,
     content: await doc.pdf.save(),
   };
 }

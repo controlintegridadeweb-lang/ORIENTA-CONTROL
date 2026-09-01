@@ -20,7 +20,7 @@ Pesos oficiais (política v7):
 Processamentos históricos com `fami_policy_version` v3–v6 permanecem congelados (incl. baseline 1,0 da v5/v6 e peso 1,5 da v3–v5); novas finalizações usam `v7`.
 
 ## Alternativas consideradas
-- Recalcular o FAMI durante o plano de ação: descartado porque misturaria diagnóstico com execução.
+- Recalcular o FAMI durante o plano de integridade e compliance: descartado porque misturaria diagnóstico com execução.
 - Usar peso único para todos os critérios: descartado porque contraria a regra institucional consolidada.
 - Conceder 1,0 provisório a “Sim” com evidência exigida e ainda não aprovada: descartado — confunde pontuação com pendência de validação.
 
@@ -28,7 +28,7 @@ Processamentos históricos com `fami_policy_version` v3–v6 permanecem congelad
 O Resultado FAMI oficial só é materializado ao concluir a validação. Pontuação 0 não encerra pendência administrativa: evidência pendente e decisão administrativa pendente continuam bloqueando a finalização no backend.
 
 ## Consequências
-Plano de ação e encerramento não recalculam FAMI. Reabertura cria nova versão de processamento sem sobrescrever resultados anteriores. Correção de históricos exige operação administrativa explícita e auditável.
+Plano de integridade e compliance e encerramento não recalculam FAMI. Reabertura cria nova versão de processamento sem sobrescrever resultados anteriores. Correção de históricos exige operação administrativa explícita e auditável.
 
 ## Extensão — acompanhamento preliminar quadrimestral
 

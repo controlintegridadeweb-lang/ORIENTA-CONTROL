@@ -15,8 +15,8 @@ export function bimonthlyTrackingPdfFilename(
 }
 
 /**
- * Monta o PDF institucional do ciclo com a fotografia bimestral do plano.
- * O Resultado FAMI e o diagnóstico permanecem os oficiais.
+ * Monta o PDF do plano de integridade e compliance no corte do bimestre.
+ * Não inclui Resultado FAMI; o relatório anual permanece o documento oficial de maturidade.
  */
 export async function buildBimonthlyTrackingPdf(params: {
   snapshot: BimonthlyTrackingSnapshot;

@@ -5,6 +5,8 @@ import { PanelSection } from "@/shared/ui/components/panel-section";
 import { formSurface } from "@/shared/layout/form-surface";
 import { typography } from "@/shared/layout/design-system";
 import type { ReportHistoryOption } from "@/features/reports/ui/client";
+import { catalogKindLabel } from "@/features/reports/report-catalog";
+import { reportCatalogLabels } from "@/shared/labels/official-labels";
 import { formatReportDate } from "./report-shell-display";
 import { REPORT_HISTORY_PAGE_SIZE } from "./reports-controller-model";
 import type { ReportsController } from "./use-reports-controller";
@@ -22,6 +24,13 @@ function ReportHistoryItem({
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className={typography.cardTitle}>{report.formName}</h3>
+            <span
+              className={`${formSurface.badge.base} ${
+                report.catalogKind === "bimonthly" ? formSurface.badge.info : formSurface.badge.brand
+              }`}
+            >
+              {catalogKindLabel(report.catalogKind, report.referenceStartYear)}
+            </span>
             {!report.isCurrent ? (
               <span className={`${formSurface.badge.base} ${formSurface.badge.warning}`}>
                 Versão anterior
@@ -51,14 +60,23 @@ function ReportHistoryItem({
           <dt className={typography.meta}>Emissão</dt>
           <dd className="mt-0.5 font-medium text-slate-800">v{report.emissionVersion}</dd>
         </div>
-        <div>
-          <dt className={typography.meta}>Processamento</dt>
-          <dd className="mt-0.5 font-medium text-slate-800">nº {report.processingVersion}</dd>
-        </div>
-        <div>
-          <dt className={typography.meta}>Política FAMI</dt>
-          <dd className="mt-0.5 font-medium text-slate-800">{report.policyVersion}</dd>
-        </div>
+        {report.catalogKind === "bimonthly" && report.bimester != null ? (
+          <div>
+            <dt className={typography.meta}>Bimestre</dt>
+            <dd className="mt-0.5 font-medium text-slate-800">{report.bimester}º</dd>
+          </div>
+        ) : (
+          <div>
+            <dt className={typography.meta}>Processamento</dt>
+            <dd className="mt-0.5 font-medium text-slate-800">nº {report.processingVersion}</dd>
+          </div>
+        )}
+        {report.catalogKind === "annual" ? (
+          <div>
+            <dt className={typography.meta}>Política FAMI</dt>
+            <dd className="mt-0.5 font-medium text-slate-800">{report.policyVersion}</dd>
+          </div>
+        ) : null}
         {report.fileSha256 ? (
           <div className="min-w-0">
             <dt className={typography.meta}>SHA-256</dt>
@@ -93,8 +111,8 @@ export function ReportHistorySection({ controller }: { controller: ReportsContro
 
   return (
     <PanelSection
-      title="Histórico de emissões"
-      description="Cada versão mantém arquivo, data, autor e motivo próprios. Emissões de diagnósticos reabertos continuam disponíveis apenas como histórico."
+      title={reportCatalogLabels.historyTitle}
+      description={reportCatalogLabels.historyDescription}
       variant="plain"
     >
       {state.historyError ? (
@@ -118,8 +136,8 @@ export function ReportHistorySection({ controller }: { controller: ReportsContro
       ) : state.history.length === 0 ? (
         <EmptyState
           icon={FileText}
-          title="Nenhuma emissão registrada"
-          description="Não há PDF oficial para o filtro atual. A primeira emissão ocorre no encerramento do diagnóstico."
+          title={reportCatalogLabels.emptyTitle}
+          description={reportCatalogLabels.adminEmptyDescription}
         />
       ) : (
         <>

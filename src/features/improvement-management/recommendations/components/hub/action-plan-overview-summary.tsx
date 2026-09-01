@@ -23,7 +23,7 @@ export function ActionPlanOverviewSummary({ plans, axisName }: Props) {
     <section aria-labelledby="rec-plan-summary-heading" className={overviewStack}>
       <OverviewBlockTitle
         id="rec-plan-summary-heading"
-        title="Plano de ação"
+        title="Plano de integridade e compliance"
         description="Situação consolidada das ações cadastradas."
       />
 

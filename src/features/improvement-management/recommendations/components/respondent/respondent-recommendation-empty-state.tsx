@@ -45,7 +45,7 @@ export function RespondentRecommendationEmptyState({ variant, onClearFilters }: 
       icon: ListChecks,
       title: "Nenhuma recomendação vinculada a plano",
       description:
-        "Há recomendações consolidadas sem ações cadastradas. Inicie o plano de ação para acompanhar progresso, início e final.",
+        "Há recomendações consolidadas sem ações cadastradas. Inicie o plano de integridade e compliance para acompanhar progresso, início e final.",
       cta: {
         label: "Ver pendentes de ação",
         href: "/respondente/portfolio-recomendacoes?focus=awaiting_action",
@@ -55,7 +55,7 @@ export function RespondentRecommendationEmptyState({ variant, onClearFilters }: 
       icon: ListChecks,
       title: "Aguardando consolidação do diagnóstico",
       description:
-        "Existem recomendações, mas o plano de ação só será liberado depois que a administração validar e consolidar o diagnóstico correspondente.",
+        "Existem recomendações, mas o plano de integridade e compliance só será liberado depois que a administração validar e consolidar o diagnóstico correspondente.",
       cta: {
         label: "Ir para meus diagnósticos",
         href: "/respondente/formularios",

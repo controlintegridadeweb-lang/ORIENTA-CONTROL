@@ -9,7 +9,7 @@ type Props = {
 
 export function AdminActionPlanList({ items }: Props) {
   return (
-    <div aria-label="Tabela de planos de ação">
+    <div aria-label="Tabela de planos de integridade e compliance">
       <AdminActionPlanTable items={items} />
     </div>
   );

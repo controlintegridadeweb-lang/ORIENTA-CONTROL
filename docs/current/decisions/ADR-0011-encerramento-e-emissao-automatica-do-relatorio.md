@@ -9,7 +9,7 @@ O estado `completed` representa o encerramento institucional da avaliação, mas
 
 ## Decisão
 
-O comando **Encerrar avaliação** valida o período de referência e os bloqueios do plano de ação, altera o ciclo para `completed` e inicia imediatamente a primeira emissão oficial. A primeira emissão não exige ação manual adicional.
+O comando **Encerrar avaliação** valida o período de referência e os bloqueios do plano de integridade e compliance, altera o ciclo para `completed` e inicia imediatamente a primeira emissão oficial. A primeira emissão não exige ação manual adicional.
 
 Como PostgreSQL e Storage não compartilham uma transação atômica, a plataforma não mascara falhas de arquivo. O estado da emissão é derivado e pode assumir:
 
@@ -37,7 +37,7 @@ Operações automáticas de encerramento e geração de pacotes reutilizam a mes
 
 ## Regra preservada
 
-- O FAMI oficial continua sendo o resultado do diagnóstico validado e não é recalculado pelo encerramento ou pelo plano de ação.
+- O FAMI oficial continua sendo o resultado do diagnóstico validado e não é recalculado pelo encerramento ou pelo plano de integridade e compliance.
 - O encerramento continua exigindo todas as condições de supervisão definidas no ADR-0008.
 - Relatórios concluídos continuam imutáveis e versionados conforme o ADR-0006.
 - Reabertura continua criando nova revisão/processamento conforme o ADR-0007.

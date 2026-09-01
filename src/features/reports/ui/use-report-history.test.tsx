@@ -59,6 +59,9 @@ function row(id: string): RespondentReportHistoryRow {
     generatedAt: "2026-07-10T12:00:00.000Z",
     format: "pdf",
     reportKind: "executive",
+    catalogKind: "annual",
+    bimester: null,
+    generationKind: null,
     status: "completed",
   };
 }

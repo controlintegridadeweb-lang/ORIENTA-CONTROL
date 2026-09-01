@@ -18,9 +18,9 @@ export function RespondentReportsHero({ loading, onRefresh, onScrollHistory }: P
       theme="respondent"
       size="compact"
       ariaLabel="Relatórios"
-      overline="Documentos oficiais"
+      overline="Documentos da organização"
       title="Relatórios"
-      description="Consulte, visualize, baixe e compartilhe os PDFs emitidos para sua organização."
+      description="Consulte, visualize, baixe e compartilhe os relatórios anuais e os relatórios bimestrais gerados para sua organização."
       image={HERO_IMAGE}
       priority
       actions={

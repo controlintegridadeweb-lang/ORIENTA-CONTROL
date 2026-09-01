@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { notify } from "@/infrastructure/notifications/notify";
 import {
   downloadPdfBlob,
-  fetchPersistedReportPdf,
+  fetchCatalogReportPdf,
   generateAndDownloadOfficialReport,
   type ReportHistoryOption,
 } from "@/features/reports/ui/client";
@@ -215,10 +215,10 @@ export function useReportsController({
   ]);
 
   const download = useCallback(async (report: ReportHistoryOption) => {
-    const notificationId = notify.loading("Preparando PDF oficial…");
+    const notificationId = notify.loading("Preparando PDF…");
     try {
       downloadPdfBlob(
-        await fetchPersistedReportPdf(report.downloadPath),
+        await fetchCatalogReportPdf(report.downloadPath),
         reportDownloadFilename(report),
       );
       notify.success("Download iniciado.", { id: notificationId });

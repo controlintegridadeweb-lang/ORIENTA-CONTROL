@@ -4,7 +4,7 @@
 - **Data:** 2026-07-27
 
 ## Contexto
-Relatórios oficiais devem continuar reproduzíveis mesmo após reabertura ou evolução do plano de ação.
+Relatórios oficiais devem continuar reproduzíveis mesmo após reabertura ou evolução do plano de integridade e compliance.
 
 ## Decisão
 Emitir relatório oficial somente após o encerramento. Reservar a emissão, persistir o PDF no bucket privado, calcular hashes e finalizar o registro apenas após confirmação do arquivo. Cada reemissão cria nova versão vinculada ao ciclo e processamento.

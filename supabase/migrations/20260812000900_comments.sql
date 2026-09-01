@@ -117,7 +117,7 @@ comment on function public.notify_respondent_open_cycles is
 comment on function public.profiles_notify_open_cycles() is
   'Dispara avisos de diagnósticos abertos quando um respondente é vinculado a uma organização.';
 comment on function public.list_organization_respondents(uuid) is
-  'Lista identidades respondentes do órgão para atribuição de responsabilidade no plano de ação.';
+  'Lista identidades respondentes do órgão para atribuição de responsabilidade no plano de integridade e compliance.';
 comment on function public.discard_pending_evidence_upload(uuid, uuid, uuid, uuid) is
   'Torna um upload temporário não associável e enfileira a exclusão física atomicamente.';
 comment on table public.respondent_profile_details is

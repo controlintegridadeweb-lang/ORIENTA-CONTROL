@@ -3894,6 +3894,9 @@ export type Database = {
           reference_start_year: number | null
           reissue_reason: string | null
           report_action_plan_revision: number | null
+          report_kind: string | null
+          bimester: number | null
+          generation_kind: string | null
         }
         Relationships: [
           {

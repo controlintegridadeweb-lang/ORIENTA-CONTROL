@@ -24,7 +24,7 @@ export const RECOMMENDATION_CARD_LABELS = {
 
 export const RECOMMENDATION_PRIMARY_ACTION_LABELS = {
   registerActions: "Cadastrar ações",
-  continuePlan: "Continuar plano de ação",
+  continuePlan: "Continuar plano de integridade e compliance",
   viewActions: "Visualizar ações",
   followActions: "Acompanhar ações",
   followDiagnosis: "Acompanhar diagnóstico",
@@ -103,7 +103,7 @@ export function resolveOperationalSituation(item: RespondentRecommendationItem):
     if (!item.canCreateActionPlan) {
       return (
         actionPlanAvailabilityForCycleState(item.cycleState)?.title ??
-        "Aguardando liberação do plano de ação"
+        "Aguardando liberação do plano de integridade e compliance"
       );
     }
     return "Aguardando cadastro de ações";

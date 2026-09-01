@@ -46,7 +46,7 @@ function sortPlans(plans: ActionPlanAction[]): ActionPlanAction[] {
   });
 }
 
-/** Workspace de execução — aba Plano de ação (sem indicadores de monitoramento). */
+/** Workspace de execução — aba Plano de integridade e compliance (sem indicadores de monitoramento). */
 export function RecommendationActionsWorkspace() {
   const ctx = useRecommendationDetailContext();
   const searchParams = useSearchParams();
@@ -127,7 +127,7 @@ export function RecommendationActionsWorkspace() {
         <h2 id="action-plan-dismissed-title" className={typography.cardTitle}>
           Recomendação dispensada
         </h2>
-        <p>Não é necessário cadastrar plano de ação para esta recomendação.</p>
+        <p>Não é necessário cadastrar plano de integridade e compliance para esta recomendação.</p>
       </section>
     );
   }

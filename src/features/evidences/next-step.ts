@@ -48,13 +48,13 @@ export function evidenceNextStep(
     case "validated":
       return {
         label: "Ver diagnóstico concluído",
-        description: "A validação foi concluída; FAMI, recomendações oficiais e plano de ação estão disponíveis.",
+        description: "A validação foi concluída; FAMI, recomendações oficiais e plano de integridade e compliance estão disponíveis.",
         opensValidationQueue: false,
       };
     case "completed":
       return {
         label: "Ver avaliação encerrada",
-        description: "A avaliação do diagnóstico foi encerrada; o Resultado FAMI permanece preservado e o plano de ação continua disponível para acompanhamento.",
+        description: "A avaliação do diagnóstico foi encerrada; o Resultado FAMI permanece preservado e o plano de integridade e compliance continua disponível para acompanhamento.",
         opensValidationQueue: false,
       };
     case "draft":

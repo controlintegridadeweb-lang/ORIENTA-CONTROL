@@ -30,7 +30,7 @@ const CONFIG = {
   "all-have-plan": {
     icon: CheckCircle2,
     title: "Todas as recomendações já têm plano",
-    description: "Nenhuma recomendação aguardando criação de plano de ação no momento.",
+    description: "Nenhuma recomendação aguardando criação de plano de integridade e compliance no momento.",
     iconBg: "bg-brand-50",
     iconColor: "text-brand-800",
   },

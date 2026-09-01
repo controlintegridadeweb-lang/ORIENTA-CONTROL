@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef } from "react";
 import { describeError, notify } from "@/infrastructure/notifications/notify";
 import {
   downloadPdfBlob,
-  fetchPersistedReportPdf,
+  fetchCatalogReportPdf,
 } from "@/features/reports/ui/client";
+import { reportCatalogLabels } from "@/shared/labels/official-labels";
 import type { RespondentReportHistoryRow } from "@/features/reports/ui/respondent-presentation";
 import { RespondentReportsHero } from "./respondent-reports-hero";
 import { RESPONDENT_PAGE_HERO_BLEED } from "@/shared/layout/respondent-page-layout";
@@ -14,7 +15,6 @@ import {
   RespondentReportsFilters,
 } from "./respondent-reports-filters";
 import { RespondentReportsHistoryList } from "./respondent-reports-history-list";
-import { RespondentReportsPreviewDrawer } from "./respondent-reports-preview-drawer";
 import { RespondentReportsEmptyState } from "./respondent-reports-empty-state";
 import { PanelSection } from "@/shared/ui/components/panel-section";
 import { layout } from "@/shared/layout/design-system";
@@ -28,18 +28,15 @@ function reportFilename(row: RespondentReportHistoryRow): string {
     .replace(/[^a-zA-Z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "")
     .toLowerCase();
+  if (row.catalogKind === "bimonthly") {
+    return `relatorio-bimestral-${row.referenceStartYear ?? "ano"}-b${row.bimester ?? "x"}-${row.id.slice(0, 8)}.pdf`;
+  }
   return `relatorio-orienta-${safeFormName || "diagnostico"}-processamento-${row.processingVersion}-emissao-${row.emissionVersion}-${row.id.slice(0, 8)}.pdf`;
 }
 
 /** Consulta documentos já emitidos pela administração. Nenhuma ação desta tela emite ou reemite PDF. */
 export function RespondentReportsShell() {
   const historyAnchorRef = useRef<HTMLDivElement>(null);
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewRow, setPreviewRow] = useState<RespondentReportHistoryRow | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const previewUrlRef = useRef<string | null>(null);
-  const previewRequestIdRef = useRef(0);
 
   const {
     history,
@@ -63,90 +60,15 @@ export function RespondentReportsShell() {
   }, []);
 
   const handleDownload = useCallback(async (row: RespondentReportHistoryRow) => {
-    const notificationId = notify.loading("Preparando PDF oficial…");
+    const notificationId = notify.loading("Preparando PDF…");
     try {
-      const blob = await fetchPersistedReportPdf(row.downloadPath);
+      const blob = await fetchCatalogReportPdf(row.downloadPath);
       downloadPdfBlob(blob, reportFilename(row));
       notify.success("Download iniciado.", { id: notificationId });
     } catch (error) {
-      notify.error(describeError(error, "Não foi possível baixar o PDF oficial."), { id: notificationId });
+      notify.error(describeError(error, "Não foi possível baixar o PDF."), { id: notificationId });
     }
   }, []);
-
-  const handleShare = useCallback(async (row: RespondentReportHistoryRow) => {
-    const notificationId = notify.loading("Preparando arquivo para compartilhamento…");
-    try {
-      const blob = await fetchPersistedReportPdf(row.downloadPath);
-      const file = new File([blob], reportFilename(row), { type: "application/pdf" });
-      if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({
-          title: "Relatório Orienta",
-          text: `${row.formName} · Processamento nº ${row.processingVersion} · Política FAMI ${row.policyVersion}`,
-          files: [file],
-        });
-        notify.success("Compartilhamento iniciado.", { id: notificationId });
-        return;
-      }
-      downloadPdfBlob(blob, reportFilename(row));
-      notify.success("Seu navegador não oferece compartilhamento de arquivos. O download foi iniciado.", {
-        id: notificationId,
-      });
-    } catch (error) {
-      notify.error(describeError(error, "Não foi possível compartilhar o PDF oficial."), {
-        id: notificationId,
-      });
-    }
-  }, []);
-
-  const releasePreviewUrl = useCallback(() => {
-    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
-    previewUrlRef.current = null;
-    setPreviewUrl(null);
-  }, []);
-
-  const openPreview = useCallback((row: RespondentReportHistoryRow) => {
-    const requestId = ++previewRequestIdRef.current;
-    setPreviewRow(row);
-    setPreviewOpen(true);
-    setPreviewLoading(true);
-    releasePreviewUrl();
-
-    void (async () => {
-      try {
-        const blob = await fetchPersistedReportPdf(row.downloadPath);
-        const nextUrl = URL.createObjectURL(blob);
-        if (requestId !== previewRequestIdRef.current) {
-          URL.revokeObjectURL(nextUrl);
-          return;
-        }
-        previewUrlRef.current = nextUrl;
-        setPreviewUrl(nextUrl);
-      } catch (error) {
-        if (requestId === previewRequestIdRef.current) {
-          notify.error(describeError(error, "Não foi possível carregar a pré-visualização."));
-        }
-      } finally {
-        if (requestId === previewRequestIdRef.current) setPreviewLoading(false);
-      }
-    })();
-  }, [releasePreviewUrl]);
-
-  const closePreview = useCallback(() => {
-    previewRequestIdRef.current += 1;
-    setPreviewOpen(false);
-    setPreviewRow(null);
-    setPreviewLoading(false);
-    releasePreviewUrl();
-  }, [releasePreviewUrl]);
-
-  useEffect(
-    () => () => {
-      previewRequestIdRef.current += 1;
-      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
-      previewUrlRef.current = null;
-    },
-    [],
-  );
 
   return (
     <div className={layout.pageStack}>
@@ -160,8 +82,8 @@ export function RespondentReportsShell() {
 
       <section className={layout.panelStack}>
         <PanelSection
-          title="Histórico de relatórios"
-          description="Consulte as emissões oficiais disponíveis para sua organização."
+          title={reportCatalogLabels.historyTitle}
+          description={reportCatalogLabels.historyDescription}
           variant="plain"
           id="relatorios-historico"
           contentClassName="space-y-4"
@@ -190,8 +112,6 @@ export function RespondentReportsShell() {
               <RespondentReportsHistoryList
                 items={filteredHistory}
                 onDownload={(row) => void handleDownload(row)}
-                onPreview={openPreview}
-                onShare={(row) => void handleShare(row)}
               />
             )}
 
@@ -222,17 +142,6 @@ export function RespondentReportsShell() {
             ) : null}
           </div>
         </PanelSection>
-
-        <RespondentReportsPreviewDrawer
-          open={previewOpen}
-          onClose={closePreview}
-          row={previewRow}
-          previewUrl={previewUrl}
-          previewLoading={previewLoading}
-          onDownload={() => {
-            if (previewRow) void handleDownload(previewRow);
-          }}
-        />
       </section>
     </div>
   );

@@ -33,7 +33,7 @@ type Props = {
   paginationAriaLabel: string;
 };
 
-/** Estrutura visual comum das filas de Recomendações e Plano de ação. */
+/** Estrutura visual comum das filas de Recomendações e Plano de integridade e compliance. */
 export function AdminMonitoringWorkspace({
   hero,
   error,

@@ -38,7 +38,7 @@ end;
 $$;
 
 comment on function public.list_organization_respondents(uuid) is
-  'Lista identidades respondentes do órgão para atribuição de responsabilidade no plano de ação. O e-mail vem de auth.users quando visível; a existência do membro não depende desse join.';
+  'Lista identidades respondentes do órgão para atribuição de responsabilidade no plano de integridade e compliance. O e-mail vem de auth.users quando visível; a existência do membro não depende desse join.';
 
 -- Sem FORCE RLS, o dono de `profiles` enxerga as linhas. No Postgres local do
 -- Supabase o papel `postgres` da URL não tem BYPASSRLS; se a função permanecer

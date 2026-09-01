@@ -53,7 +53,7 @@ export function FamiResumoBasicTab({
             href={queueHref("plano-acao", { formId: effectiveFormId }) ?? "#"}
             className={typography.inlineNavLink}
           >
-            Plano de ação
+            Plano de integridade e compliance
           </Link>
         </nav>
       ) : null}

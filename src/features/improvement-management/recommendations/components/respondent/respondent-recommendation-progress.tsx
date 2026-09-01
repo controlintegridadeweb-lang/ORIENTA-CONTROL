@@ -7,7 +7,7 @@ type Props = {
 };
 
 /**
- * Mini barra de progresso para refletir a evolucao do plano de acao
+ * Mini barra de progresso para refletir a evolucao do plano de integridade e compliance
  * (derivado em `respondent-presentation.ts`).
  */
 export function RespondentRecommendationProgress({

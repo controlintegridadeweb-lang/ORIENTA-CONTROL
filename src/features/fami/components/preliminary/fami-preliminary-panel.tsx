@@ -37,18 +37,18 @@ type Props = {
   onCalculate(quadrimester: Quadrimester): void;
 };
 
-const BIMONTHLY_EXPORT_OPTIONS: Array<ExportMenuOption<"pdf" | "xlsx">> = [
+const PRELIMINARY_EXPORT_OPTIONS: Array<ExportMenuOption<"pdf" | "xlsx">> = [
   {
     format: "pdf",
     label: famiPreliminaryLabels.exportPdf,
     icon: FileText,
-    hint: famiPreliminaryLabels.exportPdfHint,
+    hint: famiPreliminaryLabels.exportPreliminaryPdfHint,
   },
   {
     format: "xlsx",
     label: famiPreliminaryLabels.exportXlsx,
     icon: FileSpreadsheet,
-    hint: famiPreliminaryLabels.exportXlsxHint,
+    hint: famiPreliminaryLabels.exportPreliminaryXlsxHint,
   },
 ];
 
@@ -94,13 +94,13 @@ function downloadCsv(rows: PreliminaryCheckpoint[], cycleId: string): void {
   URL.revokeObjectURL(url);
 }
 
-function exportHref(reportId: string, format: "pdf" | "xlsx"): string {
-  return `/api/monitoring/bimonthly/${reportId}/export?format=${format}`;
+function exportHref(processingId: string, format: "pdf" | "xlsx"): string {
+  return `/api/fami/preliminary/${processingId}/export?format=${format}`;
 }
 
-function startExportDownload(reportId: string, format: "pdf" | "xlsx"): void {
+function startExportDownload(processingId: string, format: "pdf" | "xlsx"): void {
   const anchor = document.createElement("a");
-  anchor.href = exportHref(reportId, format);
+  anchor.href = exportHref(processingId, format);
   anchor.rel = "noopener";
   document.body.appendChild(anchor);
   anchor.click();
@@ -202,7 +202,7 @@ export function FamiPreliminaryPanel({
               <tr>
                 <th className={formSurface.brandTable.headCell}>Período</th>
                 <th className={formSurface.brandTable.headCell}>Situação</th>
-                <th className={formSurface.brandTable.headCell}>Plano de ação</th>
+                <th className={formSurface.brandTable.headCell}>Plano de integridade e compliance</th>
                 <th className={formSurface.brandTable.headCell}>Ação</th>
               </tr>
             </thead>
@@ -309,13 +309,13 @@ export function FamiPreliminaryPanel({
                               : famiPreliminaryLabels.calculateRow}
                           </LoadingButton>
                         ) : null}
-                        {report ? (
+                        {checkpoint?.preliminary ? (
                           <ExportMenu
                             label={famiPreliminaryLabels.exportMenu}
-                            options={BIMONTHLY_EXPORT_OPTIONS}
+                            options={PRELIMINARY_EXPORT_OPTIONS}
                             disabled={actionsBusy}
                             onExport={async (format) => {
-                              startExportDownload(report.id, format);
+                              startExportDownload(checkpoint.id, format);
                             }}
                           />
                         ) : null}

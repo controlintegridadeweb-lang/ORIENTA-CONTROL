@@ -12,7 +12,7 @@ import type { ActionPlanExportData } from "./action-plan-export-types";
 
 /**
  * Converte o item administrativo (1 linha = 1 ação) na fonte compartilhada
- * do portfólio. Sem ação cadastrada → null (o plano de ação não exporta
+ * do portfólio. Sem ação cadastrada → null (o plano de integridade e compliance não exporta
  * recomendações sem execução).
  */
 export function toActionPlanExportSourceFromAdmin(

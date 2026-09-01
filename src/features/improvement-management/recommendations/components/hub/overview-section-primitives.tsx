@@ -64,7 +64,7 @@ export function OverviewBlockTitle({
   );
 }
 
-/** Painel azul-claro arredondado da Visão geral / Plano de ação. */
+/** Painel azul-claro arredondado da Visão geral / Plano de integridade e compliance. */
 export function OverviewSoftPanel({
   children,
   className = "",
@@ -94,7 +94,7 @@ export function OverviewSoftPanel({
   );
 }
 
-/** Casca branca com trilho — usada em Plano de ação / Monitoramento. */
+/** Casca branca com trilho — usada em Plano de integridade e compliance / Monitoramento. */
 export function OverviewCardShell({
   accentColor,
   children,

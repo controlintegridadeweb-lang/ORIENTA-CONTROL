@@ -10,7 +10,7 @@ Validar o diagnóstico conclui o FAMI, mas o encerramento institucional depende 
 Permitir `validated -> completed` somente quando todas as ações ativas estiverem concluídas, não houver solicitação aberta e cada ação possuir aceite vigente para sua revisão atual.
 
 ## Alternativas consideradas
-- Encerrar imediatamente após a validação: descartado porque ignoraria o plano de ação e sua supervisão.
+- Encerrar imediatamente após a validação: descartado porque ignoraria o plano de integridade e compliance e sua supervisão.
 - Considerar ação apenas cadastrada ou em andamento: descartado porque não comprova execução nem aceite.
 
 ## Regra preservada

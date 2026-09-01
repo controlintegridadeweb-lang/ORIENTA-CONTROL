@@ -138,7 +138,7 @@ export function CreateCycleAutomationSection({
             if (!checked) setField("cycleCloseAt", "");
           }}
           title="Agendar encerramento automático da avaliação"
-          description="O sistema encerra apenas a avaliação de diagnósticos validados com o plano de ação completo; o plano permanece disponível para acompanhamento."
+          description="O sistema encerra apenas a avaliação de diagnósticos validados com o plano de integridade e compliance completo; o plano permanece disponível para acompanhamento."
           inputId="cycle-close-at"
           value={draft.cycleCloseAt}
           onValueChange={(value) => setField("cycleCloseAt", value)}

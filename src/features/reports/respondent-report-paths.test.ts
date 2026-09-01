@@ -11,6 +11,7 @@ describe("respondent report paths", () => {
         {
           search: "Integridade",
           status: "completed",
+          kind: "bimonthly",
           from: "2026-01-01",
           to: "2026-12-31",
           yearPreset: 2026,
@@ -18,18 +19,19 @@ describe("respondent report paths", () => {
         25,
       ),
     ).toBe(
-      "/respondente/relatorios?search=Integridade&status=completed&from=2026-01-01&to=2026-12-31&year=2026&offset=25",
+      "/respondente/relatorios?search=Integridade&status=completed&kind=bimonthly&from=2026-01-01&to=2026-12-31&year=2026&offset=25",
     );
   });
 
   it("ignora parâmetros inválidos ao restaurar a consulta", () => {
     const params = new URLSearchParams(
-      "status=unknown&from=12%2F07%2F2026&to=2026-12-31&year=1999&offset=-1&search=Relat%C3%B3rio",
+      "status=unknown&kind=weekly&from=12%2F07%2F2026&to=2026-12-31&year=1999&offset=-1&search=Relat%C3%B3rio",
     );
     expect(parseRespondentReportUrl(params)).toEqual({
       filters: {
         search: "Relatório",
         status: "",
+        kind: "",
         from: "",
         to: "2026-12-31",
         yearPreset: null,

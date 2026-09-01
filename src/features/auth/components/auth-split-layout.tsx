@@ -27,7 +27,7 @@ export function AuthSplitLayout({ children }: { children: ReactNode }) {
               Diagnóstico e gestão da maturidade organizacional
             </h2>
             <p className={`max-w-104 text-pretty ${typography.pageDescription}`}>
-              Formulários, evidências, recomendações e planos de ação integrados ao trabalho da
+              Formulários, evidências, recomendações e planos de integridade e compliance integrados ao trabalho da
               Controladoria-Geral do Estado do Rio Grande do Norte.
             </p>
           </div>

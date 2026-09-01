@@ -42,7 +42,7 @@
 2. Preenche os critérios e envia evidências quando exigidas.
 3. Quando recebe uma devolutiva, altera somente as evidências das perguntas indicadas. As respostas e os demais itens permanecem bloqueados. A evidência devolvida é preservada no histórico; a nova versão é enviada em um único reenvio após todas as pendências serem resolvidas.
 4. Consulta o Resultado FAMI após a validação.
-5. Analisa recomendações e cadastra uma ou mais ações a partir de cada recomendação. Na apresentação gerencial, essas ações passam a compor automaticamente o Plano de ação da respectiva seção.
+5. Analisa recomendações e cadastra uma ou mais ações a partir de cada recomendação. Na apresentação gerencial, essas ações passam a compor automaticamente o Plano de integridade e compliance da respectiva seção.
 6. Atualiza execução, prazos, percentual de progresso (0–100%) e comprovações
    do plano. A situação da ação deriva do percentual (0% não iniciada, 1–99%
    em andamento, 100% concluída); cancelamento é excepcional. Cada ação
@@ -59,19 +59,19 @@
 
 ## Ordem canônica
 
-Formulário → Diagnóstico → Respostas e evidências → Validação → Resultado FAMI → Recomendações → Planos de ação por seção ou exceção → Supervisão e aceite → Encerramento + primeira emissão automática → Relatório oficial.
+Formulário → Diagnóstico → Respostas e evidências → Validação → Resultado FAMI → Recomendações → Planos de integridade e compliance por seção ou exceção → Supervisão e aceite → Encerramento + primeira emissão automática → Relatório oficial.
 
 Não existem módulos independentes de Campanhas ou Automações na interface. Operações programadas são vinculadas diretamente aos diagnósticos.
 
 
-## Encadeamento gerencial do plano de ação
+## Encadeamento gerencial do plano de integridade e compliance
 
 A leitura oficial das telas gerenciais, PDF e Excel segue:
 
-**Diagnóstico → Eixo → Seção → Plano de ação da seção → Ações.**
+**Diagnóstico → Eixo → Seção → Plano de integridade e compliance da seção → Ações.**
 
 A persistência não cria um novo registro de plano por seção. Cada ação continua vinculada à recomendação que a originou, preservando a cadeia de auditoria:
 
 **Pergunta → Resposta/validação → Recomendação → Ação → Comprovação → Supervisão.**
 
-O Plano de ação da seção é um *read model* derivado das ações das recomendações daquela seção. Totais, progresso e situação do plano da seção e do eixo são agregações calculadas, não campos duplicados. O acompanhamento do plano não recalcula o FAMI oficial.
+O Plano de integridade e compliance da seção é um *read model* derivado das ações das recomendações daquela seção. Totais, progresso e situação do plano da seção e do eixo são agregações calculadas, não campos duplicados. O acompanhamento do plano não recalcula o FAMI oficial.

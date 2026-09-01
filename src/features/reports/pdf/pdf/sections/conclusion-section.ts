@@ -31,6 +31,19 @@ function buildInstitutionalReading(doc: OrientaPdfDocument): string[] {
   const d = doc.data;
   const g = d.fami.global;
   const paragraphs: string[] = [];
+  const recTotal = d.actionPlan.summary.totalRecommendations;
+  const actionTotal = d.actionPlan.summary.totalActions;
+  const byStatus = d.actionPlan.summary.actionsByStatus;
+  const planParagraph =
+    `Foram identificadas ${recTotal} ${recTotal === 1 ? "recomendação" : "recomendações"} e ${actionTotal} ${actionTotal === 1 ? "ação" : "ações"} no plano de integridade e compliance (${byStatus.completed ?? 0} concluídas, ${byStatus.in_progress ?? 0} em andamento, ${byStatus.not_started ?? 0} não iniciadas e ${byStatus.cancelled ?? 0} canceladas).`;
+
+  if (d.tracking) {
+    paragraphs.push(planParagraph);
+    paragraphs.push(
+      "As ações, comprovações e registros apresentados documentam o andamento do plano até o corte deste bimestre.",
+    );
+    return paragraphs;
+  }
 
   if (g.maturityLevel == null) {
     paragraphs.push(
@@ -69,17 +82,9 @@ function buildInstitutionalReading(doc: OrientaPdfDocument): string[] {
     }
   }
 
-  const recTotal = d.actionPlan.summary.totalRecommendations;
-  const actionTotal = d.actionPlan.summary.totalActions;
-  const byStatus = d.actionPlan.summary.actionsByStatus;
+  paragraphs.push(planParagraph);
   paragraphs.push(
-    `Foram identificadas ${recTotal} ${recTotal === 1 ? "recomendação" : "recomendações"} e ${actionTotal} ${actionTotal === 1 ? "ação" : "ações"} no plano de ação (${byStatus.completed ?? 0} concluídas, ${byStatus.in_progress ?? 0} em andamento, ${byStatus.not_started ?? 0} não iniciadas e ${byStatus.cancelled ?? 0} canceladas).`,
-  );
-
-  paragraphs.push(
-    d.tracking
-      ? "O Resultado FAMI permanece o do diagnóstico oficial. As ações, comprovações e registros apresentados documentam o andamento do plano até o corte deste bimestre."
-      : "O resultado registra a situação aferida no diagnóstico; as ações, comprovações e registros de acompanhamento apresentados neste relatório documentam o tratamento realizado até a emissão.",
+    "O resultado registra a situação aferida no diagnóstico; as ações, comprovações e registros de acompanhamento apresentados neste relatório documentam o tratamento realizado até a emissão.",
   );
 
   return paragraphs;

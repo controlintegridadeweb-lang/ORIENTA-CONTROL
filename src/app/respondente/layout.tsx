@@ -12,7 +12,7 @@ export default async function RespondenteLayout({ children }: { children: ReactN
     <AppShell
       user={user}
       title="Área do respondente"
-      description="Diagnósticos, evidências, recomendações, Plano de ação, Resultado FAMI, relatórios e perfil"
+      description="Diagnósticos, evidências, recomendações, Plano de integridade e compliance, Resultado FAMI, relatórios e perfil"
     >
       {children}
     </AppShell>

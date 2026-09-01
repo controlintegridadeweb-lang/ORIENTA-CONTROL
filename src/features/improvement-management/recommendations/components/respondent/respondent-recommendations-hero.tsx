@@ -5,7 +5,7 @@ import { ArrowRight, FileSpreadsheet, FileText, Table2 } from "lucide-react";
 import { IllustratedPageHero } from "@/shared/ui/components/illustrated-page-hero";
 import { RefreshActionButton } from "@/shared/ui/components/refresh-action-button";
 import {
-  RESPONDENT_ACTION_PLAN_MODULE_LABEL,
+  RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL,
   RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL,
 } from "@/shared/navigation/respondent-portfolio-paths";
 import { formSurface } from "@/shared/layout/form-surface";
@@ -33,9 +33,9 @@ const HERO_COPY = {
   },
   "action-plan": {
     overline: "Execução e acompanhamento",
-    title: RESPONDENT_ACTION_PLAN_MODULE_LABEL,
+    title: RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL,
     description: "Acompanhe ações, responsáveis, início, final e progresso dos planos já criados.",
-    // Pendentes sem plano ficam na aba Recomendações (analysis).
+    // Pendentes sem plano ficam na aba de recomendações (analysis).
     ctaHref: "/respondente/portfolio-recomendacoes?status=generated&pendingOnly=1",
     ctaLabel: "Ver recomendações pendentes",
   },
@@ -73,7 +73,7 @@ const ACTION_PLAN_EXPORT_OPTIONS: Array<ExportMenuOption<"xlsx" | "pdf">> = [
     format: "pdf",
     label: "Exportar PDF",
     icon: FileText,
-    hint: "Relatório institucional agrupado por eixo, seção e recomendação.",
+    hint: "Relatório bimestral de acompanhamento do plano de integridade e compliance.",
   },
 ];
 

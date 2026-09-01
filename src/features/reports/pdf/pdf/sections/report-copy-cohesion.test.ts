@@ -2,11 +2,20 @@ import { describe, expect, it } from "vitest";
 import { FAMI_SCORING_GROUPS } from "@/features/fami";
 import { conclusionPriorityActions } from "./conclusion-section";
 import { DIAGNOSTIC_SUMMARY_INDICATORS } from "./diagnostic-summary-section";
-import { OFFICIAL_REPORT_COVER_FIELD_LABELS } from "./cover-page";
+import {
+  OFFICIAL_REPORT_COVER_FIELD_LABELS,
+  TRACKING_REPORT_COVER_FIELD_LABELS,
+  officialReportCoverTitle,
+} from "./cover-page";
 import { OFFICIAL_REPORT_TOC_TITLE } from "./table-of-contents";
 import { hasComparableFamiEvolution } from "./evolution-section";
 import { reportEmissionLines } from "./annexes-section";
-import { OFFICIAL_REPORT_SECTION_ORDER } from "../build-official-report";
+import {
+  OFFICIAL_REPORT_SECTION_ORDER,
+  TRACKING_REPORT_SECTION_ORDER,
+} from "../build-official-report";
+import { reportDocumentTitles } from "@/shared/labels/official-labels";
+import type { OfficialReportData } from "@/features/reports/pdf/report-types";
 import {
   axisAnalysisHeading,
   sectionAnalysisHeading,
@@ -30,6 +39,35 @@ describe("coesão textual do relatório oficial", () => {
       "Organização",
       "Data de emissão",
     ]);
+  });
+
+  it("omite Resultado FAMI na capa do relatório bimestral do plano", () => {
+    expect(TRACKING_REPORT_COVER_FIELD_LABELS).toEqual([
+      "Período de referência",
+      "Formulário",
+      "Organização",
+      "Data de emissão",
+    ]);
+    expect(TRACKING_REPORT_COVER_FIELD_LABELS).not.toContain("Resultado FAMI");
+  });
+
+  it("titula o anual com o ano e o bimestral pelo plano de integridade e compliance", () => {
+    expect(reportDocumentTitles.annual(2026)).toBe("Relatório anual 2026");
+    expect(reportDocumentTitles.bimonthly).toBe(
+      "Relatório bimestral de acompanhamento do plano de integridade e compliance",
+    );
+    expect(
+      officialReportCoverTitle({
+        tracking: null,
+        referenceYear: 2026,
+      } as Pick<OfficialReportData, "tracking" | "referenceYear"> as OfficialReportData),
+    ).toBe("Relatório anual 2026");
+    expect(
+      officialReportCoverTitle({
+        tracking: { kind: "bimonthly" },
+        referenceYear: 2026,
+      } as Pick<OfficialReportData, "tracking" | "referenceYear"> as OfficialReportData),
+    ).toBe(reportDocumentTitles.bimonthly);
   });
 
   it("mantém o título institucional do sumário", () => {
@@ -101,6 +139,13 @@ describe("coesão textual do relatório oficial", () => {
       "conclusion",
       "metadata_audit",
     ]);
+    expect(TRACKING_REPORT_SECTION_ORDER).toEqual([
+      "diagnostic_summary",
+      "detailed_axis_analysis",
+      "conclusion",
+      "metadata_audit",
+    ]);
+    expect(TRACKING_REPORT_SECTION_ORDER).not.toContain("fami_summary");
   });
 
   it("identifica a emissão só com autor, data e horário", () => {

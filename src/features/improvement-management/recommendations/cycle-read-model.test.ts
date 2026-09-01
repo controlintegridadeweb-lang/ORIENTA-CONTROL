@@ -53,7 +53,7 @@ describe("cycle-read-model", () => {
     expect(toRecommendationStatus(item.derivedStatus)).toBe("dismissed");
   });
 
-  it("plano de ação em progresso → in_action_plan", () => {
+  it("plano de integridade e compliance em progresso → in_action_plan", () => {
     const item = mapRecommendationRow(
       joinedRow({ action_plans: [{ id: "ap-1", status: "doing" }] }),
       new Set(),

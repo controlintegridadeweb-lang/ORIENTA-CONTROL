@@ -85,7 +85,7 @@ export const EVIDENCE_VALIDATION_REGISTRY: Record<ValidationStatus, StatusRegist
 
 export const RECOMMENDATION_REGISTRY: Record<RecommendationStatus, StatusRegistryEntry> = {
   generated: entry({ key: "generated", label: "Gerada", colorClass: STATUS_BADGE_SURFACE.neutral, icon: Clock, priority: 50 }),
-  in_action_plan: entry({ key: "in_action_plan", label: "Em plano de ação", colorClass: STATUS_BADGE_SURFACE.info, icon: PlayCircle, priority: 35 }),
+  in_action_plan: entry({ key: "in_action_plan", label: "Em plano de integridade e compliance", colorClass: STATUS_BADGE_SURFACE.info, icon: PlayCircle, priority: 35 }),
   awaiting_approval: entry({ key: "awaiting_approval", label: "Execução concluída · aguardando aceite", colorClass: STATUS_BADGE_SURFACE.warning, icon: Hourglass, priority: 25 }),
   adjustment_requested: entry({ key: "adjustment_requested", label: "Solicitação de ajuste", colorClass: STATUS_BADGE_SURFACE.danger, icon: ShieldAlert, priority: 15 }),
   exception_requested: entry({ key: "exception_requested", label: "Exceção em análise", colorClass: STATUS_BADGE_SURFACE.warning, icon: FileQuestion, priority: 20 }),
@@ -110,7 +110,7 @@ const RECOMMENDATION_TYPE_REGISTRY: Record<string, StatusRegistryEntry> = {
   nao_implementacao: entry({
     key: "nao_implementacao",
     label: RECOMMENDATION_TYPE_LABELS.nao_implementacao,
-    description: "Motivo da recomendação: a resposta no diagnóstico foi Não. Não muda ao atualizar o plano de ação.",
+    description: "Motivo da recomendação: a resposta no diagnóstico foi Não. Não muda ao atualizar o plano de integridade e compliance.",
     colorClass: STATUS_BADGE_SURFACE.danger,
     icon: XCircle,
     priority: 20,
@@ -118,7 +118,7 @@ const RECOMMENDATION_TYPE_REGISTRY: Record<string, StatusRegistryEntry> = {
   ausencia_evidencia: entry({
     key: "ausencia_evidencia",
     label: RECOMMENDATION_TYPE_LABELS.ausencia_evidencia,
-    description: "Motivo da recomendação: faltou evidência obrigatória. Não muda ao atualizar o plano de ação.",
+    description: "Motivo da recomendação: faltou evidência obrigatória. Não muda ao atualizar o plano de integridade e compliance.",
     colorClass: STATUS_BADGE_SURFACE.orange,
     icon: AlertCircle,
     priority: 21,
@@ -126,7 +126,7 @@ const RECOMMENDATION_TYPE_REGISTRY: Record<string, StatusRegistryEntry> = {
   evidencia_insuficiente: entry({
     key: "evidencia_insuficiente",
     label: RECOMMENDATION_TYPE_LABELS.evidencia_insuficiente,
-    description: "Motivo da recomendação: a evidência foi insuficiente ou não aprovada. Não muda ao atualizar o plano de ação.",
+    description: "Motivo da recomendação: a evidência foi insuficiente ou não aprovada. Não muda ao atualizar o plano de integridade e compliance.",
     colorClass: STATUS_BADGE_SURFACE.warning,
     icon: AlertCircle,
     priority: 22,

@@ -61,7 +61,7 @@ export const COVER_LAYOUT = {
   /** Período de referência na capa bimestral — mesmo corpo dos demais metadados. */
   periodValueSize: 12,
 
-  /** Logo ORIENTA (lockup compacto) na capa do acompanhamento bimestral. */
+  /** Logo ORIENTA (lockup compacto) na capa com título textual. */
   trackingLogoMax: {
     w: 280,
     h: 92,
@@ -339,7 +339,7 @@ function drawTrackingBrand(
   logo: PDFImage | null,
 ): number {
   const { w: pageWidth, h: pageHeight } = reportTheme.page;
-  const titleSize = 20;
+  const titleSize = title.length > 48 ? 16 : 20;
   const usableWidth = pageWidth - COVER_LAYOUT.margin * 2;
   const titleLines = wrapCoverLines(fonts, latinPdfSafe(title), titleSize, usableWidth, true);
   const titleBlockH =

@@ -2,7 +2,7 @@ import { normalizeAxisNameKey } from "@/shared/domain/axis";
 
 /**
  * Identidade visual dos eixos estruturais da plataforma.
- * Fonte única — UI de recomendações/plano de ação e FAMI consomem daqui.
+ * Fonte única — UI de recomendações/plano de integridade e compliance e FAMI consomem daqui.
  */
 
 export type AxisThemeKey = "governance" | "environmental" | "social";

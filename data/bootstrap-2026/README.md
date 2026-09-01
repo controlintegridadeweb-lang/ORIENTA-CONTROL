@@ -23,7 +23,7 @@ A carga da distribuição privada foi derivada do snapshot privado exportado em 
 
 ## O que deliberadamente não é preservado
 
-Não entram no bootstrap: `audit_logs`, snapshots, notificações, eventos de reabertura/submissão/prazo, processamentos antigos, séries históricas de FAMI, recomendações materializadas antigas, planos de ação antigos e relatórios antigos.
+Não entram no bootstrap: `audit_logs`, snapshots, notificações, eventos de reabertura/submissão/prazo, processamentos antigos, séries históricas de FAMI, recomendações materializadas antigas, planos de integridade e compliance antigos e relatórios antigos.
 
 Esses dados descrevem **como o sistema antigo chegou ao estado atual**. A nova implantação começa com o estado real necessário para continuar o diagnóstico e passa a produzir seu próprio histórico.
 

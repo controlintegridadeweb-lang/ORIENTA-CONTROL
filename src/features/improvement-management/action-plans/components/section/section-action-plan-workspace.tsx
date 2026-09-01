@@ -63,7 +63,7 @@ type Props = {
 
 const TAB_LABELS: Record<SectionActionPlanWorkspaceTab, string> = {
   "visao-geral": "Visão geral",
-  acoes: "Plano de ação",
+  acoes: "Plano de integridade e compliance",
   monitoramento: "Monitoramento",
 };
 
@@ -453,7 +453,7 @@ export function SectionActionPlanWorkspace({
   }, [load]);
 
   const listFallback =
-    role === "respondent" ? "/respondente/portfolio-recomendacoes?view=action-plan" : "/admin/plano-acao";
+    role === "respondent" ? "/respondente/portfolio-recomendacoes" : "/admin/plano-acao";
   const backPath = returnTo || listFallback;
   const tabs = useMemo(() => {
     if (!section) return [];
@@ -468,7 +468,7 @@ export function SectionActionPlanWorkspace({
   if (error) {
     return (
       <AsyncErrorState
-        title="Não foi possível carregar o Plano de ação da seção"
+        title="Não foi possível carregar o Plano de integridade e compliance da seção"
         message={error}
         onRetry={load}
         retrying={loading}
@@ -480,7 +480,7 @@ export function SectionActionPlanWorkspace({
       <EmptyState
         icon={CircleAlert}
         iconWrapClassName="flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-700"
-        title="Seção sem plano de ação neste diagnóstico"
+        title="Seção sem plano de integridade e compliance neste diagnóstico"
         description="Não foram encontradas recomendações do ciclo atual vinculadas a esta seção."
         action={
           <Link href={backPath} className={formSurface.secondaryButtonSm}>
@@ -499,7 +499,7 @@ export function SectionActionPlanWorkspace({
       <div className="space-y-4">
         <Link href={backPath} className={typography.inlineNavLink}>
           <ArrowLeft className="h-4 w-4" aria-hidden />
-          Voltar ao Plano de ação
+          Voltar ao Plano de integridade e compliance
         </Link>
 
         <ContextTrail
@@ -513,14 +513,14 @@ export function SectionActionPlanWorkspace({
         <PageHeader
           title={section.sectionName}
           kicker={<AxisBadge axisName={section.axisName} />}
-          description="Plano de ação consolidado da seção, com origem rastreável nas recomendações do diagnóstico."
+          description="Plano de integridade e compliance consolidado da seção, com origem rastreável nas recomendações do diagnóstico."
           actions={<SectionPlanStatusBadge status={sectionStatus} />}
           size="compact"
           className="mb-0"
         />
       </div>
 
-      <UnderlineTabs tabs={tabs} aria-label="Plano de ação da seção" />
+      <UnderlineTabs tabs={tabs} aria-label="Plano de integridade e compliance da seção" />
 
       {activeTab === "visao-geral" ? <SectionOverview section={section} /> : null}
       {activeTab === "acoes" ? (

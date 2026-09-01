@@ -144,7 +144,7 @@ describe("RespondentRecommendationCard", () => {
       "/respondente/recomendacoes",
     );
     rerender(<RespondentRecommendationCard viewModel={withPlan} />);
-    expect(screen.getByRole("link", { name: /Continuar plano de ação/i })).toBeTruthy();
+    expect(screen.getByRole("link", { name: /Continuar plano de integridade e compliance/i })).toBeTruthy();
     expect(screen.queryByRole("link", { name: /Cadastrar ações/i })).toBeNull();
   });
 
