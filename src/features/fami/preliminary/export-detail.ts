@@ -1,7 +1,7 @@
 import "server-only";
 
+import { z } from "zod";
 import type { TypedSupabaseClient } from "@/infrastructure/supabase/server";
-import { resolveCycleReportScope } from "@/features/reports/pdf/cycle-report-read";
 import {
   buildQuadrimesterEvolution,
   type QuadrimesterEvolution,
@@ -10,12 +10,11 @@ import { listPreliminaryCriterionRows, type PreliminaryCriterionRow } from "./cr
 import type { PreliminaryCheckpoint } from "./read";
 import type { Quadrimester } from "./domain";
 import { quadrimesterPeriod } from "./domain";
-
-import type {
-  ReportFamiAxisScore,
-  ReportFamiSectionScore,
-} from "@/features/reports/pdf/report-types";
-import { loadPreliminaryFamiScopedScores } from "./export-fami-scores";
+import {
+  loadPreliminaryFamiScopedScores,
+  type PreliminaryFamiAxisScore,
+  type PreliminaryFamiSectionScore,
+} from "./export-fami-scores";
 
 export type PreliminaryExportDetail = {
   checkpoint: PreliminaryCheckpoint;
@@ -24,9 +23,58 @@ export type PreliminaryExportDetail = {
   periodLabel: string;
   evolution: QuadrimesterEvolution | null;
   criteria: PreliminaryCriterionRow[];
-  famiByAxis: ReportFamiAxisScore[];
-  famiSections: ReportFamiSectionScore[];
+  famiByAxis: PreliminaryFamiAxisScore[];
+  famiSections: PreliminaryFamiSectionScore[];
 };
+
+function firstRelated<T>(value: T | T[] | null | undefined): T | null {
+  if (!value) return null;
+  return Array.isArray(value) ? (value[0] ?? null) : value;
+}
+
+const exportScopeNameSchema = z.object({ name: z.string() });
+const exportScopeSchema = z.object({
+  period_label: z.string(),
+  organizations: z.union([exportScopeNameSchema, z.array(exportScopeNameSchema)]).nullable(),
+  form_versions: z
+    .union([
+      z.object({
+        forms: z.union([exportScopeNameSchema, z.array(exportScopeNameSchema)]).nullable(),
+      }),
+      z.array(
+        z.object({
+          forms: z.union([exportScopeNameSchema, z.array(exportScopeNameSchema)]).nullable(),
+        }),
+      ),
+    ])
+    .nullable(),
+});
+
+async function loadExportScope(
+  client: TypedSupabaseClient,
+  cycleId: string,
+): Promise<{ organizationName: string; formName: string; periodLabel: string } | null> {
+  const { data, error } = await client
+    .from("cycles")
+    .select(
+      "period_label, organizations!inner(name), form_versions!inner(forms!form_versions_form_id_fkey!inner(name))",
+    )
+    .eq("id", cycleId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+
+  const row = exportScopeSchema.parse(data);
+  const organization = firstRelated(row.organizations);
+  const formVersion = firstRelated(row.form_versions);
+  const form = firstRelated(formVersion?.forms);
+  if (!organization?.name || !form?.name) return null;
+  return {
+    organizationName: organization.name,
+    formName: form.name,
+    periodLabel: row.period_label,
+  };
+}
 
 async function loadCheckpointById(
   client: TypedSupabaseClient,
@@ -136,7 +184,7 @@ export async function loadPreliminaryExportDetail(
   const checkpoint = await loadCheckpointById(client, processingId);
   if (!checkpoint?.preliminary) return null;
 
-  const scope = await resolveCycleReportScope(client, checkpoint.cycleId);
+  const scope = await loadExportScope(client, checkpoint.cycleId);
   if (!scope) return null;
 
   const [criteria, previousCheckpoint, famiScoped] = await Promise.all([

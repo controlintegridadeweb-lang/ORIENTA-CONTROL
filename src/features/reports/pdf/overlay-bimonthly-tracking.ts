@@ -18,8 +18,8 @@ import type { OfficialReportData, ReportActionMovementSource } from "./report-ty
 export const BIMONTHLY_TRACKING_DISCLAIMER =
   "Fotografia do plano de integridade e compliance no corte do bimestre.";
 
-export const BIMONTHLY_TRACKING_OFFICIAL_FAMI_MISSING =
-  "bimonthly_tracking_official_fami_missing";
+export const BIMONTHLY_TRACKING_OFFICIAL_BASE_MISSING =
+  "bimonthly_tracking_official_base_missing";
 
 export type BimonthlyTrackingActionSnapshot = {
   actionPlanId: string;

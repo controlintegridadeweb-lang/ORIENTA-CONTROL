@@ -10,11 +10,10 @@ export const RESPONDENT_RECOMMENDATIONS_LIST_PATH = "/respondente/portfolio-reco
 /** Caminho canônico da lista do plano (redireciona para a visão action-plan do workspace). */
 export const RESPONDENT_ACTION_PLAN_LIST_PATH = "/respondente/plano-acao";
 
-/** Aba de recomendações dentro do workspace unificado do respondente. */
-export const RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL = "Recomendações";
-
-/** Aba do plano dentro do workspace unificado do respondente. */
-export const RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL = "Plano de integridade e compliance";
+export {
+  RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL,
+  RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL,
+} from "./respondent-navigation-context";
 
 /** Área operacional de ações vinculadas às recomendações. */
 export const RESPONDENT_ACTION_PLAN_MODULE_LABEL = "Plano de integridade e compliance";

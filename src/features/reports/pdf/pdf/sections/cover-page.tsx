@@ -46,7 +46,9 @@ export const TRACKING_REPORT_COVER_FIELD_LABELS = [
 
 type CoverField = { label: string; value: string };
 
-export function officialReportCoverTitle(data: OfficialReportData): string {
+export function officialReportCoverTitle(
+  data: Pick<OfficialReportData, "tracking" | "referenceYear">,
+): string {
   if (data.tracking) return reportDocumentTitles.bimonthly;
   return reportDocumentTitles.annual(data.referenceYear);
 }

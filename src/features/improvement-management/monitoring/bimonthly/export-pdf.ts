@@ -1,13 +1,9 @@
 import "server-only";
 
 import type { TypedSupabaseClient } from "@/infrastructure/supabase/server";
-import { buildBimonthlyTrackingPdf } from "@/features/reports/pdf/build-bimonthly-tracking-pdf";
-import { loadBimonthlyReportDetail } from "./detail";
+import { loadBimonthlyReportDetail, type BimonthlyReportDetail } from "./detail";
 import { listBimonthlyReports, type BimonthlyReportListItem } from "./read";
-import {
-  ACTION_PLAN_BIMONTHLY_EXPORT_NO_REPORT,
-  resolveActionPlanExportCycleId,
-} from "./export-pdf-shared";
+import { ACTION_PLAN_BIMONTHLY_EXPORT_NO_REPORT } from "./export-pdf-shared";
 
 export {
   ACTION_PLAN_BIMONTHLY_EXPORT_AMBIGUOUS_CYCLE,
@@ -26,12 +22,12 @@ export async function resolveLatestBimonthlyReportForExport(
   return history[0] ?? null;
 }
 
-/** Mesmo PDF institucional gerado na aba Evolução (relatório bimestral de acompanhamento). */
-export async function buildLatestBimonthlyTrackingPdfForCycle(
+/** Snapshot mais recente do bimestre, para a rota montar o PDF institucional em reports. */
+export async function loadLatestBimonthlyDetailForExport(
   client: TypedSupabaseClient,
   cycleId: string,
   referenceYear?: number,
-): Promise<{ filename: string; bytes: Uint8Array }> {
+): Promise<BimonthlyReportDetail> {
   const report = await resolveLatestBimonthlyReportForExport(client, cycleId, referenceYear);
   if (!report) {
     throw new Error(ACTION_PLAN_BIMONTHLY_EXPORT_NO_REPORT);
@@ -40,5 +36,5 @@ export async function buildLatestBimonthlyTrackingPdfForCycle(
   if (!detail) {
     throw new Error(ACTION_PLAN_BIMONTHLY_EXPORT_NO_REPORT);
   }
-  return buildBimonthlyTrackingPdf({ snapshot: detail, client });
+  return detail;
 }

@@ -1,8 +1,10 @@
 import { parseUuidParam } from "@/shared/validation/uuid";
-import {
-  RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL,
-  RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL,
-} from "./respondent-portfolio-paths";
+
+/** Aba de recomendações dentro do workspace unificado do respondente. */
+export const RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL = "Recomendações";
+
+/** Aba do plano dentro do workspace unificado do respondente. */
+export const RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL = "Plano de integridade e compliance";
 
 /**
  * Contexto de retorno entre a aba de recomendações e a aba do plano de integridade e compliance.

@@ -3,7 +3,7 @@ import type { TypedSupabaseClient } from "@/infrastructure/supabase/server";
 import { loadOfficialReportData } from "./build-official-report-data";
 import { buildOfficialReportPdfDocument } from "./pdf/build-official-report";
 import {
-  BIMONTHLY_TRACKING_OFFICIAL_FAMI_MISSING,
+  BIMONTHLY_TRACKING_OFFICIAL_BASE_MISSING,
   overlayBimonthlyTrackingOnOfficialReport,
   type BimonthlyTrackingSnapshot,
 } from "./overlay-bimonthly-tracking";
@@ -27,7 +27,7 @@ export async function buildBimonthlyTrackingPdf(params: {
     params.client,
   );
   if (!data) {
-    throw new Error(BIMONTHLY_TRACKING_OFFICIAL_FAMI_MISSING);
+    throw new Error(BIMONTHLY_TRACKING_OFFICIAL_BASE_MISSING);
   }
   const payload = overlayBimonthlyTrackingOnOfficialReport(data, params.snapshot);
   return {

@@ -12,7 +12,7 @@ import {
   bimonthlyTrackingPdfFilename,
   buildBimonthlyTrackingPdf,
 } from "./build-bimonthly-tracking-pdf";
-import { BIMONTHLY_TRACKING_OFFICIAL_FAMI_MISSING } from "./overlay-bimonthly-tracking";
+import { BIMONTHLY_TRACKING_OFFICIAL_BASE_MISSING } from "./overlay-bimonthly-tracking";
 import type { OfficialReportData } from "./report-types";
 
 const snapshot = {
@@ -40,7 +40,7 @@ describe("PDF de acompanhamento bimestral", () => {
     loadOfficialReportData.mockResolvedValue(null);
     await expect(
       buildBimonthlyTrackingPdf({ snapshot, client: {} as never }),
-    ).rejects.toThrow(BIMONTHLY_TRACKING_OFFICIAL_FAMI_MISSING);
+    ).rejects.toThrow(BIMONTHLY_TRACKING_OFFICIAL_BASE_MISSING);
     expect(buildOfficialReportPdfDocument).not.toHaveBeenCalled();
   });
 

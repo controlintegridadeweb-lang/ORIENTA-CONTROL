@@ -8,7 +8,7 @@ import { createSupabaseServiceRoleClient } from "@/infrastructure/supabase/serve
 import { loadBimonthlyReportDetail } from "@/features/improvement-management/monitoring/bimonthly/detail";
 import { generateBimonthlyReportExcel } from "@/features/improvement-management/monitoring/bimonthly/export-xlsx";
 import { buildBimonthlyTrackingPdf } from "@/features/reports/pdf/build-bimonthly-tracking-pdf";
-import { BIMONTHLY_TRACKING_OFFICIAL_FAMI_MISSING } from "@/features/reports/pdf/overlay-bimonthly-tracking";
+import { BIMONTHLY_TRACKING_OFFICIAL_BASE_MISSING } from "@/features/reports/pdf/overlay-bimonthly-tracking";
 
 const querySchema = z.object({
   format: z.enum(["pdf", "xlsx"]).default("pdf"),
@@ -77,7 +77,7 @@ export const GET = withRoute<{ reportId: string }>(
         },
       });
     } catch (cause) {
-      if (cause instanceof Error && cause.message === BIMONTHLY_TRACKING_OFFICIAL_FAMI_MISSING) {
+      if (cause instanceof Error && cause.message === BIMONTHLY_TRACKING_OFFICIAL_BASE_MISSING) {
         return NextResponse.json(
           { error: "Não existe Resultado FAMI oficial para montar o relatório bimestral." },
           { status: 409 },

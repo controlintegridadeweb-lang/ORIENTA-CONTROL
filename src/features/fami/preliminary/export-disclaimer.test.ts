@@ -17,10 +17,13 @@ describe("exportação do FAMI preliminar no acompanhamento", () => {
   it("identifica PDF e Excel como FAMI preliminar não oficial", () => {
     const pdf = source("src/features/fami/preliminary/export-pdf.ts");
     const xlsx = source("src/features/fami/preliminary/export-xlsx.ts");
+    const route = source("src/app/api/fami/preliminary/[processingId]/export/route.ts");
+    const analysis = source("src/features/reports/pdf/render-preliminary-analysis-pdf.ts");
     expect(pdf).toContain("fami preliminar quadrimestral");
     expect(pdf).toContain("preliminary_export_disclaimer");
-    expect(pdf).toContain("renderpreliminarydetailedanalysispdf");
     expect(pdf).not.toContain("critérios com recuperação ou movimentação");
+    expect(route).toContain("renderpreliminarydetailedanalysispdf");
+    expect(analysis).toContain("análise detalhada");
     expect(xlsx).toContain("não substitui o fami anual");
     expect(xlsx).toContain("por eixo");
     expect(xlsx).toContain("por seção");

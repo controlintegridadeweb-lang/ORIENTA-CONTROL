@@ -5,9 +5,10 @@ import { ensureOrganizationAccess } from "@/infrastructure/api/tenant-guard";
 import { ensureRespondentAssignmentAccess } from "@/features/forms/assignments/http";
 import { resolveCycleOperationalScope } from "@/infrastructure/supabase/cycle-operational-scope";
 import { createSupabaseServiceRoleClient } from "@/infrastructure/supabase/server";
-import { loadPreliminaryExportDetail } from "@/features/fami/preliminary/export-detail";
 import { generatePreliminaryExportPdf } from "@/features/fami/preliminary/export-pdf";
 import { generatePreliminaryExportExcel } from "@/features/fami/preliminary/export-xlsx";
+import { loadPreliminaryExportDetail } from "@/features/fami/server";
+import { renderPreliminaryDetailedAnalysisPdf } from "@/features/reports/pdf/render-preliminary-analysis-pdf";
 
 const querySchema = z.object({
   format: z.enum(["pdf", "xlsx"]).default("pdf"),
@@ -65,7 +66,8 @@ export const GET = withRoute<{ processingId: string }>(
       });
     }
 
-    const file = await generatePreliminaryExportPdf(detail);
+    const analysisBytes = await renderPreliminaryDetailedAnalysisPdf(detail);
+    const file = await generatePreliminaryExportPdf(detail, analysisBytes);
     return new NextResponse(Buffer.from(file.content), {
       headers: {
         "Content-Type": "application/pdf",

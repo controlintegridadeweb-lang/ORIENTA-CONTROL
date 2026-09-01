@@ -1,9 +1,9 @@
 import "server-only";
 
+import type { PreliminaryExportDetail } from "@/features/fami/server";
 import { OrientaPdfDocument } from "@/features/reports/pdf/pdf/document";
 import { renderDetailedAnalysisOverviewContent } from "@/features/reports/pdf/pdf/sections/detailed-analysis-overview-section";
 import { buildPreliminaryExportReportData } from "./build-preliminary-report-stub";
-import type { PreliminaryExportDetail } from "./export-detail";
 
 export async function renderPreliminaryDetailedAnalysisPdf(
   detail: PreliminaryExportDetail,

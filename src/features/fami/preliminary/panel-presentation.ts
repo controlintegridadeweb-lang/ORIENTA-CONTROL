@@ -10,11 +10,10 @@ import {
   type Quadrimester,
 } from "./domain";
 import { formatPlatformDate, formatPlatformTime } from "@/shared/datetime/platform-date-time";
+import { readApiErrorMessage } from "@/shared/validation/runtime";
 
 export function readPreliminaryApiError(raw: unknown, fallback: string): string {
-  if (!raw || typeof raw !== "object") return fallback;
-  const error = (raw as { error?: unknown }).error;
-  return typeof error === "string" && error.trim() ? error.trim() : fallback;
+  return readApiErrorMessage(raw, fallback);
 }
 
 export function quadrimesterDateRangeLabel(start: string, end: string): string {

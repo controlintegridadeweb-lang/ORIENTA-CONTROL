@@ -56,17 +56,12 @@ describe("coesão textual do relatório oficial", () => {
     expect(reportDocumentTitles.bimonthly).toBe(
       "Relatório bimestral de acompanhamento do plano de integridade e compliance",
     );
+    expect(officialReportCoverTitle({ referenceYear: 2026 })).toBe("Relatório anual 2026");
     expect(
       officialReportCoverTitle({
-        tracking: null,
+        tracking: { kind: "bimonthly" } as NonNullable<OfficialReportData["tracking"]>,
         referenceYear: 2026,
-      } as Pick<OfficialReportData, "tracking" | "referenceYear"> as OfficialReportData),
-    ).toBe("Relatório anual 2026");
-    expect(
-      officialReportCoverTitle({
-        tracking: { kind: "bimonthly" },
-        referenceYear: 2026,
-      } as Pick<OfficialReportData, "tracking" | "referenceYear"> as OfficialReportData),
+      }),
     ).toBe(reportDocumentTitles.bimonthly);
   });
 

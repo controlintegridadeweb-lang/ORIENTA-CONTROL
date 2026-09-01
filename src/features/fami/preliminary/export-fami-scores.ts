@@ -3,16 +3,32 @@ import "server-only";
 import { loadFrozenFamiScopeCatalog } from "@/features/fami/frozen-scope-catalog";
 import { sortAxesMaturity } from "@/features/fami";
 import type { TypedSupabaseClient } from "@/infrastructure/supabase/server";
-import type {
-  ReportFamiAxisScore,
-  ReportFamiSectionScore,
-} from "@/features/reports/pdf/report-types";
+
+export type PreliminaryFamiAxisScore = {
+  axisId: string | null;
+  axisName: string;
+  percentage: number;
+  maturityLevel: number | null;
+  pointsObtained: number;
+  pointsPossible: number;
+};
+
+export type PreliminaryFamiSectionScore = {
+  sectionId: string;
+  sectionName: string;
+  axisId: string | null;
+  percentage: number;
+  maturityLevel: number | null;
+  pointsObtained: number;
+  pointsPossible: number;
+  sectionOrder?: number;
+};
 
 export async function loadPreliminaryFamiScopedScores(
   client: TypedSupabaseClient,
   processingId: string,
   cycleId: string,
-): Promise<{ byAxis: ReportFamiAxisScore[]; sections: ReportFamiSectionScore[] }> {
+): Promise<{ byAxis: PreliminaryFamiAxisScore[]; sections: PreliminaryFamiSectionScore[] }> {
   const { data, error } = await client
     .from("fami_preliminary_results")
     .select(
@@ -27,7 +43,7 @@ export async function loadPreliminaryFamiScopedScores(
   const sectionRows = rows.filter((row) => row.scope_type === "section" && row.scope_id);
   const catalog = await loadFrozenFamiScopeCatalog(client, cycleId);
 
-  const sections: ReportFamiSectionScore[] = sectionRows
+  const sections: PreliminaryFamiSectionScore[] = sectionRows
     .map((row) => {
       const sectionId = row.scope_id!;
       const frozen = catalog.sections.get(sectionId);
@@ -48,7 +64,7 @@ export async function loadPreliminaryFamiScopedScores(
       sectionOrder: order,
     }));
 
-  const byAxis: ReportFamiAxisScore[] = sortAxesMaturity(
+  const byAxis: PreliminaryFamiAxisScore[] = sortAxesMaturity(
     axisRows.map((row) => ({
       axisId: row.scope_id!,
       axisName: catalog.axes.get(row.scope_id!)?.name ?? "Eixo histórico sem identificação",

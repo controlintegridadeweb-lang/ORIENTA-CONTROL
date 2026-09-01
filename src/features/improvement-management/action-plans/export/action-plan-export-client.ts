@@ -4,7 +4,7 @@ import { z } from "zod";
 import writeXlsxFile from "write-excel-file/browser";
 import { businessToday } from "@/shared/datetime/business-date";
 import { famiPreliminaryLabels } from "@/shared/labels/official-labels";
-import { readPreliminaryApiError } from "@/features/fami/preliminary/panel-presentation";
+import { readApiErrorMessage } from "@/shared/validation/runtime";
 import type { RespondentRecommendationItem } from "@/features/improvement-management/recommendations/respondent-presentation";
 import {
   actionPlanExcelAutoFilterFeature,
@@ -42,7 +42,7 @@ async function downloadLatestBimonthlyTrackingPdf(cycleId: string): Promise<void
   });
   const listRaw: unknown = await listResponse.json();
   if (!listResponse.ok) {
-    throw new Error(readPreliminaryApiError(listRaw, famiPreliminaryLabels.loadError));
+    throw new Error(readApiErrorMessage(listRaw, famiPreliminaryLabels.loadError));
   }
   const parsed = bimonthlyListSchema.safeParse(listRaw);
   if (!parsed.success || parsed.data.history.length === 0) {
@@ -56,7 +56,7 @@ async function downloadLatestBimonthlyTrackingPdf(cycleId: string): Promise<void
   );
   if (!exportResponse.ok) {
     const body: unknown = await exportResponse.json().catch(() => null);
-    throw new Error(readPreliminaryApiError(body, "Falha ao exportar o relatório bimestral."));
+    throw new Error(readApiErrorMessage(body, "Falha ao exportar o relatório bimestral."));
   }
   const blob = await exportResponse.blob();
   const disposition = exportResponse.headers.get("Content-Disposition") ?? "";

@@ -1,5 +1,5 @@
+import type { PreliminaryExportDetail } from "@/features/fami/server";
 import type { OfficialReportData } from "@/features/reports/pdf/report-types";
-import type { PreliminaryExportDetail } from "./export-detail";
 
 /** Payload mínimo para reutilizar a análise detalhada institucional no PDF preliminar. */
 export function buildPreliminaryExportReportData(
@@ -7,7 +7,6 @@ export function buildPreliminaryExportReportData(
 ): OfficialReportData {
   const { checkpoint } = detail;
   const preliminary = checkpoint.preliminary!;
-  const official = checkpoint.official ?? preliminary;
 
   return {
     cycleId: checkpoint.cycleId,

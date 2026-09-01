@@ -12,10 +12,11 @@ import {
 import {
   ACTION_PLAN_BIMONTHLY_EXPORT_AMBIGUOUS_CYCLE,
   ACTION_PLAN_BIMONTHLY_EXPORT_NO_REPORT,
-  buildLatestBimonthlyTrackingPdfForCycle,
+  loadLatestBimonthlyDetailForExport,
   resolveActionPlanExportCycleId,
 } from "@/features/improvement-management/monitoring/bimonthly/export-pdf";
-import { BIMONTHLY_TRACKING_OFFICIAL_FAMI_MISSING } from "@/features/reports/pdf/overlay-bimonthly-tracking";
+import { buildBimonthlyTrackingPdf } from "@/features/reports/pdf/build-bimonthly-tracking-pdf";
+import { BIMONTHLY_TRACKING_OFFICIAL_BASE_MISSING } from "@/features/reports/pdf/overlay-bimonthly-tracking";
 
 function parseExportFormat(
   raw: string | undefined,
@@ -67,10 +68,12 @@ export const GET = withRoute(
         }
 
         try {
-          const file = await buildLatestBimonthlyTrackingPdfForCycle(
-            createSupabaseServiceRoleClient(),
+          const client = createSupabaseServiceRoleClient();
+          const snapshot = await loadLatestBimonthlyDetailForExport(
+            client,
             resolvedCycle.cycleId,
           );
+          const file = await buildBimonthlyTrackingPdf({ snapshot, client });
           return new NextResponse(Buffer.from(file.bytes), {
             headers: {
               "Content-Type": "application/pdf",
@@ -89,7 +92,7 @@ export const GET = withRoute(
                 { status: 409 },
               );
             }
-            if (cause.message === BIMONTHLY_TRACKING_OFFICIAL_FAMI_MISSING) {
+            if (cause.message === BIMONTHLY_TRACKING_OFFICIAL_BASE_MISSING) {
               return NextResponse.json(
                 { error: "Não existe Resultado FAMI oficial para montar o relatório bimestral." },
                 { status: 409 },

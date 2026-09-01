@@ -15,7 +15,6 @@ import type { PreliminaryExportDetail } from "./export-detail";
 import { preliminaryExportPeriodLabel } from "./export-detail";
 import { formatPreliminaryPercentage, formatPreliminaryScore } from "./panel-presentation";
 import { PRELIMINARY_EXPORT_DISCLAIMER } from "./export-xlsx";
-import { renderPreliminaryDetailedAnalysisPdf } from "./render-preliminary-analysis-pdf";
 
 const CIVIL_DATE_FORMAT = {
   day: "2-digit",
@@ -266,6 +265,7 @@ function drawSummaryGrid(
 
 export async function generatePreliminaryExportPdf(
   detail: PreliminaryExportDetail,
+  analysisBytes?: Uint8Array | null,
 ): Promise<{ filename: string; content: Uint8Array }> {
   const doc = await PreliminaryExportPdfDocument.create();
   let cur = doc.newPage();
@@ -274,11 +274,10 @@ export async function generatePreliminaryExportPdf(
     "FAMI preliminar quadrimestral",
     famiPreliminaryLabels.description,
   );
-  cur = drawSummaryGrid(doc, cur, detail);
+  drawSummaryGrid(doc, cur, detail);
 
   const parts: Uint8Array[] = [await doc.pdf.save()];
-  const analysisBytes = await renderPreliminaryDetailedAnalysisPdf(detail);
-  if (analysisBytes) parts.push(analysisBytes);
+  if (analysisBytes && analysisBytes.byteLength > 0) parts.push(analysisBytes);
 
   const merged = await mergePdfParts(parts);
   const footerFonts: ReportFonts = {
