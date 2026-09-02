@@ -1,8 +1,8 @@
 # Migrations do ORIENTA
 
-Este diretório contém **22 migrations SQL timestampadas**: as 10 primeiras formam a baseline canônica validada da primeira implantação e permanecem imutáveis; as seguintes são evoluções pós-baseline.
+Este diretório contém **23 migrations SQL timestampadas**: as 10 primeiras formam a baseline canônica validada da primeira implantação e permanecem imutáveis; as seguintes são evoluções pós-baseline.
 
-Não há migrations corretivas, backfills históricos ou dados reais neste diretório. A sequência atual vai de `20260812000100` a `20260901140000`.
+Não há migrations corretivas, backfills históricos ou dados reais neste diretório. A sequência atual vai de `20260812000100` a `20260902120000`.
 
 ## Ordem canônica
 
@@ -30,6 +30,7 @@ Não há migrations corretivas, backfills históricos ou dados reais neste diret
 | `20260824143000_recommendation_status_optional_execution_evidence.sql` | Situação `completed` da recomendação segue o aceite vigente, não a comprovação da execução. |
 | `20260826120000_bimonthly_tracking_and_prelim_v2.sql` | Relatório bimestral imutável do plano de integridade e compliance e FAMI preliminar `prelim_v2` por critério efetivamente concluído. |
 | `20260901140000_report_catalog_entries.sql` | Inclui os relatórios bimestrais gerados no catálogo de histórico, ao lado do relatório anual oficial. |
+| `20260902120000_report_history_latest_catalog.sql` | Consolida o histórico visível na emissão mais recente de cada grupo do catálogo (formulário/ano/bimestre ou anual). |
 
 ## Regras
 
