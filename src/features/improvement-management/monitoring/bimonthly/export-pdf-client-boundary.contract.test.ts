@@ -7,12 +7,12 @@ function source(path: string): string {
 }
 
 describe("fronteira client/server da exportação PDF bimestral", () => {
-  it("o client de exportação do plano não importa módulos server-only", () => {
+  it("o download no acompanhamento não importa módulos server-only", () => {
     const client = source(
-      "src/features/improvement-management/action-plans/export/action-plan-export-client.ts",
+      "src/features/fami/components/preliminary/use-bimonthly-reports.ts",
     );
 
-    expect(client).toContain("export-pdf-shared");
+    expect(client).toContain("/api/monitoring/bimonthly/");
     expect(client).not.toMatch(/monitoring\/bimonthly\/export-pdf["']/);
     expect(client).not.toContain('import "server-only"');
   });
