@@ -108,3 +108,69 @@ export function mapHistoryEntry(row: ReportHistoryEntryRow) {
     downloadPath: catalogDownloadPath(row.report_kind, row.id),
   };
 }
+
+function catalogSaoPauloYear(iso: string): number {
+  const year = Number(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Sao_Paulo",
+      year: "numeric",
+    }).format(new Date(iso)),
+  );
+  return Number.isInteger(year) ? year : 0;
+}
+
+/** Identidade do card visível no histórico: formulário + período + tipo + bimestre. */
+export function catalogHistoryGroupKey(
+  row: Pick<
+    ReportHistoryEntryRow,
+    | "organization_id"
+    | "form_id"
+    | "report_kind"
+    | "reference_start_year"
+    | "reference_end_year"
+    | "bimester"
+    | "generated_at"
+  >,
+): string {
+  const startYear = row.reference_start_year ?? catalogSaoPauloYear(row.generated_at);
+  const endYear = row.reference_end_year ?? startYear;
+  const bimester = row.report_kind === "bimonthly" ? (row.bimester ?? 0) : 0;
+  return [row.organization_id, row.form_id, row.report_kind, startYear, endYear, bimester].join("\u001f");
+}
+
+function isCatalogRecencyGreater(
+  candidate: Pick<
+    ReportHistoryEntryRow,
+    "report_kind" | "processing_version" | "emission_version" | "generated_at" | "id"
+  >,
+  current: Pick<
+    ReportHistoryEntryRow,
+    "report_kind" | "processing_version" | "emission_version" | "generated_at" | "id"
+  >,
+): boolean {
+  if (candidate.report_kind === "annual" && candidate.processing_version !== current.processing_version) {
+    return candidate.processing_version > current.processing_version;
+  }
+  if (candidate.emission_version !== current.emission_version) {
+    return candidate.emission_version > current.emission_version;
+  }
+  if (candidate.generated_at !== current.generated_at) {
+    return candidate.generated_at > current.generated_at;
+  }
+  return candidate.id > current.id;
+}
+
+/**
+ * Mantém só a emissão mais recente de cada grupo do catálogo visível.
+ * Bimestral: formulário + ano + bimestre. Anual: formulário + período, separado dos bimestres.
+ */
+export function selectLatestVisibleHistoryEntries<T extends ReportHistoryEntryRow>(rows: T[]): T[] {
+  const latest = new Map<string, T>();
+  for (const row of rows) {
+    const key = catalogHistoryGroupKey(row);
+    const current = latest.get(key);
+    if (!current || isCatalogRecencyGreater(row, current)) latest.set(key, row);
+  }
+  const ids = new Set([...latest.values()].map((row) => row.id));
+  return rows.filter((row) => ids.has(row.id));
+}

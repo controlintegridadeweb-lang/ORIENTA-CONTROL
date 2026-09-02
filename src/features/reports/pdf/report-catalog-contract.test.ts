@@ -31,4 +31,18 @@ describe("catálogo de diagnósticos para relatório", () => {
     expect(migration).toContain("reference_end_year");
     expect(migration).toContain("r.status in ('completed', 'legacy')");
   });
+
+  it("consolida o histórico visível na emissão mais recente de cada grupo", () => {
+    const latestCatalog = fs.readFileSync(
+      path.join(process.cwd(), "supabase", "migrations", "20260902120000_report_history_latest_catalog.sql"),
+      "utf8",
+    ).toLowerCase();
+    expect(latestCatalog).toContain("select distinct on");
+    expect(latestCatalog).toContain("catalog.form_id");
+    expect(latestCatalog).toContain("catalog.report_kind");
+    expect(latestCatalog).toContain("coalesce(catalog.bimester, 0)");
+    expect(latestCatalog).toContain("catalog.emission_version desc");
+    expect(latestCatalog).toContain("catalog.generated_at desc");
+    expect(latestCatalog).toContain("action_plan_bimonthly_reports");
+  });
 });

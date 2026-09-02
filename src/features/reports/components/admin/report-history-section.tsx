@@ -11,6 +11,9 @@ import { formatReportDate } from "./report-shell-display";
 import { REPORT_HISTORY_PAGE_SIZE } from "./reports-controller-model";
 import type { ReportsController } from "./use-reports-controller";
 
+const HISTORY_META_LABEL = "text-xs text-slate-600";
+const HISTORY_META_VALUE = "mt-0.5 font-medium text-slate-900";
+
 function ReportHistoryItem({
   report,
   onDownload,
@@ -50,38 +53,38 @@ function ReportHistoryItem({
           className={`${formSurface.secondaryButtonSm} w-full shrink-0 sm:w-auto`}
           onClick={() => onDownload(report)}
         >
-          <Download className="h-4 w-4" aria-hidden />
+          <Download className="h-3.5 w-3.5" aria-hidden />
           Baixar
         </button>
       </div>
 
       <dl className="grid gap-4 bg-slate-50/60 px-4 py-4 text-sm sm:grid-cols-2 sm:px-5 lg:grid-cols-4">
         <div>
-          <dt className={typography.meta}>Emissão</dt>
-          <dd className="mt-0.5 font-medium text-slate-800">v{report.emissionVersion}</dd>
+          <dt className={HISTORY_META_LABEL}>Emissão</dt>
+          <dd className={HISTORY_META_VALUE}>v{report.emissionVersion}</dd>
         </div>
         {report.catalogKind === "bimonthly" && report.bimester != null ? (
           <div>
-            <dt className={typography.meta}>Bimestre</dt>
-            <dd className="mt-0.5 font-medium text-slate-800">{report.bimester}º</dd>
+            <dt className={HISTORY_META_LABEL}>Bimestre</dt>
+            <dd className={HISTORY_META_VALUE}>{report.bimester}º</dd>
           </div>
         ) : (
           <div>
-            <dt className={typography.meta}>Processamento</dt>
-            <dd className="mt-0.5 font-medium text-slate-800">nº {report.processingVersion}</dd>
+            <dt className={HISTORY_META_LABEL}>Processamento</dt>
+            <dd className={HISTORY_META_VALUE}>nº {report.processingVersion}</dd>
           </div>
         )}
         {report.catalogKind === "annual" ? (
           <div>
-            <dt className={typography.meta}>Política FAMI</dt>
-            <dd className="mt-0.5 font-medium text-slate-800">{report.policyVersion}</dd>
+            <dt className={HISTORY_META_LABEL}>Política FAMI</dt>
+            <dd className={HISTORY_META_VALUE}>{report.policyVersion}</dd>
           </div>
         ) : null}
         {report.fileSha256 ? (
           <div className="min-w-0">
-            <dt className={typography.meta}>SHA-256</dt>
+            <dt className={HISTORY_META_LABEL}>SHA-256</dt>
             <dd
-              className="mt-0.5 truncate font-mono text-xs font-medium text-slate-700"
+              className="mt-0.5 truncate font-mono text-xs font-medium text-slate-900"
               title={report.fileSha256}
             >
               {report.fileSha256.slice(0, 16)}…

@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { catalogDownloadPath, catalogKindLabel } from "@/features/reports/report-catalog";
 import {
+  catalogHistoryGroupKey,
   catalogOutdatedReason,
   mapHistoryEntry,
+  selectLatestVisibleHistoryEntries,
   type ReportHistoryEntryRow,
 } from "./history-catalog";
 
@@ -92,5 +94,145 @@ describe("catálogo do histórico de relatórios", () => {
     expect(item.catalogKind).toBe("bimonthly");
     expect(item.bimester).toBe(2);
     expect(item.downloadPath).toContain("/api/monitoring/bimonthly/");
+  });
+
+  it("agrupa o bimestral por formulário, ano e bimestre, separado do anual", () => {
+    const bimonthly = official({
+      report_kind: "bimonthly",
+      bimester: 4,
+      reference_start_year: 2026,
+      reference_end_year: 2026,
+    });
+    const annual = official({
+      id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      report_kind: "annual",
+      bimester: null,
+      reference_start_year: 2026,
+      reference_end_year: 2026,
+    });
+    expect(catalogHistoryGroupKey(bimonthly)).not.toBe(catalogHistoryGroupKey(annual));
+    expect(catalogHistoryGroupKey(bimonthly)).toBe(
+      catalogHistoryGroupKey(official({ report_kind: "bimonthly", bimester: 4, emission_version: 9 })),
+    );
+    expect(catalogHistoryGroupKey(bimonthly)).not.toBe(
+      catalogHistoryGroupKey(official({ report_kind: "bimonthly", bimester: 3 })),
+    );
+  });
+
+  it("mantém um único card bimestral: a emissão mais recente do formulário + ano + bimestre", () => {
+    const v2 = official({
+      id: "21111111-1111-4111-8111-111111111111",
+      report_kind: "bimonthly",
+      bimester: 4,
+      emission_version: 2,
+      latest_emission_version: 4,
+      is_current: false,
+      generated_at: "2026-08-31T13:40:00.000Z",
+    });
+    const v3 = official({
+      id: "31111111-1111-4111-8111-111111111111",
+      report_kind: "bimonthly",
+      bimester: 4,
+      emission_version: 3,
+      latest_emission_version: 4,
+      is_current: false,
+      generated_at: "2026-08-31T13:45:00.000Z",
+    });
+    const v4 = official({
+      id: "41111111-1111-4111-8111-111111111111",
+      report_kind: "bimonthly",
+      bimester: 4,
+      emission_version: 4,
+      latest_emission_version: 4,
+      is_current: true,
+      generated_at: "2026-08-31T13:42:00.000Z",
+    });
+
+    const visible = selectLatestVisibleHistoryEntries([v3, v2, v4]);
+    expect(visible).toHaveLength(1);
+    expect(visible[0]?.id).toBe(v4.id);
+    expect(visible[0]?.emission_version).toBe(4);
+    expect(mapHistoryEntry(visible[0]!).outdatedReason).toBeNull();
+  });
+
+  it("mantém o anual como registro separado e só a emissão anual mais recente", () => {
+    const annualV1 = official({
+      id: "a1111111-1111-4111-8111-111111111111",
+      emission_version: 1,
+      latest_emission_version: 2,
+      is_current: false,
+      generated_at: "2026-08-31T12:00:00.000Z",
+    });
+    const annualV2 = official({
+      id: "a2111111-1111-4111-8111-111111111111",
+      emission_version: 2,
+      latest_emission_version: 2,
+      is_current: true,
+      generated_at: "2026-08-31T12:10:00.000Z",
+    });
+    const bimester4 = official({
+      id: "b4111111-1111-4111-8111-111111111111",
+      report_kind: "bimonthly",
+      bimester: 4,
+      emission_version: 4,
+      latest_emission_version: 4,
+      generated_at: "2026-08-31T13:49:00.000Z",
+    });
+    const bimester3 = official({
+      id: "b3111111-1111-4111-8111-111111111111",
+      report_kind: "bimonthly",
+      bimester: 3,
+      emission_version: 1,
+      latest_emission_version: 1,
+      generated_at: "2026-06-30T13:00:00.000Z",
+    });
+
+    const visible = selectLatestVisibleHistoryEntries([annualV1, annualV2, bimester4, bimester3]);
+    expect(visible.map((row) => row.id).sort()).toEqual(
+      [annualV2.id, bimester3.id, bimester4.id].sort(),
+    );
+  });
+
+  it("escolhe a emissão anual do processamento mais novo quando as versões documentais reiniciam", () => {
+    const processing1 = official({
+      id: "c1111111-1111-4111-8111-111111111111",
+      processing_version: 1,
+      emission_version: 3,
+      latest_emission_version: 3,
+      generated_at: "2026-08-01T12:00:00.000Z",
+    });
+    const processing2 = official({
+      id: "c2111111-1111-4111-8111-111111111111",
+      processing_version: 2,
+      emission_version: 1,
+      latest_emission_version: 1,
+      generated_at: "2026-08-20T12:00:00.000Z",
+    });
+
+    const visible = selectLatestVisibleHistoryEntries([processing1, processing2]);
+    expect(visible).toHaveLength(1);
+    expect(visible[0]?.id).toBe(processing2.id);
+  });
+
+  it("preserva a emissão anual mais recente mesmo desatualizada, para o filtro de situação", () => {
+    const previous = official({
+      id: "d1111111-1111-4111-8111-111111111111",
+      emission_version: 1,
+      latest_emission_version: 2,
+      is_current: false,
+    });
+    const latestOutdated = official({
+      id: "d2111111-1111-4111-8111-111111111111",
+      emission_version: 2,
+      latest_emission_version: 2,
+      is_current: false,
+      cycle_state: "in_response",
+    });
+
+    const visible = selectLatestVisibleHistoryEntries([previous, latestOutdated]);
+    expect(visible).toHaveLength(1);
+    expect(visible[0]?.id).toBe(latestOutdated.id);
+    expect(visible[0]?.is_current).toBe(false);
+    expect(visible.filter((row) => row.is_current)).toHaveLength(0);
   });
 });

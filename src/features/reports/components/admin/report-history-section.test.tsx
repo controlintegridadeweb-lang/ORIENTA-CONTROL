@@ -106,6 +106,77 @@ describe("ReportHistorySection", () => {
     expect(screen.queryByText("Política FAMI")).toBeNull();
   });
 
+  it("apresenta só a emissão bimestral vigente, sem o card de versão anterior", () => {
+    render(
+      <ReportHistorySection
+        controller={controller({
+          history: [
+            report({
+              id: "bimester-v4",
+              formName: "Diagnóstico de Integridade 2026",
+              catalogKind: "bimonthly",
+              periodLabel: "4º bimestre de 2026",
+              bimester: 4,
+              emissionVersion: 4,
+              latestEmissionVersion: 4,
+              isCurrent: true,
+              fileSha256: null,
+            }),
+          ],
+          historyTotal: 1,
+        })}
+      />,
+    );
+
+    expect(screen.getAllByRole("heading", { name: "Diagnóstico de Integridade 2026" })).toHaveLength(1);
+    expect(screen.getByText("v4")).toBeTruthy();
+    expect(screen.queryByText("v3")).toBeNull();
+    expect(screen.queryByText("Versão anterior")).toBeNull();
+    expect(screen.queryByText("Esta emissão foi substituída por uma versão posterior.")).toBeNull();
+  });
+
+  it("mantém o anual e cada bimestre como cards distintos após a consolidação", () => {
+    render(
+      <ReportHistorySection
+        controller={controller({
+          history: [
+            report({
+              id: "annual-v2",
+              formName: "Diagnóstico de Integridade 2026",
+              emissionVersion: 2,
+              latestEmissionVersion: 2,
+            }),
+            report({
+              id: "b4",
+              formName: "Diagnóstico de Integridade 2026",
+              catalogKind: "bimonthly",
+              periodLabel: "4º bimestre de 2026",
+              bimester: 4,
+              emissionVersion: 4,
+              latestEmissionVersion: 4,
+              fileSha256: null,
+            }),
+            report({
+              id: "b3",
+              formName: "Diagnóstico de Integridade 2026",
+              catalogKind: "bimonthly",
+              periodLabel: "3º bimestre de 2026",
+              bimester: 3,
+              emissionVersion: 1,
+              latestEmissionVersion: 1,
+              fileSha256: null,
+            }),
+          ],
+          historyTotal: 3,
+        })}
+      />,
+    );
+
+    expect(screen.getAllByRole("heading", { name: "Diagnóstico de Integridade 2026" })).toHaveLength(3);
+    expect(screen.getByText("Relatório anual 2026")).toBeTruthy();
+    expect(screen.getAllByText("Relatório bimestral")).toHaveLength(2);
+  });
+
   it("dispara o download da emissão listada", () => {
     const view = controller();
     render(<ReportHistorySection controller={view} />);

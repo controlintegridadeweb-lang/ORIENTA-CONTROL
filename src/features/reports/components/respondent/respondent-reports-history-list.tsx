@@ -9,8 +9,8 @@ import { formSurface } from "@/shared/layout/form-surface";
 import { typography } from "@/shared/layout/design-system";
 import { RespondentReportsEmptyState } from "./respondent-reports-empty-state";
 
-const ACTION_BTN =
-  "inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand/30";
+const HISTORY_META_LABEL = "text-xs text-slate-600";
+const HISTORY_META_VALUE = "mt-0.5 font-medium text-slate-900";
 
 function formatWhen(value: string): string {
   const date = new Date(value);
@@ -60,51 +60,49 @@ function HistoryReportRow({
           </p>
         </div>
 
-        <div
-          className="flex shrink-0 flex-wrap items-center gap-1"
-          role="toolbar"
-          aria-label={`Ações para ${row.formName}`}
+        <button
+          type="button"
+          className={`${formSurface.secondaryButtonSm} w-full shrink-0 sm:w-auto`}
+          onClick={onDownload}
         >
-          <button type="button" className={ACTION_BTN} title="Baixar PDF oficial" onClick={onDownload}>
-            <Download className="h-4 w-4" aria-hidden />
-            <span className="sr-only">Baixar</span>
-          </button>
-        </div>
+          <Download className="h-3.5 w-3.5" aria-hidden />
+          Baixar
+        </button>
       </div>
 
       <dl className="grid gap-4 bg-slate-50/60 px-4 py-4 text-sm sm:grid-cols-2 sm:px-5 lg:grid-cols-4">
         <div>
-          <dt className={typography.meta}>Emissão</dt>
-          <dd className="mt-0.5 font-medium text-slate-800">v{row.emissionVersion}</dd>
+          <dt className={HISTORY_META_LABEL}>Emissão</dt>
+          <dd className={HISTORY_META_VALUE}>v{row.emissionVersion}</dd>
         </div>
         {row.catalogKind === "bimonthly" && row.bimester != null ? (
           <div>
-            <dt className={typography.meta}>Bimestre</dt>
-            <dd className="mt-0.5 font-medium text-slate-800">{row.bimester}º</dd>
+            <dt className={HISTORY_META_LABEL}>Bimestre</dt>
+            <dd className={HISTORY_META_VALUE}>{row.bimester}º</dd>
           </div>
         ) : (
           <div>
-            <dt className={typography.meta}>Processamento</dt>
-            <dd className="mt-0.5 font-medium text-slate-800">nº {row.processingVersion}</dd>
+            <dt className={HISTORY_META_LABEL}>Processamento</dt>
+            <dd className={HISTORY_META_VALUE}>nº {row.processingVersion}</dd>
           </div>
         )}
         {row.catalogKind === "annual" ? (
           <div>
-            <dt className={typography.meta}>Política FAMI</dt>
-            <dd className="mt-0.5 font-medium text-slate-800">{row.policyVersion}</dd>
+            <dt className={HISTORY_META_LABEL}>Política FAMI</dt>
+            <dd className={HISTORY_META_VALUE}>{row.policyVersion}</dd>
           </div>
         ) : null}
         {row.formTemplateVersion != null ? (
           <div>
-            <dt className={typography.meta}>Template</dt>
-            <dd className="mt-0.5 font-medium text-slate-800">v{row.formTemplateVersion}</dd>
+            <dt className={HISTORY_META_LABEL}>Template</dt>
+            <dd className={HISTORY_META_VALUE}>v{row.formTemplateVersion}</dd>
           </div>
         ) : null}
         {row.fileSha256 ? (
           <div className="min-w-0 sm:col-span-2 lg:col-span-4">
-            <dt className={typography.meta}>SHA-256</dt>
+            <dt className={HISTORY_META_LABEL}>SHA-256</dt>
             <dd
-              className="mt-0.5 truncate font-mono text-xs font-medium text-slate-700"
+              className="mt-0.5 truncate font-mono text-xs font-medium text-slate-900"
               title={row.fileSha256}
             >
               {row.fileSha256.slice(0, 16)}…

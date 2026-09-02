@@ -8,6 +8,7 @@ import {
   REPORT_HISTORY_SELECT,
   reportCatalogKindSchema,
   reportHistoryEntrySchema,
+  selectLatestVisibleHistoryEntries,
 } from "./history-catalog";
 
 const querySchema = z.object({
@@ -27,7 +28,7 @@ const querySchema = z.object({
   }
 });
 
-/** Histórico paginado do catálogo anual + bimestral. A contagem e a condição "atual" vêm do banco. */
+/** Histórico paginado do catálogo anual + bimestral. A view já devolve só a emissão mais recente de cada grupo; filtros e contagem aplicam-se a esse conjunto. */
 export const GET = withRoute(
   { roles: ["admin", "respondent"], route: "/api/reports/history", logMessage: "Failed to list report history" },
   async ({ request, auth }) => {
@@ -67,7 +68,9 @@ export const GET = withRoute(
       .range(query.offset, query.offset + query.limit - 1);
     if (error) throw error;
 
-    const rows = z.array(reportHistoryEntrySchema).parse(data ?? []);
+    const rows = selectLatestVisibleHistoryEntries(
+      z.array(reportHistoryEntrySchema).parse(data ?? []),
+    );
     const { data: years, error: yearsError } = await supabase
       .from("report_history_years")
       .select("calendar_year")
