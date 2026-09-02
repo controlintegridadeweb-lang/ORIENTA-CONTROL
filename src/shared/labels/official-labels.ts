@@ -106,6 +106,9 @@ export const famiPreliminaryLabels = {
     `${quadrimester}º quadrimestre calculado`,
   generateBimester: "Gerar",
   generatingBimester: "Gerando…",
+  downloadBimester: "Baixar PDF",
+  downloadingBimester: "Baixando…",
+  viewBimonthlyHistory: "Ver no histórico",
   exportMenu: "Exportar",
   exportPdf: "Exportar PDF",
   exportXlsx: "Exportar Excel",
@@ -142,7 +145,16 @@ export const reportCatalogLabels = {
   allTypes: "Todos",
   emptyTitle: "Nenhum relatório disponível",
   emptyDescription:
-    "O relatório anual fica disponível após o encerramento do diagnóstico. Os relatórios bimestrais aparecem depois de gerados no acompanhamento.",
+    "O relatório anual fica disponível após o encerramento do diagnóstico. O relatório bimestral do plano aparece aqui depois de gerado no acompanhamento (Resultado FAMI → Evolução).",
+  emptyAnnualDescription:
+    "O relatório anual fica disponível após o encerramento do diagnóstico.",
+  emptyBimonthlyDescription:
+    "O relatório bimestral é a fotografia do plano de integridade e compliance. Ele é gerado no acompanhamento, na aba Evolução do Resultado FAMI. Esta área apenas consulta o PDF já gerado.",
   adminEmptyDescription:
-    "Não há PDF anual nem relatório bimestral para o filtro atual. A primeira emissão anual ocorre no encerramento do diagnóstico.",
+    "Não há PDF anual nem relatório bimestral para o filtro atual. A primeira emissão anual ocorre no encerramento do diagnóstico. O relatório bimestral é gerado no Resultado FAMI → Evolução.",
+  bimonthlyCatalogCta: "Relatórios bimestrais",
+  bimonthlyOriginCta: "Abrir acompanhamento no Resultado FAMI",
+  openPdf: "Abrir PDF",
+  cycleScopeLabel: "Exibindo relatórios deste diagnóstico.",
+  clearCycleScope: "Ver todos",
 };

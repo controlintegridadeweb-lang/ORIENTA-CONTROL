@@ -2,6 +2,11 @@ import type {
   ReportCycleOption,
   ReportHistoryOption,
 } from "@/features/reports/ui/client";
+import {
+  adminReportsPath,
+  parseReportCatalogKind,
+  type ReportCatalogKindParam,
+} from "@/shared/navigation/report-paths";
 
 export const REPORT_HISTORY_PAGE_SIZE = 25;
 export const REPORT_CYCLE_PAGE_SIZE = 25;
@@ -19,6 +24,7 @@ export type ReportsState = {
   historyHasMore: boolean;
   organizationId: string;
   cycleId: string;
+  historyKind: "" | "annual" | "bimonthly";
   loadingScopes: boolean;
   loadingCycles: boolean;
   loadingHistory: boolean;
@@ -41,10 +47,12 @@ export function createInitialReportsState({
   initialOrganizationId,
   initialCycleId,
   initialHistoryOffset,
+  initialHistoryKind = "",
 }: {
   initialOrganizationId: string | null;
   initialCycleId: string | null;
   initialHistoryOffset: number;
+  initialHistoryKind?: "" | "annual" | "bimonthly";
 }): ReportsState {
   return {
     organizations: [],
@@ -59,6 +67,7 @@ export function createInitialReportsState({
     historyHasMore: false,
     organizationId: initialOrganizationId ?? "",
     cycleId: initialCycleId ?? "",
+    historyKind: initialHistoryKind,
     loadingScopes: true,
     loadingCycles: false,
     loadingHistory: false,
@@ -70,13 +79,19 @@ export function createInitialReportsState({
   };
 }
 
-export function reportsHref(organizationId: string, cycleId: string, offset: number): string {
-  const params = new URLSearchParams();
-  if (organizationId) params.set("organizationId", organizationId);
-  if (cycleId) params.set("cycleId", cycleId);
-  if (offset > 0) params.set("offset", String(offset));
-  const query = params.toString();
-  return query ? `/admin/relatorios?${query}` : "/admin/relatorios";
+export function reportsHref(
+  organizationId: string,
+  cycleId: string,
+  offset: number,
+  kind: ReportCatalogKindParam | "" = "",
+): string {
+  return adminReportsPath({ organizationId, cycleId, offset, kind });
+}
+
+export function reportKindFromSearchParams(
+  searchParams: { get(name: string): string | null },
+): ReportCatalogKindParam | "" {
+  return parseReportCatalogKind(searchParams.get("kind"));
 }
 
 export function reportOffsetFromSearchParams(

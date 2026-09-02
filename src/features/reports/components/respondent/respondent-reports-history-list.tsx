@@ -1,10 +1,10 @@
 "use client";
 
 import { formatPlatformDateTime } from "@/shared/datetime/platform-date-time";
-import Link from "next/link";
-import { Download, History } from "lucide-react";
+import { Download, ExternalLink } from "lucide-react";
 import type { RespondentReportHistoryRow } from "@/features/reports/ui/respondent-presentation";
 import { catalogKindLabel } from "@/features/reports/report-catalog";
+import { reportCatalogLabels } from "@/shared/labels/official-labels";
 import { formSurface } from "@/shared/layout/form-surface";
 import { typography } from "@/shared/layout/design-system";
 import { RespondentReportsEmptyState } from "./respondent-reports-empty-state";
@@ -21,16 +21,21 @@ function formatWhen(value: string): string {
 type Props = {
   items: RespondentReportHistoryRow[];
   onDownload: (row: RespondentReportHistoryRow) => void;
+  onOpen: (row: RespondentReportHistoryRow) => void;
+  emptyKind?: "" | "annual" | "bimonthly";
+  emptyOriginHref?: string | null;
 };
 
 function HistoryReportRow({
   row,
   outdated,
   onDownload,
+  onOpen,
 }: {
   row: RespondentReportHistoryRow;
   outdated: boolean;
   onDownload: () => void;
+  onOpen: () => void;
 }) {
   return (
     <li className={`${formSurface.entityListCard} overflow-hidden`}>
@@ -60,14 +65,24 @@ function HistoryReportRow({
           </p>
         </div>
 
-        <button
-          type="button"
-          className={`${formSurface.secondaryButtonSm} w-full shrink-0 sm:w-auto`}
-          onClick={onDownload}
-        >
-          <Download className="h-3.5 w-3.5" aria-hidden />
-          Baixar
-        </button>
+        <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row">
+          <button
+            type="button"
+            className={`${formSurface.secondaryButtonSm} w-full sm:w-auto`}
+            onClick={onOpen}
+          >
+            <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+            {reportCatalogLabels.openPdf}
+          </button>
+          <button
+            type="button"
+            className={`${formSurface.secondaryButtonSm} w-full sm:w-auto`}
+            onClick={onDownload}
+          >
+            <Download className="h-3.5 w-3.5" aria-hidden />
+            Baixar
+          </button>
+        </div>
       </div>
 
       <dl className="grid gap-4 bg-slate-50/60 px-4 py-4 text-sm sm:grid-cols-2 sm:px-5 lg:grid-cols-4">
@@ -116,23 +131,6 @@ function HistoryReportRow({
           <p className="text-sm font-medium text-amber-800">{row.outdatedReason}</p>
         </div>
       ) : null}
-
-      {row.catalogKind === "annual" ? (
-        <nav
-          className="border-t border-slate-100 px-4 py-3 sm:px-5"
-          aria-label={`Abrir versão do relatório ${row.formName}`}
-        >
-          <Link
-            href={`/respondente/relatorios/${encodeURIComponent(row.id)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-800 hover:underline"
-          >
-            <History className="h-4 w-4" aria-hidden />
-            Abrir emissão imutável em nova aba
-          </Link>
-        </nav>
-      ) : null}
     </li>
   );
 }
@@ -140,8 +138,19 @@ function HistoryReportRow({
 export function RespondentReportsHistoryList({
   items,
   onDownload,
+  onOpen,
+  emptyKind = "",
+  emptyOriginHref,
 }: Props) {
-  if (items.length === 0) return <RespondentReportsEmptyState variant="no-reports" />;
+  if (items.length === 0) {
+    return (
+      <RespondentReportsEmptyState
+        variant="no-reports"
+        kind={emptyKind}
+        originHref={emptyOriginHref}
+      />
+    );
+  }
 
   return (
     <ul className="space-y-3" role="list" aria-label="Histórico de relatórios">
@@ -151,6 +160,7 @@ export function RespondentReportsHistoryList({
           row={row}
           outdated={!row.isCurrent}
           onDownload={() => onDownload(row)}
+          onOpen={() => onOpen(row)}
         />
       ))}
     </ul>

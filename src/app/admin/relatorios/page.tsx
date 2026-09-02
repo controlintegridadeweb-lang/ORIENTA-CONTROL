@@ -1,6 +1,7 @@
 import { ReportsShell } from "@/features/reports/components/admin/reports-shell";
 import { layout } from "@/shared/layout/design-system";
 import { firstSearchParam } from "@/features/admin/search-params";
+import { parseReportCatalogKind } from "@/shared/navigation/report-paths";
 
 export default async function AdminRelatoriosPage({
   searchParams,
@@ -12,6 +13,7 @@ export default async function AdminRelatoriosPage({
   const initialCycleId = firstSearchParam(params, "cycleId") ?? null;
   const rawOffset = Number(firstSearchParam(params, "offset") ?? "0");
   const initialHistoryOffset = Number.isInteger(rawOffset) && rawOffset >= 0 ? rawOffset : 0;
+  const initialHistoryKind = parseReportCatalogKind(firstSearchParam(params, "kind"));
 
   return (
     <div className={layout.pageStack}>
@@ -19,6 +21,7 @@ export default async function AdminRelatoriosPage({
         initialOrganizationId={initialOrganizationId}
         initialCycleId={initialCycleId}
         initialHistoryOffset={initialHistoryOffset}
+        initialHistoryKind={initialHistoryKind}
       />
     </div>
   );

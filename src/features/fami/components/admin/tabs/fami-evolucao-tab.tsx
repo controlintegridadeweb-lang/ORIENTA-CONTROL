@@ -14,6 +14,7 @@ type Props = {
   referenceYear: number;
   canMaterialize: boolean;
   preliminary: FamiPreliminaryController;
+  bimonthlyHistoryHref?: string | null;
 };
 
 export function FamiEvolucaoTab({
@@ -22,6 +23,7 @@ export function FamiEvolucaoTab({
   referenceYear,
   canMaterialize,
   preliminary,
+  bimonthlyHistoryHref,
 }: Props) {
   const global = data?.snapshot?.global;
   return (
@@ -46,6 +48,7 @@ export function FamiEvolucaoTab({
         submitting={preliminary.submitting}
         error={preliminary.error}
         message={preliminary.message}
+        bimonthlyHistoryHref={bimonthlyHistoryHref}
         onRetry={() => void preliminary.reload()}
         onCalculate={(quadrimester) => void preliminary.calculate(quadrimester)}
       />

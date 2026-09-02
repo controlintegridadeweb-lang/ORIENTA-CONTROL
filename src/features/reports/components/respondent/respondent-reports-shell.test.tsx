@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 const mocks = vi.hoisted(() => ({
   fetchCatalogReportPdf: vi.fn(),
   downloadPdfBlob: vi.fn(),
+  openPdfBlob: vi.fn(),
   notifySuccess: vi.fn(),
   notifyError: vi.fn(),
 }));
@@ -14,6 +15,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/features/reports/ui/client", () => ({
   fetchCatalogReportPdf: mocks.fetchCatalogReportPdf,
   downloadPdfBlob: mocks.downloadPdfBlob,
+  openPdfBlob: mocks.openPdfBlob,
 }));
 vi.mock("@/infrastructure/notifications/notify", () => ({
   describeError: (_error: unknown, fallback: string) => fallback,
@@ -37,7 +39,15 @@ vi.mock("@/features/reports/ui/use-report-history", () => ({
       },
     ],
     loading: false,
-    filters: {},
+    filters: {
+      search: "",
+      status: "",
+      kind: "",
+      from: "",
+      to: "",
+      yearPreset: null,
+      cycleId: "",
+    },
     setFilters: vi.fn(),
     filteredHistory: [
       {
@@ -94,6 +104,7 @@ describe("RespondentReportsShell", () => {
   beforeEach(() => {
     mocks.fetchCatalogReportPdf.mockReset();
     mocks.downloadPdfBlob.mockReset();
+    mocks.openPdfBlob.mockReset();
     mocks.notifySuccess.mockReset();
     mocks.notifyError.mockReset();
   });

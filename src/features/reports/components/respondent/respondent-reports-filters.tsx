@@ -15,6 +15,8 @@ export type HistoryFilterState = {
   to: string;
   /** Ano contido no período institucional de referência do diagnóstico. */
   yearPreset: number | null;
+  /** Recorte opcional pelo diagnóstico da URL (ex.: pós-encerramento). */
+  cycleId: string;
 };
 
 export const INITIAL_HISTORY_FILTERS: HistoryFilterState = {
@@ -24,6 +26,7 @@ export const INITIAL_HISTORY_FILTERS: HistoryFilterState = {
   from: "",
   to: "",
   yearPreset: null,
+  cycleId: "",
 };
 
 function hasActiveHistoryFilters(value: HistoryFilterState): boolean {
@@ -33,7 +36,8 @@ function hasActiveHistoryFilters(value: HistoryFilterState): boolean {
       value.kind ||
       value.from ||
       value.to ||
-      value.yearPreset != null,
+      value.yearPreset != null ||
+      value.cycleId,
   );
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
 import { FileSpreadsheet, FileText } from "lucide-react";
 import { formSurface } from "@/shared/layout/form-surface";
 import { typography } from "@/shared/layout/design-system";
@@ -33,6 +34,7 @@ type Props = {
   submitting: Quadrimester | null;
   error: string | null;
   message: string | null;
+  bimonthlyHistoryHref?: string | null;
   onRetry(): void;
   onCalculate(quadrimester: Quadrimester): void;
 };
@@ -116,6 +118,7 @@ export function FamiPreliminaryPanel({
   submitting,
   error,
   message,
+  bimonthlyHistoryHref,
   onRetry,
   onCalculate,
 }: Props) {
@@ -152,7 +155,7 @@ export function FamiPreliminaryPanel({
   );
   const busy = loading || bimonthly.loading;
   const combinedError = error ?? bimonthly.error;
-  const actionsBusy = submitting !== null || bimonthly.submitting !== null;
+  const actionsBusy = submitting !== null || bimonthly.submitting !== null || bimonthly.downloadingId != null;
 
   return (
     <PanelSection
@@ -160,15 +163,22 @@ export function FamiPreliminaryPanel({
       description={famiPreliminaryLabels.description}
       variant="plain"
       actions={
-        cycleId && payload.history.length > 0 ? (
-          <button
-            type="button"
-            className={formSurface.secondaryButtonSm}
-            onClick={() => downloadCsv(payload.history, cycleId)}
-          >
-            {famiPreliminaryLabels.exportHistory}
-          </button>
-        ) : null
+        <div className="flex flex-wrap items-center gap-2">
+          {bimonthlyHistoryHref ? (
+            <Link href={bimonthlyHistoryHref} className={formSurface.secondaryButtonSm}>
+              {famiPreliminaryLabels.viewBimonthlyHistory}
+            </Link>
+          ) : null}
+          {cycleId && payload.history.length > 0 ? (
+            <button
+              type="button"
+              className={formSurface.secondaryButtonSm}
+              onClick={() => downloadCsv(payload.history, cycleId)}
+            >
+              {famiPreliminaryLabels.exportHistory}
+            </button>
+          ) : null}
+        </div>
       }
     >
       <div className="space-y-3">
@@ -288,6 +298,24 @@ export function FamiPreliminaryPanel({
                             aria-label={`${famiPreliminaryLabels.generateBimester} ${row.label}`}
                           >
                             {famiPreliminaryLabels.generateBimester}
+                          </LoadingButton>
+                        ) : null}
+                        {report ? (
+                          <LoadingButton
+                            type="button"
+                            pending={bimonthly.downloadingId === report.id}
+                            pendingLabel={famiPreliminaryLabels.downloadingBimester}
+                            disabled={actionsBusy || bimonthly.downloadingId != null}
+                            onClick={() =>
+                              void bimonthly.download(
+                                report.id,
+                                `relatorio-bimestral-${referenceYear}-b${row.bimester}.pdf`,
+                              )
+                            }
+                            className={formSurface.secondaryButtonSm}
+                            aria-label={`${famiPreliminaryLabels.downloadBimester} ${row.label}`}
+                          >
+                            {famiPreliminaryLabels.downloadBimester}
                           </LoadingButton>
                         ) : null}
                         {canCalculate ? (

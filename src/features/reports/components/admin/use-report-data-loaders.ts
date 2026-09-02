@@ -23,11 +23,13 @@ export type LoadCyclesResult = string | null;
 export function useReportDataLoaders({
   initialOrganizationId,
   initialCycleId,
+  initialHistoryKind = "",
   patch,
   router,
 }: {
   initialOrganizationId: string | null;
   initialCycleId: string | null;
+  initialHistoryKind?: "" | "annual" | "bimonthly";
   patch: ReportsPatch;
   router: ReportsRouter;
 }) {
@@ -143,7 +145,7 @@ export function useReportDataLoaders({
 
       if (organizations.length === 1) {
         router.replace(
-          reportsHref(organizations[0]!.id, initialCycleId ?? "", 0),
+          reportsHref(organizations[0]!.id, initialCycleId ?? "", 0, initialHistoryKind),
           { scroll: false },
         );
       }
@@ -161,6 +163,7 @@ export function useReportDataLoaders({
   }, [
     beginOrganizationsRequest,
     initialCycleId,
+    initialHistoryKind,
     initialOrganizationId,
     isLatestOrganizationsRequest,
     patch,
@@ -171,6 +174,7 @@ export function useReportDataLoaders({
     organizationId: string,
     cycleId: string,
     offset: number,
+    kind: "" | "annual" | "bimonthly" = "",
   ) => {
     if (!organizationId) {
       invalidateHistoryRequest();
@@ -190,6 +194,7 @@ export function useReportDataLoaders({
       const page = await loadReportHistory({
         organizationId,
         cycleId: cycleId || undefined,
+        kind: kind || undefined,
         limit: REPORT_HISTORY_PAGE_SIZE,
         offset,
       });

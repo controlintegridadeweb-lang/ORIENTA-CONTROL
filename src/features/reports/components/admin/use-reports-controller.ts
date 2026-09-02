@@ -12,6 +12,7 @@ import {
 import { reportDownloadFilename } from "./report-shell-display";
 import {
   createInitialReportsState,
+  reportKindFromSearchParams,
   reportOffsetFromSearchParams,
   reportsHref,
   reportsReducer,
@@ -23,16 +24,18 @@ export function useReportsController({
   initialOrganizationId,
   initialCycleId,
   initialHistoryOffset,
+  initialHistoryKind = "",
 }: {
   initialOrganizationId: string | null;
   initialCycleId: string | null;
   initialHistoryOffset: number;
+  initialHistoryKind?: "" | "annual" | "bimonthly";
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [state, dispatch] = useReducer(
     reportsReducer,
-    { initialOrganizationId, initialCycleId, initialHistoryOffset },
+    { initialOrganizationId, initialCycleId, initialHistoryOffset, initialHistoryKind },
     createInitialReportsState,
   );
   const patch: ReportsPatch = useCallback((values) => {
@@ -41,6 +44,7 @@ export function useReportsController({
   const { loadCycles, loadOrganizations, loadHistory } = useReportDataLoaders({
     initialOrganizationId,
     initialCycleId,
+    initialHistoryKind,
     patch,
     router,
   });
@@ -65,21 +69,29 @@ export function useReportsController({
     !missingReissueReason,
   );
 
+  const historyKind = reportKindFromSearchParams(searchParams);
+  const catalogHref = useCallback(
+    (organizationId: string, cycleId: string, offset: number, kind = historyKind) =>
+      reportsHref(organizationId, cycleId, offset, kind),
+    [historyKind],
+  );
+
   useEffect(() => {
     void loadOrganizations();
   }, [loadOrganizations]);
 
   useEffect(() => {
-    void loadHistory(state.organizationId, state.cycleId, state.historyOffset);
-  }, [loadHistory, state.cycleId, state.historyOffset, state.organizationId]);
+    void loadHistory(state.organizationId, state.cycleId, state.historyOffset, historyKind);
+  }, [historyKind, loadHistory, state.cycleId, state.historyOffset, state.organizationId]);
 
   useEffect(() => {
     const organizationId = searchParams.get("organizationId") ?? "";
     const cycleId = searchParams.get("cycleId") ?? "";
     const historyOffset = reportOffsetFromSearchParams(searchParams);
+    const nextKind = reportKindFromSearchParams(searchParams);
 
     // URL é a fonte de verdade. Não depende do state local (evita corrida com router.push).
-    patch({ organizationId, cycleId, historyOffset });
+    patch({ organizationId, cycleId, historyOffset, historyKind: nextKind });
 
     let cancelled = false;
     void loadCycles(organizationId, cycleId).then((resolvedCycleId) => {
@@ -87,7 +99,7 @@ export function useReportsController({
       if (cancelled || resolvedCycleId === null) return;
       if (resolvedCycleId === cycleId) return;
       // Só reescreve quando o ciclo pedido realmente não existe na API.
-      router.replace(reportsHref(organizationId, resolvedCycleId, historyOffset), {
+      router.replace(reportsHref(organizationId, resolvedCycleId, historyOffset, nextKind), {
         scroll: false,
       });
     });
@@ -113,29 +125,34 @@ export function useReportsController({
       cycleHasMore: false,
     });
     // O efeito de searchParams recarrega os ciclos a partir da URL.
-    router.push(reportsHref(organizationId, "", 0), { scroll: false });
-  }, [patch, router]);
+    router.push(catalogHref(organizationId, "", 0), { scroll: false });
+  }, [catalogHref, patch, router]);
 
   const searchCycles = useCallback(() => {
     patch({ historyOffset: 0, cycleId: "" });
-    router.push(reportsHref(state.organizationId, "", 0), { scroll: false });
+    router.push(catalogHref(state.organizationId, "", 0), { scroll: false });
     void loadCycles(state.organizationId, "", 0, state.cycleSearch);
-  }, [loadCycles, patch, router, state.cycleSearch, state.organizationId]);
+  }, [catalogHref, loadCycles, patch, router, state.cycleSearch, state.organizationId]);
 
   const selectCycle = useCallback((cycleId: string) => {
     patch({ historyOffset: 0, cycleId });
-    router.push(reportsHref(state.organizationId, cycleId, 0), { scroll: false });
-  }, [patch, router, state.organizationId]);
+    router.push(catalogHref(state.organizationId, cycleId, 0), { scroll: false });
+  }, [catalogHref, patch, router, state.organizationId]);
 
   const changeCyclePage = useCallback((offset: number) => {
     patch({ historyOffset: 0, cycleId: "" });
-    router.push(reportsHref(state.organizationId, "", 0), { scroll: false });
+    router.push(catalogHref(state.organizationId, "", 0), { scroll: false });
     void loadCycles(state.organizationId, "", offset, state.cycleSearch);
-  }, [loadCycles, patch, router, state.cycleSearch, state.organizationId]);
+  }, [catalogHref, loadCycles, patch, router, state.cycleSearch, state.organizationId]);
 
   const changeHistoryPage = useCallback((offset: number) => {
     patch({ historyOffset: offset });
-    router.push(reportsHref(state.organizationId, state.cycleId, offset), { scroll: false });
+    router.push(catalogHref(state.organizationId, state.cycleId, offset), { scroll: false });
+  }, [catalogHref, patch, router, state.cycleId, state.organizationId]);
+
+  const changeHistoryKind = useCallback((kind: "" | "annual" | "bimonthly") => {
+    patch({ historyOffset: 0, historyKind: kind });
+    router.push(reportsHref(state.organizationId, state.cycleId, 0, kind), { scroll: false });
   }, [patch, router, state.cycleId, state.organizationId]);
 
   const saveReferencePeriod = useCallback((reference: {
@@ -184,7 +201,7 @@ export function useReportsController({
         reissueReason: isReissue ? state.reissueReason.trim() : undefined,
       });
       patch({ historyOffset: 0 });
-      router.replace(reportsHref(state.organizationId, selectedCycle.cycleId, 0), {
+      router.replace(reportsHref(state.organizationId, selectedCycle.cycleId, 0, ""), {
         scroll: false,
       });
       await Promise.all([
@@ -194,7 +211,7 @@ export function useReportsController({
           state.cycleOffset,
           state.cycleSearch,
         ),
-        loadHistory(state.organizationId, selectedCycle.cycleId, 0),
+        loadHistory(state.organizationId, selectedCycle.cycleId, 0, ""),
       ]);
     } catch {
       // O cliente de relatórios emite a notificação detalhada.
@@ -243,6 +260,7 @@ export function useReportsController({
     selectCycle,
     changeCyclePage,
     changeHistoryPage,
+    changeHistoryKind,
     saveReferencePeriod,
     generate,
     download,

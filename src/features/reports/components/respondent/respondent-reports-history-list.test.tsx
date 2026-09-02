@@ -85,10 +85,18 @@ describe("RespondentReportsHistoryList", () => {
       }),
     ]);
 
-    render(<RespondentReportsHistoryList items={visible.map(asListRow)} onDownload={vi.fn()} />);
+    render(
+      <RespondentReportsHistoryList
+        items={visible.map(asListRow)}
+        onDownload={vi.fn()}
+        onOpen={vi.fn()}
+      />,
+    );
 
     expect(screen.getAllByRole("heading", { name: "Diagnóstico de Integridade 2026" })).toHaveLength(1);
     expect(screen.getByRole("button", { name: "Baixar" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Abrir PDF" })).toBeTruthy();
+    expect(screen.queryByRole("link")).toBeNull();
     expect(screen.getByText("Emissão").className).toContain("text-slate-600");
     expect(screen.getByText("v4").className).toContain("text-slate-900");
     expect(screen.getByText("Bimestre").className).toContain("text-slate-600");
@@ -97,5 +105,19 @@ describe("RespondentReportsHistoryList", () => {
     expect(screen.queryByText("v2")).toBeNull();
     expect(screen.queryByText("Versão anterior")).toBeNull();
     expect(screen.queryByText("Esta emissão foi substituída por uma versão posterior.")).toBeNull();
+  });
+
+  it("não navega para uma rota inexistente ao abrir o PDF", () => {
+    render(
+      <RespondentReportsHistoryList
+        items={[asListRow(official({ report_kind: "annual", bimester: null, period_label: "2026" }))]}
+        onDownload={vi.fn()}
+        onOpen={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByRole("link", { name: /emissão imutável/i })).toBeNull();
+    expect(screen.queryByRole("link")).toBeNull();
+    expect(screen.getByRole("button", { name: "Abrir PDF" })).toBeTruthy();
   });
 });

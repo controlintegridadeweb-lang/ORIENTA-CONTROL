@@ -11,15 +11,18 @@ export function ReportsShell({
   initialOrganizationId = null,
   initialCycleId = null,
   initialHistoryOffset = 0,
+  initialHistoryKind = "",
 }: {
   initialOrganizationId?: string | null;
   initialCycleId?: string | null;
   initialHistoryOffset?: number;
+  initialHistoryKind?: "" | "annual" | "bimonthly";
 }) {
   const controller = useReportsController({
     initialOrganizationId,
     initialCycleId,
     initialHistoryOffset,
+    initialHistoryKind,
   });
 
   return (

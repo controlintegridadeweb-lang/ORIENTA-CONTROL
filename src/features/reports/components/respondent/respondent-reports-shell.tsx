@@ -5,8 +5,11 @@ import { describeError, notify } from "@/infrastructure/notifications/notify";
 import {
   downloadPdfBlob,
   fetchCatalogReportPdf,
+  openPdfBlob,
 } from "@/features/reports/ui/client";
 import { reportCatalogLabels } from "@/shared/labels/official-labels";
+import { respondentFamiPath } from "@/shared/navigation/fami-paths";
+import { formSurface } from "@/shared/layout/form-surface";
 import type { RespondentReportHistoryRow } from "@/features/reports/ui/respondent-presentation";
 import { RespondentReportsHero } from "./respondent-reports-hero";
 import { RESPONDENT_PAGE_HERO_BLEED } from "@/shared/layout/respondent-page-layout";
@@ -70,6 +73,24 @@ export function RespondentReportsShell() {
     }
   }, []);
 
+  const handleOpen = useCallback(async (row: RespondentReportHistoryRow) => {
+    const notificationId = notify.loading("Abrindo PDF…");
+    try {
+      const blob = await fetchCatalogReportPdf(row.downloadPath);
+      const opened = openPdfBlob(blob, reportFilename(row));
+      notify.success(opened ? "PDF aberto em nova aba." : "Download iniciado.", {
+        id: notificationId,
+      });
+    } catch (error) {
+      notify.error(describeError(error, "Não foi possível abrir o PDF."), { id: notificationId });
+    }
+  }, []);
+
+  const bimonthlyOriginHref = respondentFamiPath({
+    cycleId: filters.cycleId || undefined,
+    tab: "evolucao",
+  });
+
   return (
     <div className={layout.pageStack}>
       <div className={RESPONDENT_PAGE_HERO_BLEED}>
@@ -96,6 +117,19 @@ export function RespondentReportsShell() {
               availableYears={reportHistoryYears}
             />
 
+            {filters.cycleId ? (
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3">
+                <p className="text-sm text-slate-700">{reportCatalogLabels.cycleScopeLabel}</p>
+                <button
+                  type="button"
+                  className={formSurface.secondaryButtonSm}
+                  onClick={() => setFilters({ ...filters, cycleId: "" })}
+                >
+                  {reportCatalogLabels.clearCycleScope}
+                </button>
+              </div>
+            ) : null}
+
             {historyError ? (
               <AsyncErrorState
                 message={historyError}
@@ -112,6 +146,9 @@ export function RespondentReportsShell() {
               <RespondentReportsHistoryList
                 items={filteredHistory}
                 onDownload={(row) => void handleDownload(row)}
+                onOpen={(row) => void handleOpen(row)}
+                emptyKind={filters.kind}
+                emptyOriginHref={bimonthlyOriginHref}
               />
             )}
 

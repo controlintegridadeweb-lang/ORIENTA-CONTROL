@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, FileSpreadsheet, FileText, Table2 } from "lucide-react";
+import { ArrowRight, FileBarChart, FileSpreadsheet, FileText, Table2 } from "lucide-react";
 import { IllustratedPageHero } from "@/shared/ui/components/illustrated-page-hero";
 import { RefreshActionButton } from "@/shared/ui/components/refresh-action-button";
 import {
@@ -12,6 +12,7 @@ import { formSurface } from "@/shared/layout/form-surface";
 import type { RespondentRecommendationListView } from "@/shared/navigation/respondent-navigation-context";
 import type { RecommendationPortfolioExportFormat } from "@/features/improvement-management/recommendations/export/portfolio-export-types";
 import { ExportMenu, type ExportMenuOption } from "@/shared/ui/components/export-menu";
+import { reportCatalogLabels } from "@/shared/labels/official-labels";
 
 const HERO_IMAGE = "/assets/respondent-recommendations-hero.png";
 
@@ -21,6 +22,7 @@ type Props = {
   refreshing: boolean;
   onExport?: (format: RecommendationPortfolioExportFormat) => Promise<void>;
   exportDisabled?: boolean;
+  catalogHref?: string;
 };
 
 const HERO_COPY = {
@@ -62,27 +64,13 @@ const PORTFOLIO_EXPORT_OPTIONS: Array<ExportMenuOption<RecommendationPortfolioEx
   },
 ];
 
-const ACTION_PLAN_EXPORT_OPTIONS: Array<ExportMenuOption<"xlsx" | "pdf">> = [
-  {
-    format: "xlsx",
-    label: "Exportar Excel",
-    icon: FileSpreadsheet,
-    hint: "Planilha analítica com uma linha por ação, filtros e datas reais.",
-  },
-  {
-    format: "pdf",
-    label: "Exportar PDF",
-    icon: FileText,
-    hint: "Relatório bimestral de acompanhamento do plano de integridade e compliance.",
-  },
-];
-
 export function RespondentRecommendationsHero({
   view = "analysis",
   onRefresh,
   refreshing,
   onExport,
   exportDisabled,
+  catalogHref,
 }: Props) {
   const copy = HERO_COPY[view];
 
@@ -99,18 +87,18 @@ export function RespondentRecommendationsHero({
       actions={
         <>
           <RefreshActionButton onRefresh={onRefresh} refreshing={refreshing} />
-          {onExport && view === "action-plan" ? (
-            <ExportMenu
-              options={ACTION_PLAN_EXPORT_OPTIONS}
-              onExport={onExport}
-              disabled={exportDisabled || refreshing}
-            />
-          ) : onExport ? (
+          {onExport && view === "analysis" ? (
             <ExportMenu
               options={PORTFOLIO_EXPORT_OPTIONS}
               onExport={onExport}
               disabled={exportDisabled || refreshing}
             />
+          ) : null}
+          {view === "action-plan" && catalogHref ? (
+            <Link href={catalogHref} className={formSurface.secondaryButtonSm}>
+              <FileBarChart className="h-3.5 w-3.5" aria-hidden />
+              {reportCatalogLabels.bimonthlyCatalogCta}
+            </Link>
           ) : null}
           <Link href={copy.ctaHref} className={formSurface.primaryButtonSm}>
             {copy.ctaLabel}

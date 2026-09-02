@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { downloadPdfBlob, fetchCatalogReportPdf, fetchPersistedReportPdf } from "./client";
+import { downloadPdfBlob, fetchCatalogReportPdf, fetchPersistedReportPdf, openPdfBlob } from "./client";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -89,5 +89,21 @@ describe("downloadPdfBlob", () => {
     vi.advanceTimersByTime(1);
     expect(revoke).toHaveBeenCalledWith("blob:report");
     appendChild.mockRestore();
+  });
+});
+
+describe("openPdfBlob", () => {
+  it("abre o PDF em nova aba e revoga a URL depois do prazo", () => {
+    vi.useFakeTimers();
+    const revoke = vi.fn();
+    const create = vi.fn(() => "blob:open-report");
+    vi.stubGlobal("URL", { createObjectURL: create, revokeObjectURL: revoke });
+    const opened = { closed: false };
+    vi.stubGlobal("open", vi.fn(() => opened));
+
+    expect(openPdfBlob(new Blob(["pdf"]))).toBe(true);
+    expect(window.open).toHaveBeenCalledWith("blob:open-report", "_blank", "noopener,noreferrer");
+    vi.advanceTimersByTime(60_000);
+    expect(revoke).toHaveBeenCalledWith("blob:open-report");
   });
 });

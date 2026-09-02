@@ -310,6 +310,16 @@ export function downloadPdfBlob(blob: Blob, filename = "relatorio-orienta.pdf"):
   window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 60_000);
 }
 
+/** Abre o PDF já obtido em nova aba. Se o popup for bloqueado, inicia o download. */
+export function openPdfBlob(blob: Blob, filename = "relatorio-orienta.pdf"): boolean {
+  const url = URL.createObjectURL(blob);
+  const opened = window.open(url, "_blank", "noopener,noreferrer");
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  if (opened) return true;
+  downloadPdfBlob(blob, filename);
+  return false;
+}
+
 export async function generateAndDownloadOfficialReport(payload: {
   cycleId: string;
   processingVersion?: number;

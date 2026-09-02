@@ -11,9 +11,7 @@ import { AsyncErrorState } from "@/shared/ui/components/async-error-state";
 import { TableSkeleton } from "@/shared/ui/components/loading";
 import { exportAdminActionPlans } from "@/features/improvement-management/monitoring/client";
 import type { AdminActionPlanMonitoringQuery } from "@/features/improvement-management/monitoring/types";
-import type { ActionPlanExportFormat } from "@/features/improvement-management/action-plans/export/action-plan-export-types";
 import { parseAdminListUrlFilters } from "@/shared/config/admin-list-url";
-import { describeError, notify } from "@/infrastructure/notifications/notify";
 import { useAdminMonitoringListControls } from "@/features/improvement-management/monitoring/hooks/use-admin-monitoring-list-controls";
 import { useAdminMonitoringPresentation } from "@/features/improvement-management/monitoring/hooks/use-admin-monitoring-presentation";
 import { AdminActionPlanEmptyState } from "./admin-action-plan-empty-state";
@@ -27,6 +25,7 @@ import { AdminActionPlanOrganizationView } from "./admin-action-plan-organizatio
 import { AdminActionPlanSummaryCards } from "./admin-action-plan-summary-cards";
 import { AdminActionPlanHero } from "./admin-action-plan-hero";
 import { useAdminActionPlans } from "./hooks/use-admin-action-plans";
+import { adminBimonthlyReportsPath } from "@/shared/navigation/report-paths";
 
 type Props = {
   initialFilters?: Partial<AdminPlanFiltersState>;
@@ -105,20 +104,6 @@ export function AdminActionPlanShell({
   const items = data?.items ?? [];
   const total = data?.total ?? 0;
   const exportData = useCallback(() => exportAdminActionPlans(query, "xlsx"), [query]);
-  const handleExport = useCallback(
-    async (format: ActionPlanExportFormat) => {
-      if (total === 0) {
-        notify.warning("Nenhuma ação coincide com os filtros ativos para exportação.");
-        return;
-      }
-      await notify.promise(exportAdminActionPlans(query, format), {
-        loading: `Gerando ${format.toUpperCase()}...`,
-        success: "Exportação concluída.",
-        error: (error) => describeError(error, "Falha ao exportar ações."),
-      });
-    },
-    [query, total],
-  );
   const presentation = useAdminMonitoringPresentation({
     filters,
     setFilters,
@@ -186,7 +171,10 @@ export function AdminActionPlanShell({
         <AdminActionPlanHero
           loading={loading}
           onRefresh={() => void presentation.actions.refresh()}
-          onExport={handleExport}
+          catalogHref={adminBimonthlyReportsPath({
+            organizationId: filters.organizationId || undefined,
+            cycleId: filters.cycleId || undefined,
+          })}
         />
       }
       error={error}

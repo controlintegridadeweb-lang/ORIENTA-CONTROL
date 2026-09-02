@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ReportHistoryOption } from "@/features/reports/ui/client";
 import { createInitialReportsState } from "./reports-controller-model";
@@ -60,6 +60,7 @@ function controller(over: Partial<ReportsController["state"]> = {}): ReportsCont
     },
     loadHistory: vi.fn(),
     changeHistoryPage: vi.fn(),
+    changeHistoryKind: vi.fn(),
     download: vi.fn(),
   } as unknown as ReportsController;
 }
@@ -99,7 +100,8 @@ describe("ReportHistorySection", () => {
       />,
     );
 
-    expect(screen.getByText("Relatório bimestral")).toBeTruthy();
+    const list = screen.getByRole("list", { name: "Histórico de emissões" });
+    expect(within(list).getByText("Relatório bimestral")).toBeTruthy();
     expect(screen.getByText("Bimestre")).toBeTruthy();
     expect(screen.getByText("2º")).toBeTruthy();
     expect(screen.queryByText("Processamento")).toBeNull();
@@ -173,8 +175,9 @@ describe("ReportHistorySection", () => {
     );
 
     expect(screen.getAllByRole("heading", { name: "Diagnóstico de Integridade 2026" })).toHaveLength(3);
-    expect(screen.getByText("Relatório anual 2026")).toBeTruthy();
-    expect(screen.getAllByText("Relatório bimestral")).toHaveLength(2);
+    const list = screen.getByRole("list", { name: "Histórico de emissões" });
+    expect(within(list).getByText("Relatório anual 2026")).toBeTruthy();
+    expect(within(list).getAllByText("Relatório bimestral")).toHaveLength(2);
   });
 
   it("dispara o download da emissão listada", () => {
@@ -183,5 +186,21 @@ describe("ReportHistorySection", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Baixar" }));
     expect(view.download).toHaveBeenCalledWith(view.state.history[0]);
+  });
+
+  it("no vazio bimestral, aponta para o acompanhamento no Resultado FAMI", () => {
+    render(
+      <ReportHistorySection
+        controller={controller({
+          history: [],
+          historyKind: "bimonthly",
+          loadingHistory: false,
+        })}
+      />,
+    );
+
+    expect(
+      screen.getByRole("link", { name: "Abrir acompanhamento no Resultado FAMI" }).getAttribute("href"),
+    ).toBe("/admin/maturidade?organizationId=org-1&cycleId=cycle-1&tab=evolucao");
   });
 });

@@ -27,6 +27,10 @@ import { FamiEixosTab } from "./tabs/fami-eixos-tab";
 import { FamiSecoesTab } from "./tabs/fami-secoes-tab";
 import { FamiEvolucaoTab } from "./tabs/fami-evolucao-tab";
 import { adminFamiPath, type AdminFamiTab } from "@/shared/navigation/fami-paths";
+import {
+  adminBimonthlyReportsPath,
+  respondentBimonthlyReportsPath,
+} from "@/shared/navigation/report-paths";
 import { useFamiPreliminary } from "@/features/fami/components/preliminary/use-fami-preliminary";
 import { currentBrtYear, getCalendarYearBrt } from "@/features/fami/fami-year";
 
@@ -375,6 +379,14 @@ export function FamiMaturityShell({
           referenceYear={preliminaryReferenceYear}
           canMaterialize={mode === "admin"}
           preliminary={preliminary}
+          bimonthlyHistoryHref={
+            mode === "admin"
+              ? adminBimonthlyReportsPath({
+                  organizationId,
+                  cycleId: effectiveCycle?.id,
+                })
+              : respondentBimonthlyReportsPath({ cycleId: effectiveCycle?.id })
+          }
         />
       )}
     </section>

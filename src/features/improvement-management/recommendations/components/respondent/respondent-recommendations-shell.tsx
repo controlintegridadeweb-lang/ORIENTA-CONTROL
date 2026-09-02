@@ -10,7 +10,6 @@ import { describeError, notify } from "@/infrastructure/notifications/notify";
 import type { RespondentRecommendationItem } from "@/features/improvement-management/recommendations/respondent-presentation";
 import { downloadRespondentPortfolioExport } from "@/features/improvement-management/recommendations/export/portfolio-export-client";
 import type { RecommendationPortfolioExportFormat } from "@/features/improvement-management/recommendations/export/portfolio-export-types";
-import { downloadRespondentActionPlanExport } from "@/features/improvement-management/action-plans/export/action-plan-export-client";
 import { Pagination } from "@/shared/ui/components/pagination";
 import { AsyncErrorState } from "@/shared/ui/components/async-error-state";
 import { useRespondentRecommendations } from "./hooks/use-respondent-recommendations";
@@ -33,6 +32,7 @@ import { RESPONDENT_PAGE_HERO_BLEED } from "@/shared/layout/respondent-page-layo
 import {
   respondentActionWorkspacePath,
 } from "@/shared/navigation/respondent-portfolio-paths";
+import { respondentBimonthlyReportsPath } from "@/shared/navigation/report-paths";
 import {
   respondentRecommendationPage,
   respondentRecommendationListPath,
@@ -371,26 +371,21 @@ export function RespondentRecommendationsShell() {
 
   async function handleExport(format: RecommendationPortfolioExportFormat) {
     if (filteredRows.length === 0) {
-      notify.info(
-        actionPlanView
-          ? "Nenhuma seção com plano para exportar."
-          : "Nenhuma recomendação para exportar.",
-      );
+      notify.info("Nenhuma recomendação para exportar.");
       return;
     }
-    const exportTask =
-      actionPlanView && format !== "csv"
-        ? downloadRespondentActionPlanExport(filteredRows, format)
-        : downloadRespondentPortfolioExport(
-            filteredRows,
-            format,
-            "portfolio-recomendacoes",
-          );
-    await notify.promise(exportTask, {
-      loading: `Gerando ${format.toUpperCase()}...`,
-      success: "Exportação iniciada.",
-      error: (error) => describeError(error, "Falha ao exportar."),
-    });
+    await notify.promise(
+      downloadRespondentPortfolioExport(
+        filteredRows,
+        format,
+        "portfolio-recomendacoes",
+      ),
+      {
+        loading: `Gerando ${format.toUpperCase()}...`,
+        success: "Exportação iniciada.",
+        error: (error) => describeError(error, "Falha ao exportar."),
+      },
+    );
   }
 
   const hasActiveFilters =
@@ -452,8 +447,13 @@ export function RespondentRecommendationsShell() {
           view={view}
           onRefresh={handleRefresh}
           refreshing={loading}
-          onExport={handleExport}
+          onExport={actionPlanView ? undefined : handleExport}
           exportDisabled={filteredRows.length === 0}
+          catalogHref={
+            actionPlanView
+              ? respondentBimonthlyReportsPath({ cycleId: filter.cycleId || undefined })
+              : undefined
+          }
         />
         <div className="-mt-px overflow-hidden rounded-b-2xl border border-slate-200/90 bg-white shadow-sm">
           <UnderlineTabs

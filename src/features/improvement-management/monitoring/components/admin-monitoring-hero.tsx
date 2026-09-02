@@ -18,6 +18,8 @@ type Props = {
   /** Botão CSV legado. Preferir `exportAction` para menus multi-formato. */
   onExport?: () => void;
   exportAction?: ReactNode;
+  /** Atalho para o catálogo (ex.: relatórios bimestrais). */
+  catalogAction?: ReactNode;
   /** Quando omitido, o botão "Gerar relatório" não é exibido. */
   reportHref?: string;
 };
@@ -32,6 +34,7 @@ export function AdminMonitoringHero({
   onRefresh,
   onExport,
   exportAction,
+  catalogAction,
   reportHref,
 }: Props) {
   return (
@@ -61,6 +64,7 @@ export function AdminMonitoringHero({
                 Exportar CSV
               </button>
             ) : null)}
+          {catalogAction}
           {reportHref ? (
             <Link href={reportHref} className={formSurface.primaryButtonSm}>
               <FileBarChart className="h-3.5 w-3.5" aria-hidden />

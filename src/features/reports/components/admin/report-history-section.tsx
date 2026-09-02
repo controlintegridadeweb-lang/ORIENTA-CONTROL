@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Download, FileText } from "lucide-react";
 import { AsyncErrorState } from "@/shared/ui/components/async-error-state";
 import { EmptyState } from "@/shared/ui/components/empty-state";
@@ -7,6 +8,7 @@ import { typography } from "@/shared/layout/design-system";
 import type { ReportHistoryOption } from "@/features/reports/ui/client";
 import { catalogKindLabel } from "@/features/reports/report-catalog";
 import { reportCatalogLabels } from "@/shared/labels/official-labels";
+import { adminFamiPath } from "@/shared/navigation/fami-paths";
 import { formatReportDate } from "./report-shell-display";
 import { REPORT_HISTORY_PAGE_SIZE } from "./reports-controller-model";
 import type { ReportsController } from "./use-reports-controller";
@@ -109,15 +111,47 @@ function ReportHistoryItem({
   );
 }
 
+function historyDescription(kind: "" | "annual" | "bimonthly"): string {
+  if (kind === "annual") return reportCatalogLabels.annualHint;
+  if (kind === "bimonthly") return reportCatalogLabels.bimonthlyHint;
+  return reportCatalogLabels.historyDescription;
+}
+
+function historyEmptyDescription(kind: "" | "annual" | "bimonthly"): string {
+  if (kind === "annual") return reportCatalogLabels.emptyAnnualDescription;
+  if (kind === "bimonthly") return reportCatalogLabels.emptyBimonthlyDescription;
+  return reportCatalogLabels.adminEmptyDescription;
+}
+
 export function ReportHistorySection({ controller }: { controller: ReportsController }) {
-  const { state, loadHistory, changeHistoryPage, download } = controller;
+  const { state, loadHistory, changeHistoryPage, changeHistoryKind, download } = controller;
+  const bimonthlyOriginHref = adminFamiPath({
+    organizationId: state.organizationId || undefined,
+    cycleId: state.cycleId || undefined,
+    tab: "evolucao",
+  });
 
   return (
     <PanelSection
       title={reportCatalogLabels.historyTitle}
-      description={reportCatalogLabels.historyDescription}
+      description={historyDescription(state.historyKind)}
       variant="plain"
     >
+      <label className={`${formSurface.fieldGroup} mb-4 max-w-xs`}>
+        <span className={formSurface.label}>{reportCatalogLabels.typeFilter}</span>
+        <select
+          value={state.historyKind}
+          onChange={(event) =>
+            changeHistoryKind(event.target.value as "" | "annual" | "bimonthly")
+          }
+          className={formSurface.inputSelect}
+          disabled={state.loadingHistory}
+        >
+          <option value="">{reportCatalogLabels.allTypes}</option>
+          <option value="annual">{reportCatalogLabels.annual}</option>
+          <option value="bimonthly">{reportCatalogLabels.bimonthly}</option>
+        </select>
+      </label>
       {state.historyError ? (
         <AsyncErrorState
           message={state.historyError}
@@ -126,6 +160,7 @@ export function ReportHistorySection({ controller }: { controller: ReportsContro
             state.organizationId,
             state.cycleId,
             state.historyOffset,
+            state.historyKind,
           )}
           retrying={state.loadingHistory}
           compact={state.history.length > 0}
@@ -140,7 +175,14 @@ export function ReportHistorySection({ controller }: { controller: ReportsContro
         <EmptyState
           icon={FileText}
           title={reportCatalogLabels.emptyTitle}
-          description={reportCatalogLabels.adminEmptyDescription}
+          description={historyEmptyDescription(state.historyKind)}
+          action={
+            state.historyKind === "annual" ? null : (
+              <Link href={bimonthlyOriginHref} className={formSurface.secondaryButtonSm}>
+                {reportCatalogLabels.bimonthlyOriginCta}
+              </Link>
+            )
+          }
         />
       ) : (
         <>

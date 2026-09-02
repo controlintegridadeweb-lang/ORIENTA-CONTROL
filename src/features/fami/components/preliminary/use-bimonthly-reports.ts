@@ -151,5 +151,37 @@ export function useBimonthlyReports(
     [cycleId, referenceYear],
   );
 
-  return { payload, loading, submitting, error, reload, generate };
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  const download = useCallback(async (reportId: string, filename: string) => {
+    setDownloadingId(reportId);
+    setError(null);
+    try {
+      const response = await fetch(
+        `/api/monitoring/bimonthly/${reportId}/export?format=pdf`,
+        { cache: "no-store" },
+      );
+      if (!response.ok) {
+        const raw: unknown = await response.json().catch(() => null);
+        throw new Error(readPreliminaryApiError(raw, "Não foi possível baixar o relatório bimestral."));
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : "Não foi possível baixar o relatório bimestral.",
+      );
+    } finally {
+      setDownloadingId(null);
+    }
+  }, []);
+
+  return { payload, loading, submitting, downloadingId, error, reload, generate, download };
 }

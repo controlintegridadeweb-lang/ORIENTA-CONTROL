@@ -21,6 +21,7 @@ import { RespondentFamiEmptyState } from "./respondent-fami-empty-state";
 import { FamiMethodologyGuide } from "@/features/fami/components/admin/fami-methodology-guide";
 import { FamiEixosTab } from "@/features/fami/components/admin/tabs/fami-eixos-tab";
 import { respondentFamiPath, type RespondentFamiTab } from "@/shared/navigation/fami-paths";
+import { respondentBimonthlyReportsPath } from "@/shared/navigation/report-paths";
 import { buildFamiCsv, downloadFamiCsv } from "@/features/fami/components/admin/fami-maturity-helpers";
 import { FamiPreliminaryPanel } from "@/features/fami/components/preliminary/fami-preliminary-panel";
 import { useFamiPreliminary } from "@/features/fami/components/preliminary/use-fami-preliminary";
@@ -317,6 +318,9 @@ export function RespondentFamiShell({
                       submitting={preliminary.submitting}
                       error={preliminary.error}
                       message={preliminary.message}
+                      bimonthlyHistoryHref={respondentBimonthlyReportsPath({
+                        cycleId: selectedCycle?.id,
+                      })}
                       onRetry={() => void preliminary.reload()}
                       onCalculate={(quadrimester) => void preliminary.calculate(quadrimester)}
                     />

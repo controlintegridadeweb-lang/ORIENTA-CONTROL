@@ -1,36 +1,22 @@
 "use client";
 
-import { FileSpreadsheet, FileText } from "lucide-react";
+import Link from "next/link";
+import { FileBarChart } from "lucide-react";
 import { AdminMonitoringHero } from "@/features/improvement-management/monitoring/components/admin-monitoring-hero";
-import type { ActionPlanExportFormat } from "@/features/improvement-management/action-plans/export/action-plan-export-types";
 import { ADMIN_PLANO_ACAO_HERO_IMAGE } from "@/shared/config/page-assets/admin-action-plan-hero-image";
-import { ExportMenu, type ExportMenuOption } from "@/shared/ui/components/export-menu";
+import { reportCatalogLabels } from "@/shared/labels/official-labels";
+import { formSurface } from "@/shared/layout/form-surface";
 
 type Props = {
   loading?: boolean;
   onRefresh: () => void;
-  onExport: (format: ActionPlanExportFormat) => Promise<void>;
+  catalogHref: string;
 };
-
-const OPTIONS: Array<ExportMenuOption<ActionPlanExportFormat>> = [
-  {
-    format: "xlsx",
-    label: "Exportar Excel",
-    icon: FileSpreadsheet,
-    hint: "Planilha analítica com uma linha por ação, filtros e datas reais.",
-  },
-  {
-    format: "pdf",
-    label: "Exportar PDF",
-    icon: FileText,
-    hint: "Relatório bimestral de acompanhamento do plano de integridade e compliance.",
-  },
-];
 
 export function AdminActionPlanHero({
   loading,
   onRefresh,
-  onExport,
+  catalogHref,
 }: Props) {
   return (
     <AdminMonitoringHero
@@ -41,7 +27,12 @@ export function AdminActionPlanHero({
       image={ADMIN_PLANO_ACAO_HERO_IMAGE}
       loading={loading}
       onRefresh={onRefresh}
-      exportAction={<ExportMenu options={OPTIONS} onExport={onExport} disabled={loading} />}
+      catalogAction={
+        <Link href={catalogHref} className={formSurface.secondaryButtonSm}>
+          <FileBarChart className="h-3.5 w-3.5" aria-hidden />
+          {reportCatalogLabels.bimonthlyCatalogCta}
+        </Link>
+      }
     />
   );
 }
