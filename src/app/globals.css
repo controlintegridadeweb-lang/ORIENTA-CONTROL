@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "sonner/dist/styles.css";
 
 /* =============================================================================
    Plataforma Orienta — Design tokens
@@ -346,4 +347,48 @@ aside[data-collapsed="true"] .sb-footer button svg {
   .fami-guide-step-in {
     animation: none;
   }
+}
+
+/* =============================================================================
+   Toasts (Sonner) — superfície alinhada a cards e popovers da plataforma.
+   O CSS da lib é obrigatório no Sonner 2; sem ele o aviso cai no fluxo da
+   página (embaixo do rodapé) com borda nativa.
+   --------------------------------------------------------------------------- */
+
+[data-sonner-toaster] {
+  font-family: var(--font-sans);
+  --border-radius: var(--radius-card);
+}
+
+[data-sonner-toaster][data-sonner-theme="light"] {
+  --normal-bg: var(--color-surface);
+  --normal-border: #e2e8f0;
+  --normal-text: var(--color-foreground);
+  --success-bg: var(--color-brand-50);
+  --success-border: var(--color-brand-200);
+  --success-text: var(--color-brand-800);
+  --info-bg: var(--color-brand-50);
+  --info-border: var(--color-brand-200);
+  --info-text: var(--color-brand-800);
+  --warning-bg: #fffbeb;
+  --warning-border: #fde68a;
+  --warning-text: #b45309;
+  --error-bg: #fff1f2;
+  --error-border: #fecdd3;
+  --error-text: #be123c;
+}
+
+[data-sonner-toast][data-styled="true"] {
+  box-shadow: var(--ds-shadow-popover);
+  font-size: 0.875rem;
+}
+
+[data-sonner-toast][data-styled="true"] [data-title] {
+  letter-spacing: -0.004em;
+}
+
+[data-sonner-toast][data-styled="true"] [data-close-button] {
+  border-color: #e2e8f0;
+  background: var(--color-surface);
+  color: #475569;
 }
