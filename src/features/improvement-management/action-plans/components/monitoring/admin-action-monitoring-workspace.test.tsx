@@ -99,15 +99,20 @@ describe("AdminActionPlanSupervisionWorkspace", () => {
   it("organiza a página como área de trabalho da ação, com o histórico em tabela", () => {
     render(<AdminActionPlanSupervisionWorkspace />);
 
-    const headings = screen.getAllByRole("heading").map((heading) => heading.textContent);
-    expect(headings).toEqual([
-      "Árvore de problemas e soluções",
-      "Ação monitorada",
-      "Acompanhamento",
-      "Pendências e decisões",
-      "Histórico da ação",
-      "Comprovações da execução",
-    ]);
+    expect(screen.getByRole("heading", { name: "Monitoramento" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Situação das ações" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Execução média" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Progresso por ação" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Ação monitorada" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Acompanhamento" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Pendências e decisões" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Histórico da ação" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Comprovações da execução" })).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Árvore de problemas e soluções" })).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Supervisão por ação" })).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Distribuição das ações" })).toBeNull();
+    expect(screen.getByRole("img", { name: "Situação das ações" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "Progresso por ação" })).toBeTruthy();
 
     expect(screen.queryByRole("heading", { name: "Situação atual" })).toBeNull();
     expect(screen.queryByRole("heading", { name: "Histórico de acompanhamento" })).toBeNull();

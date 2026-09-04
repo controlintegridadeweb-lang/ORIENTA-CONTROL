@@ -253,6 +253,11 @@ describe("SectionWorkspaceMonitoring", () => {
       />,
     );
 
+    expect(screen.getByRole("heading", { name: "Monitoramento" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Situação das ações" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Execução média" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Progresso por ação" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "Situação das ações" })).toBeTruthy();
     expect(screen.getByText("Criar página institucional da UCI")).toBeTruthy();
     expect(screen.getByText("Publicar competências do CIC")).toBeTruthy();
     expect(screen.queryByText("Ação de outra seção")).toBeNull();

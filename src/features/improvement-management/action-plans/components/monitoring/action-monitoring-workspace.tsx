@@ -6,6 +6,7 @@ import { AsyncErrorState } from "@/shared/ui/components/async-error-state";
 import { useRecommendationDetailContext } from "@/features/improvement-management/recommendations/components/hub/recommendation-detail-context";
 import { MonitoringEmptyState } from "@/features/improvement-management/recommendations/components/hub/monitoring-empty-state";
 import { actionWorkspaceHref } from "@/features/improvement-management/action-plans/action-workspace-href";
+import { ActionPlanMonitoringDashboard } from "@/features/improvement-management/action-plans/components/monitoring/action-plan-monitoring-dashboard";
 import { ActionMonitoringSummary } from "@/features/improvement-management/action-plans/components/monitoring/action-monitoring-summary";
 import { MonitoringOrganogram } from "@/features/improvement-management/action-plans/components/monitoring/monitoring-organogram";
 import { PendingDecisionsSection } from "@/features/improvement-management/action-plans/components/monitoring/pending-decisions-section";
@@ -53,14 +54,24 @@ export function ActionMonitoringWorkspace({ role }: Props) {
 
   return (
     <div className={`${layout.panelStack} gap-6`}>
-      <MonitoringOrganogram
-        axisName={row.axisName}
-        sectionName={row.sectionName}
-        recommendationText={row.recommendationText}
-        plans={plans}
-        selectedPlanId={selectedPlan?.id ?? null}
-        onSelectAction={selectAction}
-      />
+      {role === "admin" ? (
+        <ActionPlanMonitoringDashboard
+          items={plans.map((plan, index) => ({
+            action: plan,
+            label: `A${index + 1}`,
+          }))}
+          description="Leitura gráfica da recomendação: situação, execução média e progresso de cada ação."
+        />
+      ) : (
+        <MonitoringOrganogram
+          axisName={row.axisName}
+          sectionName={row.sectionName}
+          recommendationText={row.recommendationText}
+          plans={plans}
+          selectedPlanId={selectedPlan?.id ?? null}
+          onSelectAction={selectAction}
+        />
+      )}
       <ActionMonitoringSummary
         plans={plans}
         selectedPlan={selectedPlan}
