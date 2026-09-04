@@ -171,39 +171,33 @@ function renderCoverPageContent(
   });
 
   const {
+    brandMark,
     decoTop,
     decoBottom,
   } = doc.coverAssets;
 
-  if (decoTop) {
-    drawCoverCornerImage(page, decoTop, {
-      anchor: "top-left",
-      maxW: COVER_LAYOUT.decoTop.w,
-      maxH: COVER_LAYOUT.decoTop.h,
-      offsetX: COVER_LAYOUT.decoTop.offsetX,
-      offsetY: COVER_LAYOUT.decoTop.offsetY,
-    });
-  }
+  drawCoverCornerImage(page, decoTop, {
+    anchor: "top-left",
+    maxW: COVER_LAYOUT.decoTop.w,
+    maxH: COVER_LAYOUT.decoTop.h,
+    offsetX: COVER_LAYOUT.decoTop.offsetX,
+    offsetY: COVER_LAYOUT.decoTop.offsetY,
+  });
 
-  if (decoBottom) {
-    drawCoverCornerImage(page, decoBottom, {
-      anchor: "bottom-right",
-      maxW: COVER_LAYOUT.decoBottom.w,
-      maxH: COVER_LAYOUT.decoBottom.h,
-      offsetX: COVER_LAYOUT.decoBottom.offsetX,
-      offsetY: COVER_LAYOUT.decoBottom.offsetY,
-    });
-  }
+  drawCoverCornerImage(page, decoBottom, {
+    anchor: "bottom-right",
+    maxW: COVER_LAYOUT.decoBottom.w,
+    maxH: COVER_LAYOUT.decoBottom.h,
+    offsetX: COVER_LAYOUT.decoBottom.offsetX,
+    offsetY: COVER_LAYOUT.decoBottom.offsetY,
+  });
 
-  const brandBottom = drawCoverBrand(
-    page,
-    fonts,
-    undefined,
-    {
-      title: props.coverTitle,
-      logo: doc.logo,
-    },
-  );
+  const brandBottom = props.includeFamiResult
+    ? drawCoverBrand(page, fonts, brandMark)
+    : drawCoverBrand(page, fonts, undefined, {
+        title: props.coverTitle,
+        logo: doc.logo,
+      });
 
   const usableWidth =
     pageWidth - margin * 2;

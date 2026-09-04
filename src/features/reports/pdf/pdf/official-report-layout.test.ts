@@ -7,6 +7,7 @@ import {
   REPORT_EMPTY_RECOMMENDATION_ACTIONS,
 } from "../prepare-detailed-analysis";
 import { buildOfficialReportPdfDocument } from "./build-official-report";
+import { OrientaPdfDocument } from "./document";
 import {
   buildDiagnosticSummaryMetrics,
 } from "./sections/diagnostic-summary-section";
@@ -426,6 +427,14 @@ describe("layout oficial do relatório", () => {
     expect(formatReportPercentage(70)).toBe("70,0%");
     expect(formatReportPoints(6, 10)).toBe("6,00 / 10,00");
     expect(OFFICIAL_REPORT_COVER_FIELD_LABELS).toContain("Data de emissão");
+  });
+
+  it("embute logo, marca e decorações laterais da capa", async () => {
+    const doc = await OrientaPdfDocument.create(buildFixture());
+    expect(doc.logo.width).toBeGreaterThan(100);
+    expect(doc.coverAssets.brandMark.width).toBeGreaterThan(100);
+    expect(doc.coverAssets.decoTop.width).toBeGreaterThan(100);
+    expect(doc.coverAssets.decoBottom.width).toBeGreaterThan(100);
   });
 
   it("gera PDF com eixos completos, textos longos e sem páginas vazias artificiais", async () => {

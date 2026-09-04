@@ -272,7 +272,7 @@ export function drawCoverBrand(
   brandMark: PDFImage | undefined,
   tracking?: {
     title: string;
-    logo: PDFImage | null;
+    logo: PDFImage;
   },
 ): number {
   const { w: pageWidth, h: pageHeight } = reportTheme.page;
@@ -336,7 +336,7 @@ function drawTrackingBrand(
   page: PDFPage,
   fonts: ReportFonts,
   title: string,
-  logo: PDFImage | null,
+  logo: PDFImage,
 ): number {
   const { w: pageWidth, h: pageHeight } = reportTheme.page;
   const titleSize = title.length > 48 ? 16 : 20;
@@ -346,20 +346,18 @@ function drawTrackingBrand(
     titleLines.length * (titleSize + COVER_LAYOUT.valueLineGap) - COVER_LAYOUT.valueLineGap;
   const logoMax = COVER_LAYOUT.trackingLogoMax;
   const logoGap = 14;
-  const logoSize = logo ? getScaledImageSize(logo, logoMax.w, logoMax.h) : null;
-  const stackH = (logoSize ? logoSize.height + logoGap : 0) + titleBlockH;
+  const logoSize = getScaledImageSize(logo, logoMax.w, logoMax.h);
+  const stackH = logoSize.height + logoGap + titleBlockH;
   let y = pageHeight * COVER_LAYOUT.brandCenterYRatio + stackH / 2;
 
-  if (logo && logoSize) {
-    y -= logoSize.height;
-    page.drawImage(logo, {
-      x: (pageWidth - logoSize.width) / 2,
-      y,
-      width: logoSize.width,
-      height: logoSize.height,
-    });
-    y -= logoGap;
-  }
+  y -= logoSize.height;
+  page.drawImage(logo, {
+    x: (pageWidth - logoSize.width) / 2,
+    y,
+    width: logoSize.width,
+    height: logoSize.height,
+  });
+  y -= logoGap;
 
   for (const line of titleLines) {
     const lineWidth = fonts.bold.widthOfTextAtSize(line, titleSize);

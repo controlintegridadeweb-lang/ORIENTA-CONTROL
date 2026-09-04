@@ -15,6 +15,7 @@ const eslintConfig = defineConfig([
     "supabase/.temp/**",
     ".vercel/**",
     "next-env.d.ts",
+    "src/features/reports/pdf/cover-asset-fallbacks.ts",
   ]),
   {
     rules: {

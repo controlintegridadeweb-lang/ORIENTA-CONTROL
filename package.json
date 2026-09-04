@@ -55,6 +55,7 @@
     "reconcile:diagnostic-evidence": "node scripts/imports/reconcile-diagnostic-evidence.mjs",
     "audit:validation-sections": "node scripts/maintenance/audit-validation-sections.mjs",
     "audit:data-cleanup": "node scripts/maintenance/audit-data-cleanup.mjs",
+    "embed:cover-assets": "node scripts/maintenance/embed-cover-assets.mjs",
     "maintenance:cleanup-test-form": "node scripts/maintenance/cleanup-test-form.mjs",
     "db:audit:migrations": "node scripts/database/audit-migrations.mjs",
     "security:mfa-recover": "node scripts/maintenance/recover-admin-mfa.mjs",

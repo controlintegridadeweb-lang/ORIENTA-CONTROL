@@ -1,7 +1,5 @@
 import { formatPlatformDate, formatPlatformDateTime } from "@/shared/datetime/platform-date-time";
 import { latinPdfSafe } from "@/shared/export/text";
-import fs from "node:fs/promises";
-import path from "node:path";
 import {
   PDFDocument,
   StandardFonts,
@@ -10,6 +8,7 @@ import {
   type PDFPage,
 } from "pdf-lib";
 import type { OfficialReportData } from "@/features/reports/pdf/report-types";
+import { readReportCoverPng } from "@/features/reports/pdf/cover-assets";
 import { contentWidth, reportTheme } from "./theme";
 
 export type { Cursor, ReportFonts } from "@/shared/export/official-pdf-types";
@@ -24,33 +23,24 @@ export type TocEntry = {
 };
 
 export type ReportCoverAssets = {
-  brandMark: PDFImage | null;
-  decoTop: PDFImage | null;
-  decoBottom: PDFImage | null;
+  brandMark: PDFImage;
+  decoTop: PDFImage;
+  decoBottom: PDFImage;
 };
 
-async function tryEmbedPng(
+async function embedCoverPng(
   pdf: PDFDocument,
-  relativePath: string,
-): Promise<PDFImage | null> {
-  try {
-    const bytes = await fs.readFile(path.join(process.cwd(), relativePath));
-    return pdf.embedPng(bytes);
-  } catch {
-    return null;
-  }
+  key: "logo" | "brand" | "decoTop" | "decoBottom",
+): Promise<PDFImage> {
+  return pdf.embedPng(readReportCoverPng(key));
 }
 
 export class OrientaPdfDocument {
   readonly pdf: PDFDocument;
   readonly fonts: ReportFonts;
   readonly data: OfficialReportData;
-  logo: PDFImage | null = null;
-  coverAssets: ReportCoverAssets = {
-    brandMark: null,
-    decoTop: null,
-    decoBottom: null,
-  };
+  logo!: PDFImage;
+  coverAssets!: ReportCoverAssets;
   private pageIndex = -1;
   readonly coverPageIndex = 0;
   tocPageIndex = 1;
@@ -70,18 +60,12 @@ export class OrientaPdfDocument {
       italic: await pdf.embedFont(StandardFonts.HelveticaOblique),
     };
     const doc = new OrientaPdfDocument(pdf, fonts, data);
-    doc.logo = await tryEmbedPng(pdf, path.join("public", "assets", "logo-orienta.png"));
+    doc.logo = await embedCoverPng(pdf, "logo");
     // Versões cortadas (sem padding 2000²) — escala visual previsível na capa.
     doc.coverAssets = {
-      brandMark: await tryEmbedPng(pdf, path.join("public", "assets", "cover", "brand.png")),
-      decoTop: await tryEmbedPng(
-        pdf,
-        path.join("public", "assets", "cover", "deco-top-left.png"),
-      ),
-      decoBottom: await tryEmbedPng(
-        pdf,
-        path.join("public", "assets", "cover", "deco-bottom-right.png"),
-      ),
+      brandMark: await embedCoverPng(pdf, "brand"),
+      decoTop: await embedCoverPng(pdf, "decoTop"),
+      decoBottom: await embedCoverPng(pdf, "decoBottom"),
     };
     return doc;
   }

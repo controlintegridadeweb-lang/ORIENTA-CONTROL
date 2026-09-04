@@ -16,7 +16,10 @@ const ts = require("typescript");
 
 const ROOTS = ["src", "scripts", "e2e"];
 const CODE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".mjs", ".cjs"]);
-const GENERATED = new Set(["src/infrastructure/supabase/database.types.ts"]);
+const GENERATED = new Set([
+  "src/infrastructure/supabase/database.types.ts",
+  "src/features/reports/pdf/cover-asset-fallbacks.ts",
+]);
 const reportOnly = process.argv.includes("--report");
 
 const LIMITS = {
