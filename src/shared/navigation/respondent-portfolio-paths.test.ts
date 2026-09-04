@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { respondentActionWorkspacePath, respondentSubmissionConfirmationPath } from "./respondent-portfolio-paths";
+import {
+  respondentActionWorkspacePath,
+  respondentSectionActionWorkspacePath,
+  respondentSectionPlanEntryPath,
+  respondentSubmissionConfirmationPath,
+} from "./respondent-portfolio-paths";
 
 describe("respondentSubmissionConfirmationPath", () => {
   it("abre a confirmação do diagnóstico enviado", () => {
@@ -69,5 +74,48 @@ describe("respondentActionWorkspacePath", () => {
     expect(() => respondentActionWorkspacePath("../invalido")).toThrow(
       "recommendationId inválido",
     );
+  });
+});
+
+describe("respondentSectionActionWorkspacePath", () => {
+  const sectionId = "22222222-2222-4222-8222-222222222222";
+  const cycleId = "33333333-3333-4333-8333-333333333333";
+  const firstRecommendationId = "11111111-1111-4111-8111-111111111111";
+
+  it("abre o workspace pela seção e pelo ciclo, não pela primeira recomendação", () => {
+    const path = respondentSectionActionWorkspacePath(sectionId, cycleId, "visao-geral", {
+      returnTo: "/respondente/portfolio-recomendacoes?view=action-plan",
+    });
+    expect(path).toBe(
+      "/respondente/plano-acao/secao/22222222-2222-4222-8222-222222222222/visao-geral?cycleId=33333333-3333-4333-8333-333333333333&returnTo=%2Frespondente%2Fportfolio-recomendacoes%3Fview%3Daction-plan",
+    );
+    expect(path).not.toContain(firstRecommendationId);
+    expect(path).not.toContain("/respondente/plano-acao/11111111");
+  });
+
+  it("aceita a aba de problemas e soluções", () => {
+    expect(respondentSectionActionWorkspacePath(sectionId, cycleId, "problemas-solucoes")).toBe(
+      "/respondente/plano-acao/secao/22222222-2222-4222-8222-222222222222/problemas-solucoes?cycleId=33333333-3333-4333-8333-333333333333",
+    );
+  });
+});
+
+describe("respondentSectionPlanEntryPath", () => {
+  const sectionId = "22222222-2222-4222-8222-222222222222";
+  const cycleId = "33333333-3333-4333-8333-333333333333";
+  const returnTo = "/respondente/portfolio-recomendacoes?view=action-plan";
+
+  it("usa sectionId e cycleId como entrada do plano da seção", () => {
+    const path = respondentSectionPlanEntryPath(sectionId, cycleId, returnTo);
+    expect(path).toContain(`/secao/${sectionId}/visao-geral`);
+    expect(path).toContain(`cycleId=${cycleId}`);
+    expect(path).toContain("returnTo=");
+    expect(path).not.toMatch(/recommendations\[0\]/);
+    expect(path).not.toContain("11111111-1111-4111-8111-111111111111");
+  });
+
+  it("volta ao retorno quando sectionId ou cycleId são inválidos", () => {
+    expect(respondentSectionPlanEntryPath("invalida", cycleId, returnTo)).toBe(returnTo);
+    expect(respondentSectionPlanEntryPath(sectionId, "ciclo-invalido", returnTo)).toBe(returnTo);
   });
 });

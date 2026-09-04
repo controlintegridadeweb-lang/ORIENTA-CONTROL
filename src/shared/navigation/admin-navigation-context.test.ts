@@ -15,6 +15,7 @@ describe("admin navigation context", () => {
     expect(isSafeAdminListPath("/admin/recomendacoes?cycleId=cycle-1")).toBe(true);
     expect(isSafeAdminListPath("/admin/plano-acao?cycleId=cycle-1")).toBe(true);
     expect(isSafeAdminListPath("/admin/plano-acao/secao/22222222-2222-4222-8222-222222222222/visao-geral?cycleId=33333333-3333-4333-8333-333333333333")).toBe(true);
+    expect(isSafeAdminListPath("/admin/plano-acao/secao/22222222-2222-4222-8222-222222222222/problemas-solucoes?cycleId=33333333-3333-4333-8333-333333333333")).toBe(true);
   });
 
   it("rejeita destinos externos, detalhes e caminhos protocol-relative", () => {

@@ -1,4 +1,5 @@
 import { parseUuidParam } from "@/shared/validation/uuid";
+import { SECTION_ACTION_WORKSPACE_TAB_PATTERN } from "./section-action-workspace";
 
 /**
  * Contexto de navegação das listas administrativas.
@@ -7,6 +8,11 @@ import { parseUuidParam } from "@/shared/validation/uuid";
  * filtros e recortes sem depender do histórico do navegador nem aceitar URLs
  * externas em parâmetros de consulta.
  */
+const ADMIN_SECTION_WORKSPACE_PATH = new RegExp(
+  `^/admin/plano-acao/secao/([^/]+)/(${SECTION_ACTION_WORKSPACE_TAB_PATTERN})$`,
+  "i",
+);
+
 const ADMIN_LIST_PATHS = [
   "/admin/ciclos",
   "/admin/evidencias",
@@ -21,7 +27,7 @@ export function isSafeAdminListPath(value: string | null | undefined): value is 
     const url = new URL(value, "http://orienta.local");
     if (url.origin !== "http://orienta.local") return false;
     if (ADMIN_LIST_PATHS.some((path) => url.pathname === path)) return true;
-    const sectionWorkspace = /^\/admin\/plano-acao\/secao\/([^/]+)\/(visao-geral|acoes|monitoramento)$/i.exec(url.pathname);
+    const sectionWorkspace = ADMIN_SECTION_WORKSPACE_PATH.exec(url.pathname);
     return Boolean(
       sectionWorkspace &&
       parseUuidParam(sectionWorkspace[1]) &&

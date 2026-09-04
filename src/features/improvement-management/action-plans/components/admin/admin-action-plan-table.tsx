@@ -19,6 +19,7 @@ import {
 import type { AdminPlanItem } from "@/features/improvement-management/action-plans/admin-monitoring";
 import {
   adminPlanoAcaoDetailHref,
+  adminSectionPlanEntryHref,
 } from "@/shared/navigation/admin-paths";
 import { formSurface } from "@/shared/layout/form-surface";
 import { AxisBadge } from "@/shared/ui/components/axis-badge";
@@ -89,7 +90,10 @@ export function AdminActionPlanTable({
             adminPlanoAcaoDetailHref(item.recommendationId, "visao-geral"),
             returnTo,
           );
-          const sectionHref = planoHref;
+          const sectionHref = withAdminReturnPath(
+            adminSectionPlanEntryHref(item.sectionId, item.cycleId, "/admin/plano-acao"),
+            returnTo,
+          );
 
           return (
             <tr key={item.rowKey} className={rowClass}>

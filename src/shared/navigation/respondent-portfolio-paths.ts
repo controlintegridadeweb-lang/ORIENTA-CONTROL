@@ -3,6 +3,7 @@ import {
   withRespondentReturnPath,
 } from "./respondent-navigation-context";
 import { parseUuidParam } from "@/shared/validation/uuid";
+import type { SectionActionWorkspaceTab } from "./section-action-workspace";
 
 /** Caminho canônico da lista de recomendações do respondente. */
 export const RESPONDENT_RECOMMENDATIONS_LIST_PATH = "/respondente/portfolio-recomendacoes";
@@ -56,7 +57,7 @@ export function respondentActionWorkspacePath(
   );
 }
 
-export type RespondentSectionActionWorkspaceTab = "visao-geral" | "acoes" | "monitoramento";
+export type RespondentSectionActionWorkspaceTab = SectionActionWorkspaceTab;
 
 export function respondentSectionActionWorkspacePath(
   sectionId: string,
@@ -71,4 +72,18 @@ export function respondentSectionActionWorkspacePath(
   }
   const path = `${RESPONDENT_ACTION_WORKSPACE_BASE}/secao/${encodeURIComponent(safeSectionId)}/${tab}?cycleId=${encodeURIComponent(safeCycleId)}`;
   return withRespondentReturnPath(path, options?.returnTo);
+}
+
+/** Entrada canônica do plano da seção — nunca usa recomendação como substituto. */
+export function respondentSectionPlanEntryPath(
+  sectionId: string,
+  cycleId: string,
+  returnTo: string,
+): string {
+  if (!parseUuidParam(sectionId) || !parseUuidParam(cycleId)) {
+    return returnTo;
+  }
+  return respondentSectionActionWorkspacePath(sectionId, cycleId, "visao-geral", {
+    returnTo,
+  });
 }

@@ -20,7 +20,14 @@ export const RECOMMENDATION_CARD_LABELS = {
   /** @deprecated use originQuestion — mantido só para compatibilidade de imports de teste. */
   originCriterion: "Pergunta de origem",
   formVersion: "Versão",
+  originQuestions: "Perguntas de origem",
 } as const;
+
+export function originQuestionsHeading(count: number): string {
+  return count === 1
+    ? RECOMMENDATION_CARD_LABELS.originQuestion
+    : RECOMMENDATION_CARD_LABELS.originQuestions;
+}
 
 export const RECOMMENDATION_PRIMARY_ACTION_LABELS = {
   registerActions: "Cadastrar ações",

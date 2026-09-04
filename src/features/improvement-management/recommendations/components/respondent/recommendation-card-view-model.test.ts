@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { RespondentRecommendationItem } from "@/features/improvement-management/recommendations/respondent-presentation";
 import {
+  originQuestionsHeading,
   RECOMMENDATION_CARD_LABELS,
   RECOMMENDATION_PRIMARY_ACTION_LABELS,
   resolveOperationalSituation,
@@ -231,5 +232,11 @@ describe("toRecommendationCardViewModel", () => {
 
   it("usa o rótulo Pergunta de origem no card de recomendações", () => {
     expect(RECOMMENDATION_CARD_LABELS.originQuestion).toBe("Pergunta de origem");
+  });
+
+  it("pluraliza o heading das perguntas de origem", () => {
+    expect(originQuestionsHeading(0)).toBe("Perguntas de origem");
+    expect(originQuestionsHeading(1)).toBe("Pergunta de origem");
+    expect(originQuestionsHeading(2)).toBe("Perguntas de origem");
   });
 });

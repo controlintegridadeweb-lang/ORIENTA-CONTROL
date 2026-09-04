@@ -73,6 +73,7 @@ describe("respondent navigation context", () => {
     const analysis = "/respondente/portfolio-recomendacoes?cycleId=cycle-1";
     expect(isSafeRespondentListPath(analysis)).toBe(true);
     expect(isSafeRespondentListPath("/respondente/plano-acao/secao/22222222-2222-4222-8222-222222222222/visao-geral?cycleId=33333333-3333-4333-8333-333333333333")).toBe(true);
+    expect(isSafeRespondentListPath("/respondente/plano-acao/secao/22222222-2222-4222-8222-222222222222/problemas-solucoes?cycleId=33333333-3333-4333-8333-333333333333")).toBe(true);
     expect(isSafeRespondentListPath("https://example.com")).toBe(false);
     expect(isSafeRespondentListPath("//example.com")).toBe(false);
     expect(isSafeRespondentListPath("/respondente/plano-acao/abc/acoes")).toBe(false);

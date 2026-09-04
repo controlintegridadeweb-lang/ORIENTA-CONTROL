@@ -11,6 +11,7 @@ export type SectionActionPlanSource = {
   sectionId: string;
   sectionName: string;
   sectionOrder: number;
+  questionId: string;
   questionOrder: number;
   recommendationId: string;
   questionPrompt: string;
@@ -20,10 +21,17 @@ export type SectionActionPlanSource = {
 
 export type SectionActionPlanRecommendation = {
   recommendationId: string;
+  questionId: string;
   questionOrder: number;
   questionPrompt: string;
   recommendationText: string;
   actions: ActionPlanAction[];
+};
+
+export type SectionOriginQuestion = {
+  id: string;
+  prompt: string;
+  order: number;
 };
 
 export type SectionActionPlanMetrics = {
@@ -188,6 +196,7 @@ export function buildSectionActionPlanHierarchy(
     if (!recommendation) {
       recommendation = {
         recommendationId: source.recommendationId,
+        questionId: source.questionId,
         questionOrder: source.questionOrder,
         questionPrompt: source.questionPrompt,
         recommendationText: source.recommendationText,
@@ -248,6 +257,7 @@ export type SectionActionPlanItemLike = {
   sectionId: string;
   sectionName: string;
   sectionOrder: number;
+  questionId: string;
   questionOrder: number;
   recommendationId: string;
   questionPrompt: string;
@@ -268,12 +278,39 @@ export function sectionActionPlanSourcesFromListItems(
     sectionId: item.sectionId,
     sectionName: item.sectionName,
     sectionOrder: item.sectionOrder,
+    questionId: item.questionId,
     questionOrder: item.questionOrder,
     recommendationId: item.recommendationId,
     questionPrompt: item.questionPrompt,
     recommendationText: item.recommendationText,
     actions: item.plans,
   }));
+}
+
+export function sectionOriginQuestions(
+  section: Pick<SectionActionPlanGroup, "recommendations">,
+): SectionOriginQuestion[] {
+  const seen = new Map<string, SectionOriginQuestion>();
+  for (const recommendation of section.recommendations) {
+    const id = recommendation.questionId || recommendation.recommendationId;
+    if (seen.has(id)) continue;
+    seen.set(id, {
+      id,
+      prompt: recommendation.questionPrompt.trim(),
+      order: recommendation.questionOrder,
+    });
+  }
+  return [...seen.values()].sort((left, right) => left.order - right.order || left.id.localeCompare(right.id));
+}
+
+export function isSectionRecommendationCompleted(
+  recommendation: SectionActionPlanRecommendation,
+): boolean {
+  const active = recommendation.actions.filter((action) => action.status !== "cancelled");
+  if (active.length === 0) return false;
+  return active.every(
+    (action) => action.progressPercentage >= 100 || action.status === "completed",
+  );
 }
 
 export function findSectionActionPlan(

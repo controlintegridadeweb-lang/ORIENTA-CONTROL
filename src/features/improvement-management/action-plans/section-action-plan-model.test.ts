@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { ActionPlanAction } from "./domain-model";
-import { buildSectionActionPlanHierarchy } from "./section-action-plan-model";
+import {
+  buildSectionActionPlanHierarchy,
+  findSectionActionPlan,
+  sectionOriginQuestions,
+} from "./section-action-plan-model";
+import {
+  sectionExecutionSituationSummary,
+  sectionRecommendationSituationSummary,
+} from "./section-action-plan-copy";
 
 function action(id: string, progressPercentage: number, status: ActionPlanAction["status"], slaLabel: ActionPlanAction["slaLabel"] = "ok"): ActionPlanAction {
   return {
@@ -34,6 +42,7 @@ describe("buildSectionActionPlanHierarchy", () => {
         sectionId: "integridade",
         sectionName: "Integridade",
         sectionOrder: 1,
+        questionId: "q-1",
         questionOrder: 1,
         recommendationId: "rec-1",
         questionPrompt: "Pergunta 1",
@@ -50,6 +59,7 @@ describe("buildSectionActionPlanHierarchy", () => {
         sectionId: "integridade",
         sectionName: "Integridade",
         sectionOrder: 1,
+        questionId: "q-2",
         questionOrder: 2,
         recommendationId: "rec-2",
         questionPrompt: "Pergunta 2",
@@ -71,6 +81,59 @@ describe("buildSectionActionPlanHierarchy", () => {
       overdueActions: 1,
       progressPercentage: 75,
     });
+    expect(sectionOriginQuestions(section!)).toEqual([
+      { id: "q-1", prompt: "Pergunta 1", order: 1 },
+      { id: "q-2", prompt: "Pergunta 2", order: 2 },
+    ]);
+    expect(sectionExecutionSituationSummary(section!)).toBe("2 recomendações · 2 ações · 1 concluída");
+    expect(sectionRecommendationSituationSummary(section!.recommendations)).toBe(
+      "2 recomendações · 1 concluída",
+    );
+    expect(findSectionActionPlan(result, "cycle-1", "integridade")?.sectionId).toBe("integridade");
+  });
+
+  it("deduplica perguntas de origem pelo questionId e não pela ordem do array", () => {
+    const result = buildSectionActionPlanHierarchy([
+      {
+        cycleId: "cycle-1",
+        formName: "Diagnóstico",
+        periodLabel: "2026",
+        organizationName: "Órgão",
+        axisId: "gov",
+        axisName: "Governança",
+        sectionId: "integridade",
+        sectionName: "Integridade",
+        sectionOrder: 1,
+        questionId: "q-shared",
+        questionOrder: 2,
+        recommendationId: "rec-2",
+        questionPrompt: "Pergunta compartilhada",
+        recommendationText: "Recomendação 2",
+        actions: [],
+      },
+      {
+        cycleId: "cycle-1",
+        formName: "Diagnóstico",
+        periodLabel: "2026",
+        organizationName: "Órgão",
+        axisId: "gov",
+        axisName: "Governança",
+        sectionId: "integridade",
+        sectionName: "Integridade",
+        sectionOrder: 1,
+        questionId: "q-shared",
+        questionOrder: 2,
+        recommendationId: "rec-1",
+        questionPrompt: "Pergunta compartilhada",
+        recommendationText: "Recomendação 1",
+        actions: [],
+      },
+    ]);
+    const section = result[0]?.sections[0];
+    expect(section?.recommendations).toHaveLength(2);
+    expect(sectionOriginQuestions(section!)).toEqual([
+      { id: "q-shared", prompt: "Pergunta compartilhada", order: 2 },
+    ]);
   });
 
   it("não mistura a mesma seção entre ciclos diferentes", () => {
@@ -82,6 +145,7 @@ describe("buildSectionActionPlanHierarchy", () => {
       sectionId: "integridade",
       sectionName: "Integridade",
       sectionOrder: 1,
+      questionId: "q-1",
       questionOrder: 1,
       questionPrompt: "Pergunta",
       recommendationText: "Recomendação",

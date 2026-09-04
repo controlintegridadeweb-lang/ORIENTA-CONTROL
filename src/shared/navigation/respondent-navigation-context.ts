@@ -1,4 +1,5 @@
 import { parseUuidParam } from "@/shared/validation/uuid";
+import { SECTION_ACTION_WORKSPACE_TAB_PATTERN } from "./section-action-workspace";
 
 /** Aba de recomendações dentro do workspace unificado do respondente. */
 export const RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL = "Recomendações";
@@ -28,6 +29,10 @@ export type RespondentRecommendationListFilter = {
 const RESPONDENT_RECOMMENDATIONS_PATH = "/respondente/portfolio-recomendacoes";
 const RESPONDENT_ACTION_PLAN_LEGACY_PATH = "/respondente/plano-acao";
 const RESPONDENT_FORMS_PATH = "/respondente/formularios";
+const RESPONDENT_SECTION_WORKSPACE_PATH = new RegExp(
+  `^/respondente/plano-acao/secao/([^/]+)/(${SECTION_ACTION_WORKSPACE_TAB_PATTERN})$`,
+  "i",
+);
 const RESPONDENT_EVIDENCES_PATH = "/respondente/evidencias";
 
 const RECOMMENDATION_RETURN_PARAM_LIMITS = {
@@ -92,7 +97,7 @@ export function isSafeRespondentListPath(value: string): boolean {
     ) {
       return true;
     }
-    const sectionWorkspace = /^\/respondente\/plano-acao\/secao\/([^/]+)\/(visao-geral|acoes|monitoramento)$/i.exec(url.pathname);
+    const sectionWorkspace = RESPONDENT_SECTION_WORKSPACE_PATH.exec(url.pathname);
     return Boolean(
       sectionWorkspace &&
       parseUuidParam(sectionWorkspace[1]) &&

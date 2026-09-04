@@ -11,6 +11,14 @@ export type RecommendationDetailTabDef = {
   tagline?: string;
 };
 
+function tabPathname(href: string): string {
+  try {
+    return new URL(href, "http://orienta.local").pathname;
+  } catch {
+    return href.split("?")[0] ?? href;
+  }
+}
+
 function tabLinkClass(active: boolean): string {
   return `inline-flex min-h-12 items-center rounded-xl px-5 py-2.5 text-base font-semibold transition ${
     active
@@ -39,9 +47,10 @@ export function RecommendationDetailTabs({
     >
       <ol className="flex flex-wrap gap-1.5">
         {tabs.map((tab) => {
+          const tabPath = tabPathname(tab.href);
           const active =
-            pathname === tab.href ||
-            (tab.href.length > 1 && pathname.startsWith(`${tab.href}/`));
+            pathname === tabPath ||
+            (tabPath.length > 1 && pathname.startsWith(`${tabPath}/`));
 
           return (
             <li key={tab.href}>
