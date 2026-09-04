@@ -117,7 +117,7 @@ o manifesto é copiado temporariamente para `var/imports/`, ignorado pelo Git.
 
 - **57 páginas** do App Router.
 - **110 rotas de API**.
-- Vitest | **337 arquivos** em `src/`.
+- Vitest | **338 arquivos** em `src/`.
 - **4 testes Node.js** de scripts, executados fora do Vitest.
 - **1 jornada Playwright canônica**.
 

@@ -286,6 +286,38 @@ describe("SectionProblemSolutionTree", () => {
     expect(document.querySelectorAll("[data-node='recomendacao']")).toHaveLength(2);
   });
 
+  it("mostra o texto integral da pergunta, da recomendação e da ação", () => {
+    const question =
+      "As informações relativas à UCI estão devidamente divulgadas no sítio eletrônico institucional, incluindo competência, composição e normas internas?";
+    const recommendation =
+      "Promover a divulgação, no sítio eletrônico institucional, das informações relativas à Unidade de Controle Interno.";
+    const actionText =
+      "Adicionar as referidas informações no sítio eletrônico e revisar o conteúdo publicado a cada ciclo.";
+
+    render(
+      <SectionProblemSolutionTree
+        section={sectionFrom([
+          listItem({
+            questionPrompt: question,
+            recommendationText: recommendation,
+            plans: [action({ actionText })],
+          }),
+        ])}
+      />,
+    );
+
+    const pergunta = document.querySelector("[data-node='pergunta']");
+    const recomendacao = document.querySelector("[data-node='recomendacao']");
+    const acao = document.querySelector("[data-node='acao']");
+
+    expect(pergunta?.textContent).toContain(question);
+    expect(recomendacao?.textContent).toContain(recommendation);
+    expect(acao?.textContent).toContain(actionText);
+    expect(pergunta?.querySelector(".truncate")).toBeNull();
+    expect(recomendacao?.querySelector(".truncate")).toBeNull();
+    expect(acao?.querySelector(".line-clamp-2")).toBeNull();
+  });
+
   it("mostra o estado vazio quando a seção não tem estrutura de recomendações", () => {
     const empty = sectionFrom(twoRecommendations);
     render(

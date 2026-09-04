@@ -198,7 +198,7 @@ export function AdminActionPlanShell({
         />
       }
       filtersDescription="Refine por organização, formulário, situação ou prazo."
-      resultsDescription="Acompanhe as ações por organização, eixo e seção; abra a seção para a visão consolidada do plano."
+      resultsDescription="Acompanhe os planos por eixo e seção. Abra a seção para a árvore de problemas e soluções e o consolidado das ações."
       total={data.total}
       summaryTotal={data.summary.total}
       hasCardFilter={Boolean(controls.cardFilter)}

@@ -103,6 +103,29 @@ describe("MonitoringOrganogram", () => {
     expect(onSelectAction).toHaveBeenCalledWith("plan-2");
   });
 
+  it("mostra o texto integral da recomendação e da ação", () => {
+    const recommendation =
+      "Promover a divulgação, no sítio eletrônico institucional, das informações relativas à Unidade de Controle Interno.";
+    const actionText =
+      "Adicionar as referidas informações no sítio eletrônico e revisar o conteúdo publicado a cada ciclo.";
+
+    render(
+      <MonitoringOrganogram
+        axisName="Governança"
+        sectionName="Governança e Estrutura de Integridade"
+        recommendationText={recommendation}
+        plans={[plan({ actionText })]}
+        selectedPlanId="plan-1"
+        onSelectAction={vi.fn()}
+      />,
+    );
+
+    expect(document.querySelector("[data-node='recomendacao']")?.textContent).toContain(recommendation);
+    expect(document.querySelector("[data-node='acao']")?.textContent).toContain(actionText);
+    expect(document.querySelector("[data-node='recomendacao'] .truncate")).toBeNull();
+    expect(document.querySelector("[data-node='acao'] .line-clamp-2")).toBeNull();
+  });
+
   it("mostra progresso e prazo na ação", () => {
     render(
       <MonitoringOrganogram
@@ -145,10 +168,10 @@ describe("MonitoringOrganogram", () => {
     const actionNodes = [...document.querySelectorAll("[data-node='acao']")];
     expect(actionNodes).toHaveLength(5);
     expect(new Set(actionNodes.map((node) => node.className)).size).toBe(1);
-    expect(actionNodes[0]?.className).toContain("w-44");
+    expect(actionNodes[0]?.className).toContain("w-80");
     expect(actionNodes[0]?.className).toContain("h-full");
     expect(
-      actionNodes.every((node) => node.querySelector(".min-h-10")),
+      actionNodes.every((node) => node.querySelector(".whitespace-pre-wrap")),
     ).toBe(true);
   });
 

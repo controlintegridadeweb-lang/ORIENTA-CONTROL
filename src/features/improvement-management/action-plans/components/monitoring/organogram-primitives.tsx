@@ -35,18 +35,19 @@ export function OrganogramChartNode({
   return (
     <article
       data-node={node}
-      title={title}
-      className={`px-6 py-3 text-center ${
+      className={`px-6 py-3 ${
         shape === "capsule"
-          ? "w-fit min-w-[11rem] max-w-xs rounded-full"
-          : "w-80 rounded-xl sm:w-96"
+          ? "w-fit min-w-[11rem] max-w-xs rounded-full text-center"
+          : "w-80 rounded-xl text-left sm:w-96"
       } ${inverse ? "text-white" : "text-slate-800"}`}
       style={{ backgroundColor }}
     >
       <p className={`text-xs font-medium leading-snug ${inverse ? "text-white" : "text-slate-500"}`}>
         {label}
       </p>
-      <p className="mt-0.5 truncate text-base font-semibold leading-snug">{title}</p>
+      <p className="mt-0.5 whitespace-pre-wrap break-words text-base font-semibold leading-snug">
+        {title}
+      </p>
     </article>
   );
 }
@@ -104,7 +105,7 @@ export function OrganogramActionNode({
   const body = (
     <>
       <span className="block text-xs font-medium leading-snug text-slate-500">Ação</span>
-      <span className="mt-1.5 line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-slate-800">
+      <span className="mt-1.5 whitespace-pre-wrap break-words text-sm font-semibold leading-5 text-slate-800">
         {plan.actionText}
       </span>
       <span className="mt-auto block pt-2.5 text-xs font-medium tabular-nums text-slate-600">
@@ -121,12 +122,12 @@ export function OrganogramActionNode({
   );
 
   const className =
-    "flex h-full w-44 flex-col rounded-xl border bg-white p-3.5 text-left";
+    "flex h-full w-80 flex-col rounded-xl border bg-white p-3.5 text-left sm:w-96";
   const style = { borderColor: selected ? accentColor : ACTION_BORDER };
 
   if (!onSelect) {
     return (
-      <article data-node="acao" title={plan.actionText} className={className} style={style}>
+      <article data-node="acao" className={className} style={style}>
         {body}
       </article>
     );
@@ -138,7 +139,6 @@ export function OrganogramActionNode({
       data-node="acao"
       aria-pressed={selected}
       onClick={() => onSelect(plan.id)}
-      title={plan.actionText}
       className={`${className} transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand`}
       style={style}
     >

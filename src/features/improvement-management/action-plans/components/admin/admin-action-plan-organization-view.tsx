@@ -2,7 +2,7 @@
 
 import { AdminMonitoringOrganizationSummary } from "@/features/improvement-management/monitoring/components/admin-monitoring-organization-summary";
 import { AdminMonitoringOrganizationView } from "@/features/improvement-management/monitoring/components/admin-monitoring-organization-view";
-import { AdminActionPlanTable } from "@/features/improvement-management/action-plans/components/admin/admin-action-plan-table";
+import { AdminActionPlanList } from "@/features/improvement-management/action-plans/components/admin/admin-action-plan-list";
 import {
   groupByOrganization,
   type AdminPlanItem,
@@ -37,7 +37,7 @@ export function AdminActionPlanOrganizationView(props: Props) {
       getOrganizationId={(item) => item.organizationId}
       renderSummary={renderSummary}
       renderRows={(rows) => (
-        <AdminActionPlanTable items={rows} hideOrganizationColumn />
+        <AdminActionPlanList items={rows} hideOrganization />
       )}
       ariaLabel="Planos de integridade e compliance por organização"
     />
