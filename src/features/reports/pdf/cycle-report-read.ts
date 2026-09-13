@@ -85,6 +85,21 @@ export async function resolveCycleReportScope(
   };
 }
 
+export async function resolveCycleProcessingVersionById(
+  supabase: SupabaseClient,
+  cycleId: string,
+  processingId: string,
+): Promise<number | null> {
+  const { data, error } = await supabase
+    .from("cycle_processings")
+    .select("processing_version")
+    .eq("id", processingId)
+    .eq("cycle_id", cycleId)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? Number(data.processing_version) : null;
+}
+
 export async function resolveLatestCycleFamiVersion(
   supabase: SupabaseClient,
   cycleId: string,

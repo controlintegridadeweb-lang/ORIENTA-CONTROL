@@ -197,6 +197,7 @@ export class ActionPlansQueryService {
         progress_percentage: z.number().int().min(0).max(100),
         status: z.string().nullable().optional(),
         execution_notes: z.string().nullable().optional(),
+        created_at: z.string().nullable().optional(),
         updated_at: z.string().nullable().optional(),
         revision: z.number().int().positive().optional(),
         documents: z.array(z.object({

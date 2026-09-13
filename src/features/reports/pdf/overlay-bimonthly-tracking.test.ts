@@ -199,6 +199,7 @@ function officialFixture(): OfficialReportData {
 
 const snapshot: BimonthlyTrackingSnapshot = {
   cycleId: "cycle-1",
+  sourceCycleProcessingId: "processing-1",
   referenceYear: 2026,
   bimester: 4,
   reportVersion: 1,
@@ -247,6 +248,36 @@ describe("fotografia bimestral sobre o relatório oficial", () => {
     ]);
     expect(overlaid.actionPlan.summary.totalActions).toBe(1);
     expect(overlaid.actionPlan.summary.actionsByStatus).toEqual({ in_progress: 1 });
+  });
+
+  it("não incorpora recomendação de um processamento posterior ao corte", () => {
+    const official = officialFixture();
+    official.actionPlan.axes[0]?.recommendations.push({
+      recommendationId: "rec-posterior",
+      recommendationText: "Recomendação gerada no processamento seguinte.",
+      recommendationType: "nao_implementacao",
+      recommendationStatus: "in_action_plan",
+      questionPrompt: "Há nova política publicada?",
+      sectionName: "Integridade",
+      actions: [
+        action({
+          id: "action-posterior",
+          actionText: "Publicar a política nova",
+          progressPercentage: 20,
+          status: "in_progress",
+          documents: [],
+        }),
+      ],
+    });
+
+    const overlaid = overlayBimonthlyTrackingOnOfficialReport(official, snapshot);
+    const recIds = overlaid.actionPlan.axes.flatMap((axis) =>
+      axis.recommendations.map((recommendation) => recommendation.recommendationId),
+    );
+
+    expect(recIds).toEqual(["rec-1"]);
+    expect(overlaid.actionPlan.summary.totalRecommendations).toBe(1);
+    expect(overlaid.actionPlan.summary.totalActions).toBe(1);
   });
 
   it("gera o PDF institucional marcado como acompanhamento bimestral", async () => {

@@ -104,6 +104,7 @@ describe("RespondentSectionActionPlanList", () => {
             questionOrder: 2,
             questionPrompt: "As informações relativas ao CIC estão devidamente divulgadas?",
             recommendationText: "Promover a divulgação das informações relativas ao CIC.",
+            status: "in_action_plan",
             hasPlan: true,
             actionCount: 1,
             plans: [action()],
@@ -121,7 +122,7 @@ describe("RespondentSectionActionPlanList", () => {
     expect(screen.getByText("Perguntas de origem")).toBeTruthy();
     expect(screen.getByText("As informações relativas à UCI estão devidamente divulgadas?")).toBeTruthy();
     expect(screen.getByText("As informações relativas ao CIC estão devidamente divulgadas?")).toBeTruthy();
-    expect(screen.getByText("2 recomendações · 0 concluídas")).toBeTruthy();
+    expect(screen.getByText("2 recomendações · 1 sem ação · 1 em execução")).toBeTruthy();
   });
 
   it("usa o singular quando a seção tem uma pergunta de origem", () => {
@@ -157,5 +158,41 @@ describe("RespondentSectionActionPlanList", () => {
     expect(links[1]?.getAttribute("href")).toContain(`/secao/${OTHER_SECTION_ID}/visao-geral`);
     expect(screen.getByText("Pergunta de outra seção")).toBeTruthy();
     expect(screen.getByText("As informações relativas à UCI estão devidamente divulgadas?")).toBeTruthy();
+  });
+
+  it("preserva o percentual integral da seção quando o filtro recorta recomendações", () => {
+    const allItems = [
+      item({
+        status: "in_action_plan",
+        hasPlan: true,
+        actionCount: 1,
+        plans: [action({ progressPercentage: 0, status: "not_started" })],
+      }),
+      item({
+        recommendationId: REC_2,
+        questionId: "66666666-6666-4666-8666-666666666666",
+        questionOrder: 2,
+        questionPrompt: "As informações relativas ao CIC estão devidamente divulgadas?",
+        recommendationText: "Promover a divulgação das informações relativas ao CIC.",
+        status: "completed",
+        hasPlan: true,
+        actionCount: 1,
+        plans: [action({ id: "plan-2", progressPercentage: 100, status: "completed" })],
+      }),
+    ];
+
+    render(
+      <RespondentSectionActionPlanList
+        returnPath={RETURN_PATH}
+        items={allItems}
+        matchingItems={[allItems[1]!]}
+      />,
+    );
+
+    expect(screen.getByText("50%")).toBeTruthy();
+    expect(screen.queryByText("100%")).toBeNull();
+    expect(screen.getByText("2 recomendações · 1 em execução · 1 concluída")).toBeTruthy();
+    expect(screen.getByText("As informações relativas à UCI estão devidamente divulgadas?")).toBeTruthy();
+    expect(screen.getByText("As informações relativas ao CIC estão devidamente divulgadas?")).toBeTruthy();
   });
 });

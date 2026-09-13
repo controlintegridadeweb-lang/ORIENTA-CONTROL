@@ -10,7 +10,7 @@ import {
 import { sectionRecommendationSituationSummary } from "@/features/improvement-management/action-plans/section-action-plan-copy";
 import {
   SectionPlanStatusBadge,
-  sectionPlanStatusFromMetrics,
+  sectionPlanStatusFromSection,
 } from "@/features/improvement-management/action-plans/components/section/section-plan-status-badge";
 import { formSurface } from "@/shared/layout/form-surface";
 import { typography } from "@/shared/layout/design-system";
@@ -86,7 +86,7 @@ export function SectionActionPlanHierarchyList({
             <ul className={recommendationHierarchySurface.cards} role="list">
               {axis.sections.map((section) => {
                 const href = planHref(section);
-                const status = sectionPlanStatusFromMetrics(section.metrics);
+                const status = sectionPlanStatusFromSection(section);
                 const sectionLabel = `Seção ${section.sectionDisplayNumber}`;
                 const originQuestions = sectionOriginQuestions(section);
 

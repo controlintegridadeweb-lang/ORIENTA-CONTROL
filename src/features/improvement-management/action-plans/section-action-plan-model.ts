@@ -1,5 +1,9 @@
 import { structuralAxisOrderIndex } from "@/shared/domain/axis";
-import type { ActionPlanAction } from "./domain-model";
+import {
+  deriveRecommendationStatus,
+  type RecommendationStatus,
+} from "@/shared/domain/recommendation-status";
+import { compareActionPlanActions, type ActionPlanAction } from "./domain-model";
 
 export type SectionActionPlanSource = {
   cycleId: string;
@@ -16,6 +20,7 @@ export type SectionActionPlanSource = {
   recommendationId: string;
   questionPrompt: string;
   recommendationText: string;
+  recommendationStatus?: RecommendationStatus;
   actions: ActionPlanAction[];
 };
 
@@ -25,6 +30,7 @@ export type SectionActionPlanRecommendation = {
   questionOrder: number;
   questionPrompt: string;
   recommendationText: string;
+  recommendationStatus: RecommendationStatus;
   actions: ActionPlanAction[];
 };
 
@@ -75,9 +81,18 @@ export type SectionActionPlanAxisGroup = {
   sections: SectionActionPlanGroup[];
 };
 
-type MutableRecommendation = Omit<SectionActionPlanRecommendation, "actions"> & {
+type MutableRecommendation = Omit<SectionActionPlanRecommendation, "actions" | "recommendationStatus"> & {
   actions: Map<string, ActionPlanAction>;
+  explicitStatus?: RecommendationStatus;
 };
+
+function resolveRecommendationStatus(
+  actions: readonly ActionPlanAction[],
+  explicit?: RecommendationStatus,
+): RecommendationStatus {
+  if (explicit) return explicit;
+  return deriveRecommendationStatus(actions, false, { allCompletedActionsApproved: false });
+}
 
 type MutableSection = Omit<SectionActionPlanGroup, "recommendations" | "actions" | "metrics" | "sectionDisplayNumber"> & {
   recommendations: Map<string, MutableRecommendation>;
@@ -136,8 +151,7 @@ function sourceSectionKey(source: SectionActionPlanSource): string {
 }
 
 function compareActions(a: ActionPlanAction, b: ActionPlanAction): number {
-  const byUpdated = String(a.updatedAt).localeCompare(String(b.updatedAt));
-  return byUpdated || a.id.localeCompare(b.id);
+  return compareActionPlanActions(a, b);
 }
 
 /**
@@ -200,9 +214,12 @@ export function buildSectionActionPlanHierarchy(
         questionOrder: source.questionOrder,
         questionPrompt: source.questionPrompt,
         recommendationText: source.recommendationText,
+        explicitStatus: source.recommendationStatus,
         actions: new Map(),
       };
       section.recommendations.set(source.recommendationId, recommendation);
+    } else if (source.recommendationStatus) {
+      recommendation.explicitStatus = source.recommendationStatus;
     }
     for (const action of source.actions) {
       recommendation.actions.set(action.id, action);
@@ -221,10 +238,21 @@ export function buildSectionActionPlanHierarchy(
         .map((section, sectionIndex) => {
           const recommendations = [...section.recommendations.values()]
             .sort((a, b) => a.questionOrder - b.questionOrder || a.recommendationId.localeCompare(b.recommendationId))
-            .map((recommendation) => ({
-              ...recommendation,
-              actions: [...recommendation.actions.values()].sort(compareActions),
-            }));
+            .map((recommendation) => {
+              const actions = [...recommendation.actions.values()].sort(compareActions);
+              return {
+                recommendationId: recommendation.recommendationId,
+                questionId: recommendation.questionId,
+                questionOrder: recommendation.questionOrder,
+                questionPrompt: recommendation.questionPrompt,
+                recommendationText: recommendation.recommendationText,
+                recommendationStatus: resolveRecommendationStatus(
+                  actions,
+                  recommendation.explicitStatus,
+                ),
+                actions,
+              };
+            });
           const actions = recommendations.flatMap((recommendation) =>
             recommendation.actions.map((action) => ({
               ...action,
@@ -262,6 +290,8 @@ export type SectionActionPlanItemLike = {
   recommendationId: string;
   questionPrompt: string;
   recommendationText: string;
+  recommendationStatus?: RecommendationStatus;
+  status?: RecommendationStatus;
   plans: ActionPlanAction[];
 };
 
@@ -283,6 +313,7 @@ export function sectionActionPlanSourcesFromListItems(
     recommendationId: item.recommendationId,
     questionPrompt: item.questionPrompt,
     recommendationText: item.recommendationText,
+    recommendationStatus: item.recommendationStatus ?? item.status,
     actions: item.plans,
   }));
 }
@@ -306,11 +337,7 @@ export function sectionOriginQuestions(
 export function isSectionRecommendationCompleted(
   recommendation: SectionActionPlanRecommendation,
 ): boolean {
-  const active = recommendation.actions.filter((action) => action.status !== "cancelled");
-  if (active.length === 0) return false;
-  return active.every(
-    (action) => action.progressPercentage >= 100 || action.status === "completed",
-  );
+  return recommendation.recommendationStatus === "completed";
 }
 
 export function findSectionActionPlan(
@@ -324,4 +351,25 @@ export function findSectionActionPlan(
     if (section) return section;
   }
   return null;
+}
+
+/**
+ * Mantém as seções que contêm alguma recomendação encontrada pelo filtro,
+ * sem recalcular indicadores sobre o recorte.
+ */
+export function filterSectionHierarchyByMatchingRecommendations(
+  hierarchy: readonly SectionActionPlanAxisGroup[],
+  matchingRecommendationIds: ReadonlySet<string>,
+): SectionActionPlanAxisGroup[] {
+  if (matchingRecommendationIds.size === 0) return [];
+  return hierarchy
+    .map((axis) => ({
+      ...axis,
+      sections: axis.sections.filter((section) =>
+        section.recommendations.some((recommendation) =>
+          matchingRecommendationIds.has(recommendation.recommendationId),
+        ),
+      ),
+    }))
+    .filter((axis) => axis.sections.length > 0);
 }

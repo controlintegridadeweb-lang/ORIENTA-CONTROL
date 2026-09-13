@@ -14,6 +14,7 @@ import {
   actionPanelFromSearchParams,
   actionWorkspaceHref,
   resolveMonitoredActionId,
+  withWorkspaceAction,
 } from "@/features/improvement-management/action-plans/action-workspace-href";
 
 vi.mock("@/features/improvement-management/action-plans/client", () => ({
@@ -64,6 +65,14 @@ describe("navegação da ação monitorada", () => {
         new Set(["plan-1"]),
       ),
     ).toEqual({ kind: "evidence", planId: "plan-1" });
+    expect(
+      withWorkspaceAction(
+        "/respondente/plano-acao/rec-1/acoes?returnTo=%2Frespondente%2Fportfolio-recomendacoes",
+        "plan-2",
+      ),
+    ).toBe(
+      "/respondente/plano-acao/rec-1/acoes?returnTo=%2Frespondente%2Fportfolio-recomendacoes&action=plan-2",
+    );
   });
 });
 

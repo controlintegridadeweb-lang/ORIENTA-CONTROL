@@ -54,6 +54,7 @@ const actionPlanActionSchema = z.object({
   progressPercentage: z.number().int().min(0).max(100),
   status: planStatusSchema,
   observations: z.string().nullable(),
+  createdAt: z.string().optional(),
   updatedAt: z.string(),
   revision: z.number().int().positive(),
   documents: z.array(actionPlanDocumentSchema),

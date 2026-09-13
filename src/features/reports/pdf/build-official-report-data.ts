@@ -5,6 +5,7 @@ import {
   loadCycleEvidenceSummary,
   loadCycleDiagnosticResults,
   loadCycleFamiReportSnapshot,
+  resolveCycleProcessingVersionById,
   resolveCycleReportScope,
   resolveLatestCycleFamiVersion,
 } from "./cycle-report-read";
@@ -16,21 +17,27 @@ import type { OfficialReportData } from "./report-types";
 export type { OfficialReportData } from "./report-types";
 
 /**
- * Payload canônico para PDF institucional. A entrada é exclusivamente o
- * `cycleId`; formulário, organização e processamento são derivados no servidor.
+ * Payload canônico para PDF institucional. O `cycleId` é obrigatório;
+ * `cycleProcessingId` ou `processingVersion` fixam o processamento de origem.
  */
 export async function loadOfficialReportData(params: {
   cycleId: string;
   processingVersion?: number;
+  cycleProcessingId?: string;
   allowOpenActionPlan?: boolean;
 }, client?: TypedSupabaseClient): Promise<OfficialReportData | null> {
   const supabase = client ?? createSupabaseServiceRoleClient();
   const scope = await resolveCycleReportScope(supabase, params.cycleId);
   if (!scope) return null;
 
-  const processingVersion =
-    params.processingVersion ??
-    (await resolveLatestCycleFamiVersion(supabase, scope.cycleId));
+  const processingVersion = params.cycleProcessingId
+    ? await resolveCycleProcessingVersionById(
+        supabase,
+        scope.cycleId,
+        params.cycleProcessingId,
+      )
+    : (params.processingVersion ??
+      (await resolveLatestCycleFamiVersion(supabase, scope.cycleId)));
   if (processingVersion == null) return null;
 
   const fami = await loadCycleFamiReportSnapshot(

@@ -1,3 +1,4 @@
+import { withWorkspaceAction } from "@/features/improvement-management/action-plans/action-workspace-href";
 import type { SectionActionPlanGroup } from "@/features/improvement-management/action-plans/section-action-plan-model";
 import {
   respondentActionWorkspacePath,
@@ -48,12 +49,14 @@ export function recommendationWorkspacePath(
   recommendationId: string,
   tab: "acoes" | "monitoramento" | "visao-geral",
   returnPath: string,
+  options?: { actionId?: string },
 ): string {
-  if (role === "respondent") {
-    return withRespondentReturnPath(
-      respondentActionWorkspacePath(recommendationId, tab),
-      returnPath,
-    );
-  }
-  return withAdminReturnPath(adminPlanoAcaoDetailHref(recommendationId, tab), returnPath);
+  const href =
+    role === "respondent"
+      ? withRespondentReturnPath(
+          respondentActionWorkspacePath(recommendationId, tab),
+          returnPath,
+        )
+      : withAdminReturnPath(adminPlanoAcaoDetailHref(recommendationId, tab), returnPath);
+  return options?.actionId ? withWorkspaceAction(href, options.actionId) : href;
 }

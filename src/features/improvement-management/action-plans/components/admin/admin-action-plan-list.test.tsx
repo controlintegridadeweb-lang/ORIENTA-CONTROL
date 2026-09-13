@@ -109,7 +109,7 @@ describe("AdminActionPlanList", () => {
     expect(screen.getByText("Perguntas de origem")).toBeTruthy();
     expect(screen.getByText("As informações relativas à UCI estão devidamente divulgadas?")).toBeTruthy();
     expect(screen.getByText("As informações relativas ao CIC estão devidamente divulgadas?")).toBeTruthy();
-    expect(screen.getByText("2 recomendações · 0 concluídas")).toBeTruthy();
+    expect(screen.getByText("2 recomendações · 2 em execução")).toBeTruthy();
 
     const open = screen.getByRole("link", { name: /Abrir plano da seção/i });
     expect(open.getAttribute("href")).toContain(`/admin/plano-acao/secao/${SECTION_ID}/visao-geral`);

@@ -23,7 +23,11 @@ export async function buildBimonthlyTrackingPdf(params: {
   client: TypedSupabaseClient;
 }): Promise<{ filename: string; bytes: Uint8Array }> {
   const data = await loadOfficialReportData(
-    { cycleId: params.snapshot.cycleId, allowOpenActionPlan: true },
+    {
+      cycleId: params.snapshot.cycleId,
+      cycleProcessingId: params.snapshot.sourceCycleProcessingId,
+      allowOpenActionPlan: true,
+    },
     params.client,
   );
   if (!data) {

@@ -23,6 +23,7 @@ export type BimonthlyReportSummary = {
 export type BimonthlyReportListItem = {
   id: string;
   cycleId: string;
+  sourceCycleProcessingId: string;
   referenceYear: number;
   bimester: Bimester;
   reportVersion: number;
@@ -82,7 +83,7 @@ export async function listBimonthlyReports(
   let query = client
     .from("action_plan_bimonthly_reports")
     .select(
-      "id, cycle_id, reference_year, bimester, report_version, generation_kind, generated_by, generated_at, closed_at, period_start, period_end, active_action_count, not_started_count, in_progress_count, completed_count, overdue_count, cancelled_count, average_progress_percentage, completed_criterion_count, pending_criterion_count, actions_completed_in_period, actions_advanced_in_period, actions_stagnant_in_period, actions_became_overdue_in_period, criteria_completed_in_period",
+      "id, cycle_id, source_cycle_processing_id, reference_year, bimester, report_version, generation_kind, generated_by, generated_at, closed_at, period_start, period_end, active_action_count, not_started_count, in_progress_count, completed_count, overdue_count, cancelled_count, average_progress_percentage, completed_criterion_count, pending_criterion_count, actions_completed_in_period, actions_advanced_in_period, actions_stagnant_in_period, actions_became_overdue_in_period, criteria_completed_in_period",
     )
     .eq("cycle_id", cycleId)
     .order("reference_year", { ascending: false })
@@ -96,6 +97,7 @@ export async function listBimonthlyReports(
   const history: BimonthlyReportListItem[] = (data ?? []).map((row) => ({
     id: row.id,
     cycleId: row.cycle_id,
+    sourceCycleProcessingId: row.source_cycle_processing_id,
     referenceYear: Number(row.reference_year),
     bimester: Number(row.bimester) as Bimester,
     reportVersion: Number(row.report_version),

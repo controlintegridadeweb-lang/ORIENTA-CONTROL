@@ -60,7 +60,7 @@ export async function loadBimonthlyReportDetail(
   let reportQuery = client
     .from("action_plan_bimonthly_reports")
     .select(
-      "id, cycle_id, reference_year, bimester, report_version, generation_kind, generated_by, generated_at, closed_at, period_start, period_end, active_action_count, not_started_count, in_progress_count, completed_count, overdue_count, cancelled_count, average_progress_percentage, completed_criterion_count, pending_criterion_count, actions_completed_in_period, actions_advanced_in_period, actions_stagnant_in_period, actions_became_overdue_in_period, criteria_completed_in_period, cycles!inner(organization_id)",
+      "id, cycle_id, source_cycle_processing_id, reference_year, bimester, report_version, generation_kind, generated_by, generated_at, closed_at, period_start, period_end, active_action_count, not_started_count, in_progress_count, completed_count, overdue_count, cancelled_count, average_progress_percentage, completed_criterion_count, pending_criterion_count, actions_completed_in_period, actions_advanced_in_period, actions_stagnant_in_period, actions_became_overdue_in_period, criteria_completed_in_period, cycles!inner(organization_id)",
     )
     .eq("id", reportId);
   if (organizationId) {
@@ -130,6 +130,7 @@ export async function loadBimonthlyReportDetail(
   return {
     id: report.id,
     cycleId: report.cycle_id,
+    sourceCycleProcessingId: report.source_cycle_processing_id,
     referenceYear: Number(report.reference_year),
     bimester: Number(report.bimester) as BimonthlyReportListItem["bimester"],
     reportVersion: Number(report.report_version),

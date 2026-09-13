@@ -47,7 +47,11 @@ import {
   RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL,
 } from "@/shared/navigation/respondent-portfolio-paths";
 import { isInvalidUuidParam, parseUuidParam, uuidParamOrEmpty } from "@/shared/validation/uuid";
-import { buildSectionActionPlanHierarchy, sectionActionPlanSourcesFromListItems } from "@/features/improvement-management/action-plans/section-action-plan-model";
+import {
+  buildSectionActionPlanHierarchy,
+  filterSectionHierarchyByMatchingRecommendations,
+  sectionActionPlanSourcesFromListItems,
+} from "@/features/improvement-management/action-plans/section-action-plan-model";
 
 const ANALYSIS_INITIAL_FILTER: RespondentRecommendationFilterValue = {
   search: "",
@@ -251,11 +255,12 @@ export function RespondentRecommendationsShell() {
     [actionPlanView, filter],
   );
   const actionPlanSectionCount = useMemo(
-    () => buildSectionActionPlanHierarchy(sectionActionPlanSourcesFromListItems(filteredRows)).reduce(
-      (total, axis) => total + axis.sections.length,
-      0,
-    ),
-    [filteredRows],
+    () =>
+      filterSectionHierarchyByMatchingRecommendations(
+        buildSectionActionPlanHierarchy(sectionActionPlanSourcesFromListItems(rows)),
+        new Set(filteredRows.map((item) => item.recommendationId)),
+      ).reduce((total, axis) => total + axis.sections.length, 0),
+    [filteredRows, rows],
   );
   const actionPlanTotalSectionCount = useMemo(
     () => buildSectionActionPlanHierarchy(
@@ -548,7 +553,11 @@ export function RespondentRecommendationsShell() {
             />
           ) : (
             actionPlanView ? (
-              <RespondentSectionActionPlanList items={filteredRows} returnPath={listPath} />
+              <RespondentSectionActionPlanList
+                items={rows}
+                matchingItems={filteredRows}
+                returnPath={listPath}
+              />
             ) : (
               <>
                 <RespondentRecommendationList items={pagedRows} returnPath={listPath} />

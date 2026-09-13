@@ -145,6 +145,7 @@ describe("buildActionPlanByCyclePayload", () => {
             status: "doing",
             progress_percentage: 50,
             observations: null,
+            created_at: "2026-01-01T10:00:00Z",
             updated_at: "2026-01-02T10:00:00Z",
           },
           {
@@ -156,6 +157,7 @@ describe("buildActionPlanByCyclePayload", () => {
             status: "done",
             progress_percentage: 100,
             observations: null,
+            created_at: "2026-01-02T10:00:00Z",
             updated_at: "2026-01-03T10:00:00Z",
           },
         ],
@@ -176,7 +178,7 @@ describe("buildActionPlanByCyclePayload", () => {
     expect(payload.summary.actionsByStatus.completed).toBe(1);
     const recNode = payload.axes[0]!.recommendations[0]!;
     expect(recNode.actions).toHaveLength(2);
-    expect(recNode.actions[0]!.updatedAt).toBe("2026-01-03T10:00:00Z"); // ordenado por updated_at desc
+    expect(recNode.actions.map((action) => action.id)).toEqual(["p1", "p2"]);
   });
 
   it("ordena recomendacoes alfabéticas dentro do mesmo eixo", () => {

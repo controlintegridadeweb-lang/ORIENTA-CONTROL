@@ -23,7 +23,7 @@ const ACTION_PLAN_RECOMMENDATION_SELECT =
   "form_versions!inner(version, form_id, forms!form_versions_form_id_fkey!inner(id, name))" +
   "), " +
   "question_versions!inner(question_id, prompt, section_name, section_order, axis_name, axis_id, section_id), " +
-  "action_plans(id, action_text, start_date, due_date, responsible_user_id, responsible_label, progress_percentage, status, execution_notes, updated_at, revision, " +
+  "action_plans(id, action_text, start_date, due_date, responsible_user_id, responsible_label, progress_percentage, status, execution_notes, created_at, updated_at, revision, " +
   "action_plan_documents(id, action_revision, kind, title, external_link, original_filename, mime_type, size_bytes, file_validation_status, validated_at, created_at, deactivated_at))";
 
 

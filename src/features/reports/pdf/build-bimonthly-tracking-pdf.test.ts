@@ -17,6 +17,7 @@ import type { OfficialReportData } from "./report-types";
 
 const snapshot = {
   cycleId: "cycle-1",
+  sourceCycleProcessingId: "processing-1",
   referenceYear: 2026,
   bimester: 4 as const,
   reportVersion: 1,
@@ -118,7 +119,11 @@ describe("PDF de acompanhamento bimestral", () => {
     const file = await buildBimonthlyTrackingPdf({ snapshot, client: {} as never });
 
     expect(loadOfficialReportData).toHaveBeenCalledWith(
-      { cycleId: "cycle-1", allowOpenActionPlan: true },
+      {
+        cycleId: "cycle-1",
+        cycleProcessingId: "processing-1",
+        allowOpenActionPlan: true,
+      },
       {},
     );
     expect(buildOfficialReportPdfDocument).toHaveBeenCalledWith(

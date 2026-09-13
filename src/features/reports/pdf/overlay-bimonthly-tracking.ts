@@ -42,6 +42,7 @@ export type BimonthlyTrackingActionSnapshot = {
 
 export type BimonthlyTrackingSnapshot = {
   cycleId: string;
+  sourceCycleProcessingId: string;
   referenceYear: number;
   bimester: 1 | 2 | 3 | 4 | 5 | 6;
   reportVersion: number;
@@ -86,6 +87,7 @@ function actionFromSnapshot(
     progressPercentage: snap.progressPercentage,
     status,
     observations: live?.observations ?? null,
+    createdAt: live?.createdAt,
     updatedAt: snap.effectiveAt,
     revision: snap.revision,
     documents: overlayDocuments(live, snap, cutoff),
@@ -161,17 +163,17 @@ function overlayActionPlan(
   }
 
   const seenRecommendations = new Set<string>();
-  const axes = actionPlan.axes.map((axis) => ({
-    ...axis,
-    recommendations: axis.recommendations.map((recommendation) => {
-      seenRecommendations.add(recommendation.recommendationId);
-      return overlayRecommendation(
-        recommendation,
-        snapsByRecommendation.get(recommendation.recommendationId) ?? [],
-        cutoff,
-      );
-    }),
-  }));
+  const axes = actionPlan.axes
+    .map((axis) => ({
+      ...axis,
+      recommendations: axis.recommendations.flatMap((recommendation) => {
+        const snaps = snapsByRecommendation.get(recommendation.recommendationId);
+        if (!snaps) return [];
+        seenRecommendations.add(recommendation.recommendationId);
+        return [overlayRecommendation(recommendation, snaps, cutoff)];
+      }),
+    }))
+    .filter((axis) => axis.recommendations.length > 0);
 
   for (const [recommendationId, snaps] of snapsByRecommendation) {
     if (seenRecommendations.has(recommendationId)) continue;

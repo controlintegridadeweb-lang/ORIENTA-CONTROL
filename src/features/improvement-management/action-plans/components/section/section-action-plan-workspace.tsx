@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, CircleAlert } from "lucide-react";
 import type { ActionPlanListItem } from "@/features/improvement-management/action-plans/types";
 import { listAllActionPlansForCycle } from "@/features/improvement-management/action-plans/client";
+import { subscribeRespondentOverviewCache } from "@/features/improvement-management/action-plans";
 import {
   buildSectionActionPlanHierarchy,
   findSectionActionPlan,
@@ -13,7 +14,7 @@ import {
 } from "@/features/improvement-management/action-plans/section-action-plan-model";
 import {
   SectionPlanStatusBadge,
-  sectionPlanStatusFromMetrics,
+  sectionPlanStatusFromSection,
 } from "@/features/improvement-management/action-plans/components/section/section-plan-status-badge";
 import { SectionWorkspaceOverview } from "@/features/improvement-management/action-plans/components/section/section-workspace-overview";
 import { SectionProblemSolutionTree } from "@/features/improvement-management/action-plans/components/section/section-problem-solution-tree";
@@ -79,23 +80,49 @@ export function SectionActionPlanWorkspace({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const load = useCallback(async (mode: "full" | "refresh" = "full") => {
+    if (mode === "full") {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const items = await listAllActionPlansForCycle(role, cycleId);
       setSection(toSection(items, cycleId, sectionId));
+      setError(null);
     } catch (loadError) {
-      setSection(null);
-      setError(loadError instanceof Error ? loadError.message : "Falha ao carregar o plano da seção.");
+      if (mode === "full") {
+        setSection(null);
+        setError(loadError instanceof Error ? loadError.message : "Falha ao carregar o plano da seção.");
+      }
     } finally {
-      setLoading(false);
+      if (mode === "full") setLoading(false);
     }
   }, [cycleId, role, sectionId]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Inicia a leitura assíncrona da API para o escopo atual; os setters ocorrem na continuação da requisição.
     void load();
+  }, [load]);
+
+  useEffect(() => {
+    return subscribeRespondentOverviewCache(() => {
+      void load("refresh");
+    });
+  }, [load]);
+
+  useEffect(() => {
+    function refreshVisible() {
+      if (document.visibilityState === "visible") void load("refresh");
+    }
+    function refreshOnFocus() {
+      void load("refresh");
+    }
+    document.addEventListener("visibilitychange", refreshVisible);
+    window.addEventListener("focus", refreshOnFocus);
+    return () => {
+      document.removeEventListener("visibilitychange", refreshVisible);
+      window.removeEventListener("focus", refreshOnFocus);
+    };
   }, [load]);
 
   const listFallback =
@@ -138,7 +165,7 @@ export function SectionActionPlanWorkspace({
     );
   }
 
-  const sectionStatus = sectionPlanStatusFromMetrics(section.metrics);
+  const sectionStatus = sectionPlanStatusFromSection(section);
   const maxWidth = role === "admin" ? "max-w-7xl" : "max-w-6xl";
 
   return (

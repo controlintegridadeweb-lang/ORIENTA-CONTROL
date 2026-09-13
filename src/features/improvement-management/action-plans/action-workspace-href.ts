@@ -33,3 +33,16 @@ export function resolveMonitoredActionId(
   if (requestedId && planIds.includes(requestedId)) return requestedId;
   return planIds[0] ?? null;
 }
+
+/** Preserva a ação escolhida sem perder `returnTo` nem os demais query params. */
+export function withWorkspaceAction(href: string, actionId: string): string {
+  const hashIndex = href.indexOf("#");
+  const withoutHash = hashIndex >= 0 ? href.slice(0, hashIndex) : href;
+  const hash = hashIndex >= 0 ? href.slice(hashIndex) : "";
+  const queryIndex = withoutHash.indexOf("?");
+  const path = queryIndex >= 0 ? withoutHash.slice(0, queryIndex) : withoutHash;
+  const query = queryIndex >= 0 ? withoutHash.slice(queryIndex + 1) : "";
+  const params = new URLSearchParams(query);
+  params.set("action", actionId);
+  return `${path}?${params.toString()}${hash}`;
+}

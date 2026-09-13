@@ -1,5 +1,6 @@
 import {
   aggregateSlaFromActions,
+  compareActionPlanActions,
   computeActionSla,
   pickOne,
   type ActionPlanAction,
@@ -59,6 +60,7 @@ function rowToPlanActions(raw: unknown): ActionPlanAction[] {
       progressPercentage,
       status,
       observations: (r.execution_notes as string | null) ?? null,
+      createdAt: r.created_at ? String(r.created_at) : undefined,
       updatedAt: String(r.updated_at ?? ""),
       revision: Math.max(1, Number(r.revision ?? 1)),
       documents: (Array.isArray(r.documents) ? r.documents : Array.isArray(r.action_plan_documents) ? r.action_plan_documents : [])
@@ -85,7 +87,7 @@ function rowToPlanActions(raw: unknown): ActionPlanAction[] {
     action.slaLabel = computeActionSla(action);
     out.push(action);
   }
-  return out.sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
+  return out.sort(compareActionPlanActions);
 }
 
 export function toListItem(

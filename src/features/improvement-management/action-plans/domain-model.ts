@@ -37,6 +37,8 @@ export type ActionPlanAction = {
   progressPercentage: number;
   status: PlanStatus;
   observations: string | null;
+  /** Criação persistida; a numeração A1/A2 usa esta ordem, não a última alteração. */
+  createdAt?: string;
   updatedAt: string;
   revision: number;
   documents: ActionPlanDocument[];
@@ -116,6 +118,7 @@ type ActionPlanRaw = {
   status?: string | null;
   execution_notes?: string | null;
   observations?: string | null;
+  created_at?: string | null;
   updated_at?: string | null;
   revision?: number | null;
   documents?: Array<{
@@ -137,6 +140,20 @@ type ActionPlanRaw = {
 export function pickOne<T>(value: T | T[] | null | undefined): T | null {
   if (!value) return null;
   return Array.isArray(value) ? (value[0] ?? null) : value;
+}
+
+/** Ordem estável para A1, A2, …: criação persistida e, em empate, o id. */
+export function compareActionPlanActions(
+  a: Pick<ActionPlanAction, "id"> & { createdAt?: string },
+  b: Pick<ActionPlanAction, "id"> & { createdAt?: string },
+): number {
+  const aCreated = a.createdAt?.trim() ?? "";
+  const bCreated = b.createdAt?.trim() ?? "";
+  if (aCreated && bCreated) {
+    const byCreated = aCreated.localeCompare(bCreated);
+    if (byCreated !== 0) return byCreated;
+  }
+  return a.id.localeCompare(b.id);
 }
 
 function normalizeAxis(axis: AxisJoinLike | null): { id: string; name: string } | null {
@@ -229,6 +246,7 @@ function rawPlanToAction(row: ActionPlanRaw): ActionPlanAction {
     progressPercentage,
     status,
     observations: (row.execution_notes as string | null) ?? row.observations ?? null,
+    createdAt: row.created_at ? String(row.created_at) : undefined,
     updatedAt: String(row.updated_at ?? ""),
     revision,
     documents,
@@ -286,7 +304,7 @@ export function buildActionPlanByCyclePayload(params: {
 
     const plansSorted = normalizePlans(row.action_plans)
       .map(rawPlanToAction)
-      .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
+      .sort(compareActionPlanActions);
 
     if (plansSorted.length > 0) recommendationsWithActions += 1;
     for (const ac of plansSorted) {

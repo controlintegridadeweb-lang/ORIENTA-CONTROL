@@ -92,6 +92,7 @@ export function SectionWorkspaceMonitoring({ role, section, parentReturnTo }: Pr
                     recommendation.recommendationId,
                     "monitoramento",
                     returnPath,
+                    { actionId: action.id },
                   )}
                 />
               )),

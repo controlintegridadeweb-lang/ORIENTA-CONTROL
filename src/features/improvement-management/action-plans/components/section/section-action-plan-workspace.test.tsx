@@ -5,6 +5,7 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ActionPlanAction } from "@/features/improvement-management/action-plans/domain-model";
 import type { ActionPlanListItem } from "@/features/improvement-management/action-plans/types";
+import { invalidateRespondentOverviewCache } from "@/features/improvement-management/action-plans/respondent-overview/cache";
 import { SectionActionPlanWorkspace } from "./section-action-plan-workspace";
 import { SectionProblemSolutionTree } from "./section-problem-solution-tree";
 import { SectionWorkspaceOverview } from "./section-workspace-overview";
@@ -183,6 +184,39 @@ describe("SectionActionPlanWorkspace", () => {
     );
     expect(screen.getByRole("link", { name: "Visão geral" }).getAttribute("href")).not.toContain(REC_1);
   });
+
+  it("recarrega a seção quando o cache do overview é invalidado", async () => {
+    listAllActionPlansForCycle
+      .mockResolvedValueOnce(twoRecommendations)
+      .mockResolvedValueOnce([
+        listItem({
+          plans: [action({ progressPercentage: 80 })],
+        }),
+        twoRecommendations[1]!,
+      ]);
+
+    render(
+      <SectionActionPlanWorkspace
+        role="respondent"
+        sectionId={SECTION_ID}
+        cycleId={CYCLE_ID}
+        activeTab="visao-geral"
+        returnTo={RETURN_TO}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/2 recomendações · 2 ações · 1 concluída/)).toBeTruthy();
+      expect(screen.getByText("70%")).toBeTruthy();
+    });
+
+    invalidateRespondentOverviewCache();
+
+    await waitFor(() => {
+      expect(listAllActionPlansForCycle).toHaveBeenCalledTimes(2);
+      expect(screen.getByText("90%")).toBeTruthy();
+    });
+  });
 });
 
 describe("SectionWorkspaceOverview", () => {
@@ -212,7 +246,9 @@ describe("SectionWorkspaceActions", () => {
     expect(screen.getByText("Publicar competências do CIC")).toBeTruthy();
     const manageLinks = screen.getAllByRole("link", { name: "Gerenciar ação" });
     expect(manageLinks[0]?.getAttribute("href")).toContain(`/plano-acao/${REC_1}/acoes`);
+    expect(manageLinks[0]?.getAttribute("href")).toContain("action=plan-1");
     expect(manageLinks[1]?.getAttribute("href")).toContain(`/plano-acao/${REC_2}/acoes`);
+    expect(manageLinks[1]?.getAttribute("href")).toContain("action=plan-2");
     expect(manageLinks[0]?.getAttribute("href")).toContain("returnTo=");
   });
 
@@ -263,6 +299,11 @@ describe("SectionWorkspaceMonitoring", () => {
     expect(screen.queryByText("Ação de outra seção")).toBeNull();
     expect(screen.getAllByText("Unidade X").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Nenhuma comprovação").length).toBe(2);
+    const monitorLinks = screen.getAllByRole("link", { name: "Abrir monitoramento" });
+    expect(monitorLinks[0]?.getAttribute("href")).toContain(`/plano-acao/${REC_1}/monitoramento`);
+    expect(monitorLinks[0]?.getAttribute("href")).toContain("action=plan-1");
+    expect(monitorLinks[1]?.getAttribute("href")).toContain(`/plano-acao/${REC_2}/monitoramento`);
+    expect(monitorLinks[1]?.getAttribute("href")).toContain("action=plan-2");
   });
 
   it("mostra o estado vazio quando não há ações para monitorar", () => {

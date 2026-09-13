@@ -20,6 +20,7 @@ import {
 } from "@/features/improvement-management/recommendations/components/hub/overview-section-primitives";
 import { getAxisTheme } from "@/shared/theme/axis-theme";
 import { countLabel } from "@/shared/format/count-label";
+import { RecommendationStatusBadge } from "@/features/improvement-management/components/shared/recommendation-status-badge";
 
 type Props = {
   section: SectionActionPlanGroup;
@@ -90,6 +91,9 @@ export function SectionWorkspaceOverview({ section }: Props) {
         <div className="space-y-4">
           {section.recommendations.map((recommendation, index) => (
             <OverviewSoftPanel key={recommendation.recommendationId} className="space-y-4">
+              <div className="flex justify-end">
+                <RecommendationStatusBadge status={recommendation.recommendationStatus} />
+              </div>
               <RecommendationCardField
                 label={`Recomendação ${section.sectionDisplayNumber}.${index + 1}`}
               >

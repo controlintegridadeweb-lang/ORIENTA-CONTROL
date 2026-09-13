@@ -9,8 +9,9 @@ import { AdminActionPlanProgress } from "@/features/improvement-management/actio
 import { PlanStatusBadge } from "@/features/improvement-management/action-plans/components/shared/plan-status-badge";
 import {
   SectionPlanStatusBadge,
-  sectionPlanStatusFromMetrics,
+  sectionPlanStatusFromSection,
 } from "@/features/improvement-management/action-plans/components/section/section-plan-status-badge";
+import { RecommendationStatusBadge } from "@/features/improvement-management/components/shared/recommendation-status-badge";
 import {
   currentSectionWorkspacePath,
   recommendationWorkspacePath,
@@ -41,7 +42,7 @@ type Props = {
 
 export function SectionWorkspaceActions({ role, section, parentReturnTo }: Props) {
   const returnPath = currentSectionWorkspacePath(role, section, "acoes", parentReturnTo);
-  const sectionStatus = sectionPlanStatusFromMetrics(section.metrics);
+  const sectionStatus = sectionPlanStatusFromSection(section);
   const axisTheme = getAxisTheme(section.axisName);
 
   return (
@@ -50,7 +51,7 @@ export function SectionWorkspaceActions({ role, section, parentReturnTo }: Props
         <OverviewBlockTitle
           id="section-execution-heading"
           title="Execução da seção"
-          description="O percentual consolida apenas as ações ativas desta seção."
+          description="O percentual consolida as ações ativas. A situação da seção também considera recomendações sem tratamento e o aceite administrativo."
         />
         <OverviewSoftPanel className="space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -83,9 +84,12 @@ export function SectionWorkspaceActions({ role, section, parentReturnTo }: Props
 
       {section.recommendations.map((recommendation, recommendationIndex) => (
         <section key={recommendation.recommendationId} className={overviewStack}>
-          <OverviewBlockTitle
-            title={`Recomendação ${section.sectionDisplayNumber}.${recommendationIndex + 1}`}
-          />
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <OverviewBlockTitle
+              title={`Recomendação ${section.sectionDisplayNumber}.${recommendationIndex + 1}`}
+            />
+            <RecommendationStatusBadge status={recommendation.recommendationStatus} />
+          </div>
           <OverviewSoftPanel className="space-y-4">
             <RecommendationCardField label={RECOMMENDATION_CARD_LABELS.recommendation}>
               <div
@@ -150,7 +154,13 @@ export function SectionWorkspaceActions({ role, section, parentReturnTo }: Props
                       />
                       <Link
                         className={formSurface.secondaryButtonSm}
-                        href={recommendationWorkspacePath(role, recommendation.recommendationId, "acoes", returnPath)}
+                        href={recommendationWorkspacePath(
+                          role,
+                          recommendation.recommendationId,
+                          "acoes",
+                          returnPath,
+                          { actionId: action.id },
+                        )}
                       >
                         {role === "respondent" ? "Gerenciar ação" : "Ver ação"}
                       </Link>

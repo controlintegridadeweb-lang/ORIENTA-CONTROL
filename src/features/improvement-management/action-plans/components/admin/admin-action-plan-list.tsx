@@ -44,6 +44,7 @@ export function AdminActionPlanList({ items, hideOrganization = false }: Props) 
               recommendationId: item.recommendationId,
               questionPrompt: item.questionPrompt,
               recommendationText: item.recommendationText,
+              recommendationStatus: item.recommendationStatus,
               plans: action ? [action] : [],
             };
           }),
