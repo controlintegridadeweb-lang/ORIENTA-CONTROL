@@ -59,15 +59,20 @@ export function evidenceCountLabel(plan: ActionPlanAction): string {
 function InstitutionalTable({
   columns,
   children,
+  tone = "detail",
 }: {
   columns: readonly string[];
   children: ReactNode;
+  tone?: "detail" | "history";
 }) {
+  const headRow =
+    tone === "history" ? overviewNestedTable.historyHeadRow : overviewNestedTable.headRow;
+
   return (
     <div className="overflow-x-auto">
       <table className={overviewNestedTable.table}>
         <thead>
-          <tr className={overviewNestedTable.headRow}>
+          <tr className={headRow}>
             {columns.map((column) => (
               <th key={column} scope="col" className={overviewNestedTable.headCell}>
                 {column}
@@ -99,7 +104,7 @@ export function ActionPlanProgressUpdatesList({
   }
 
   return (
-    <InstitutionalTable columns={["Data", "Situação", "Atualização"]}>
+    <InstitutionalTable tone="history" columns={["Data", "Situação", "Atualização"]}>
       {items.map((item) => (
         <tr key={item.id} className={overviewNestedTable.bodyRow}>
           <td className={overviewNestedTable.bodyCell}>

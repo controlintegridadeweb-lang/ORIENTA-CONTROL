@@ -168,10 +168,14 @@ export const overviewActionsTable = {
   openRow: "bg-[#E6F3F7]",
 } as const;
 
-/** Tabelas internas (visualizar / histórico) — cabeçalho leve da plataforma. */
+/**
+ * Tabelas internas (visualizar / histórico).
+ * Cabeçalhos distintos da lista principal (`bg-brand-700`) para não parecer a mesma tabela.
+ */
 export const overviewNestedTable = {
   table: "w-full border-separate border-spacing-0 text-sm",
-  headRow: "bg-brand-700",
+  headRow: "bg-slate-600",
+  historyHeadRow: "bg-sky-700",
   headCell:
     "px-3 py-2.5 text-left text-micro font-medium uppercase tracking-wider text-white first:rounded-tl-xl last:rounded-tr-xl sm:px-4",
   bodyRow: "bg-white",
