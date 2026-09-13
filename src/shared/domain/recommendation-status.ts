@@ -27,7 +27,7 @@ export type ActionPlanStatusInput = {
 
 /** Deriva a situação canônica da recomendação a partir do seu contexto oficial. */
 export function deriveRecommendationStatus(
-  actions: ActionPlanStatusInput[],
+  actions: readonly ActionPlanStatusInput[],
   waived: boolean,
   context: {
     hasOpenAdjustment?: boolean;
