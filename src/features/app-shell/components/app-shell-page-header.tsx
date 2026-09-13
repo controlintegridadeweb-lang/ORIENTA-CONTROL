@@ -34,7 +34,7 @@ export function AppShellPageHeader({
       />
       <div className="relative flex min-h-[var(--header-h)] min-w-0">
         <SidebarMobileRail />
-        <header className="flex min-w-0 flex-1 items-center px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
+        <header className="flex min-w-0 flex-1 items-center px-3 py-2 sm:px-4 sm:py-2.5 lg:px-8 lg:py-4">
           <div className="min-w-0 flex-1">
             {/* Em controls-only o h1 da rota fica no PageHeader / hero da página. */}
             {controlsOnly ? null : (

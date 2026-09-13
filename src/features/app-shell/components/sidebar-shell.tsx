@@ -49,7 +49,7 @@ function useIsDesktop(): boolean {
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(min-width: 768px)");
+    const mediaQuery = window.matchMedia("(min-width: 1024px)");
     const update = () => setIsDesktop(mediaQuery.matches);
     update();
     mediaQuery.addEventListener("change", update);
@@ -60,7 +60,8 @@ function useIsDesktop(): boolean {
 }
 
 /**
- * Layout autenticado com sidebar recolhível no desktop e drawer modal no mobile.
+ * Layout autenticado com sidebar recolhível no desktop (lg+) e drawer modal
+ * no celular e no tablet.
  * O drawer usa `inert`, contenção de foco e restauração do acionador para que
  * links fora da tela nunca entrem na ordem de tabulação.
  */
@@ -189,7 +190,7 @@ export function SidebarShell({
     toggleCollapsed,
   };
 
-  const desktopWidth = collapsed ? "md:w-19" : "md:w-80";
+  const desktopWidth = collapsed ? "lg:w-19" : "lg:w-80";
   const drawerIsHidden = !isDesktop && !mobileOpen;
   const contentIsBlocked = !isDesktop && mobileOpen;
 
@@ -204,9 +205,9 @@ export function SidebarShell({
             "fixed inset-y-0 left-0 z-40 flex w-[min(20rem,calc(100vw-2rem))] shrink-0 flex-col",
             "bg-brand-800 text-white shadow-xl ring-1 ring-black/10",
             "transition-[transform,width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
-            "md:relative md:z-auto md:translate-x-0 md:shadow-none",
+            "lg:relative lg:z-auto lg:translate-x-0 lg:shadow-none",
             desktopWidth,
-            mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+            mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
           ].join(" ")}
           aria-label="Menu lateral de navegação"
           aria-hidden={drawerIsHidden || undefined}
@@ -229,7 +230,7 @@ export function SidebarShell({
           onClick={closeDrawer}
           className={[
             "fixed inset-0 z-30 bg-slate-900/50 backdrop-blur-xs",
-            "transition-opacity duration-300 ease-out md:hidden",
+            "transition-opacity duration-300 ease-out lg:hidden",
             mobileOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0",
           ].join(" ")}
         />

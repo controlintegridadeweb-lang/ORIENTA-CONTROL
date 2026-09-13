@@ -11,14 +11,14 @@ export function SidebarBrandHeader() {
     <div
       className={[
         "sb-brand flex min-h-[var(--header-h)] shrink-0 items-center gap-2.5 border-b border-white/10",
-        collapsed ? "md:justify-center md:gap-0 md:px-0" : "px-3 sm:px-4",
+        collapsed ? "lg:justify-center lg:gap-0 lg:px-0" : "px-3 sm:px-4",
       ].join(" ")}
     >
-      <SidebarMenuButton className="hidden md:inline-flex" />
+      <SidebarMenuButton className="hidden lg:inline-flex" />
       <p
         className={[
           "sb-label min-w-0 flex-1 truncate text-base font-medium tracking-normal text-white",
-          collapsed ? "md:hidden" : "",
+          collapsed ? "lg:hidden" : "",
         ].join(" ")}
       >
         Plataforma Orienta
