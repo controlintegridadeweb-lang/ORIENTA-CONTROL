@@ -14,7 +14,7 @@ export function SidebarBrandHeader() {
         collapsed ? "lg:justify-center lg:gap-0 lg:px-0" : "px-3 sm:px-4",
       ].join(" ")}
     >
-      <SidebarMenuButton className="hidden lg:inline-flex" />
+      <SidebarMenuButton />
       <p
         className={[
           "sb-label min-w-0 flex-1 truncate text-base font-medium tracking-normal text-white",

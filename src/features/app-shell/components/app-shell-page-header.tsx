@@ -3,8 +3,8 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { getPageHeadingForPath } from "@/shared/config/page-headings";
 import { typography } from "@/shared/layout/design-system";
-import { SidebarMobileRail } from "./sidebar-mobile-rail";
 import { NotificationBell } from "./notification-bell";
+import { SidebarMenuButton } from "./sidebar-menu-button";
 
 export function AppShellPageHeader({
   serverPathname,
@@ -32,23 +32,21 @@ export function AppShellPageHeader({
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/85"
       />
-      <div className="relative flex min-h-[var(--header-h)] min-w-0">
-        <SidebarMobileRail />
-        <header className="flex min-w-0 flex-1 items-center px-3 py-2 sm:px-4 sm:py-2.5 lg:px-8 lg:py-4">
-          <div className="min-w-0 flex-1">
-            {/* Em controls-only o h1 da rota fica no PageHeader / hero da página. */}
-            {controlsOnly ? null : (
-              <>
-                <h1 className={typography.pageTitle}>{title}</h1>
-                {description ? (
-                  <p className={`${typography.pageDescription} line-clamp-2`}>{description}</p>
-                ) : null}
-              </>
-            )}
-          </div>
-          <NotificationBell />
-        </header>
-      </div>
+      <header className="relative flex min-h-[var(--header-h)] min-w-0 items-center gap-2 px-3 py-2 sm:gap-3 sm:px-4 sm:py-2.5 lg:px-8 lg:py-4">
+        <SidebarMenuButton variant="header" className="lg:hidden" />
+        <div className="min-w-0 flex-1">
+          {/* Em controls-only o h1 da rota fica no PageHeader / hero da página. */}
+          {controlsOnly ? null : (
+            <>
+              <h1 className={typography.pageTitle}>{title}</h1>
+              {description ? (
+                <p className={`${typography.pageDescription} line-clamp-2`}>{description}</p>
+              ) : null}
+            </>
+          )}
+        </div>
+        <NotificationBell />
+      </header>
     </div>
   );
 }

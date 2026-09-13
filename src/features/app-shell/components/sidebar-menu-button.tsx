@@ -5,17 +5,23 @@ import { useSidebar } from "./sidebar-shell";
 
 type Props = {
   className?: string;
+  /** `sidebar`: ícone claro no painel teal. `header`: mesmo casco do sino no topo. */
+  variant?: "sidebar" | "header";
 };
 
-const sidebarBaseClass =
-  "inline-flex shrink-0 items-center justify-center rounded-md transition-colors duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35 focus-visible:ring-offset-0";
+const baseClass =
+  "inline-flex shrink-0 items-center justify-center transition-colors duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0";
 
-const sizeClass = "h-9 w-9 min-h-9 min-w-9";
+const sizeClass = "size-10";
 
-const sidebarVariantClass =
-  "text-white/90 hover:bg-white/10 hover:text-white active:bg-white/15";
+const variantClass = {
+  sidebar:
+    "rounded-md text-white/90 hover:bg-white/10 hover:text-white active:bg-white/15 focus-visible:ring-white/35",
+  header:
+    "rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 focus-visible:ring-slate-400",
+} as const;
 
-export function SidebarMenuButton({ className = "" }: Props) {
+export function SidebarMenuButton({ className = "", variant = "sidebar" }: Props) {
   const { menuIconOpen, toggleMenu, menuAriaLabel } = useSidebar();
 
   return (
@@ -26,7 +32,7 @@ export function SidebarMenuButton({ className = "" }: Props) {
       aria-expanded={menuIconOpen}
       aria-controls="orienta-sidebar"
       title={menuAriaLabel}
-      className={[sidebarBaseClass, sizeClass, sidebarVariantClass, className]
+      className={[baseClass, sizeClass, variantClass[variant], className]
         .filter(Boolean)
         .join(" ")}
     >
