@@ -154,7 +154,6 @@ export const reportCatalogLabels = {
     "Não há PDF anual nem relatório bimestral para o filtro atual. A primeira emissão anual ocorre no encerramento do diagnóstico. O relatório bimestral é gerado no Resultado FAMI → Evolução.",
   bimonthlyCatalogCta: "Relatórios bimestrais",
   bimonthlyOriginCta: "Abrir acompanhamento no Resultado FAMI",
-  openPdf: "Abrir PDF",
   cycleScopeLabel: "Exibindo relatórios deste diagnóstico.",
   clearCycleScope: "Ver todos",
 };

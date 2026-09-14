@@ -5,7 +5,6 @@ import { describeError, notify } from "@/infrastructure/notifications/notify";
 import {
   downloadPdfBlob,
   fetchCatalogReportPdf,
-  openPdfBlob,
 } from "@/features/reports/ui/client";
 import { reportCatalogLabels } from "@/shared/labels/official-labels";
 import { respondentFamiPath } from "@/shared/navigation/fami-paths";
@@ -73,19 +72,6 @@ export function RespondentReportsShell() {
     }
   }, []);
 
-  const handleOpen = useCallback(async (row: RespondentReportHistoryRow) => {
-    const notificationId = notify.loading("Abrindo PDF…");
-    try {
-      const blob = await fetchCatalogReportPdf(row.downloadPath);
-      const opened = openPdfBlob(blob, reportFilename(row));
-      notify.success(opened ? "PDF aberto em nova aba." : "Download iniciado.", {
-        id: notificationId,
-      });
-    } catch (error) {
-      notify.error(describeError(error, "Não foi possível abrir o PDF."), { id: notificationId });
-    }
-  }, []);
-
   const bimonthlyOriginHref = respondentFamiPath({
     cycleId: filters.cycleId || undefined,
     tab: "evolucao",
@@ -146,7 +132,6 @@ export function RespondentReportsShell() {
               <RespondentReportsHistoryList
                 items={filteredHistory}
                 onDownload={(row) => void handleDownload(row)}
-                onOpen={(row) => void handleOpen(row)}
                 emptyKind={filters.kind}
                 emptyOriginHref={bimonthlyOriginHref}
               />
