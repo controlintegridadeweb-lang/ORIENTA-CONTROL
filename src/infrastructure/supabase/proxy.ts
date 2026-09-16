@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { hostOnlyCookieOptions } from "./session-cookies";
 
 /**
  * Proxy (middleware) de sessão e proteção de rotas.
@@ -111,7 +112,7 @@ export async function updateSession(request: NextRequest) {
         });
         response = NextResponse.next({ request: { headers: requestHeaders } });
         cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options);
+          response.cookies.set(name, value, hostOnlyCookieOptions(options));
         });
         Object.entries(headers).forEach(([key, value]) => {
           response.headers.set(key, value);

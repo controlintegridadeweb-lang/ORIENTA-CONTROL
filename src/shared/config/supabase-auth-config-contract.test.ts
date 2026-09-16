@@ -32,6 +32,7 @@ describe("contrato local do Supabase Auth", () => {
     const siteUrl = config.match(/^site_url\s*=\s*"([^"]+)"$/m)?.[1];
 
     expect(appUrl).toBe("http://localhost:3002");
+    expect(envExample).toContain("https://orienta.control.rn.gov.br");
     expect(siteUrl).toBe(appUrl);
     expect(config).toContain(`"${appUrl}/auth/update-password"`);
     expect(config).toContain('"http://127.0.0.1:3002/auth/update-password"');

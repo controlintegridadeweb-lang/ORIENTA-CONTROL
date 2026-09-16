@@ -154,9 +154,12 @@ sino da aplicação e a fila externa é cancelada com motivo explícito.
 
 ## 6. Domínio customizado (opcional)
 
-1. Vercel → Project → Settings → Domains → adicione o domínio.
-2. Atualize `NEXT_PUBLIC_APP_URL` e as URLs do Supabase Auth.
-3. Redeploy.
+O passo a passo para o domínio institucional da COTIC
+(`https://orienta.control.rn.gov.br`), incluindo DNS, variável de ambiente e
+Supabase Auth, está em [`docs/custom-domain.md`](../custom-domain.md).
+
+Não configure DNS neste repositório e não force redirect do `*.vercel.app`
+enquanto o domínio institucional não estiver ativo.
 
 ## 7. Deploy pela CLI (alternativa)
 

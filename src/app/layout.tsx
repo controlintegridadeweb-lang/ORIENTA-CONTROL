@@ -4,8 +4,10 @@ import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import { Toaster } from "@/shared/ui/components/toaster";
 import { ConfirmProvider } from "@/shared/ui/components/confirm-dialog";
+import { resolveAppOrigin } from "@/shared/config/app-url";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(resolveAppOrigin()),
   title: "Plataforma Orienta V1",
   description: "Diagnóstico, recomendações, plano de integridade e compliance e Resultado FAMI",
 };

@@ -1,15 +1,23 @@
 /**
- * URL publica do app para redirects de auth (recuperacao de senha, etc.).
+ * URL pública do app: única fonte de verdade para redirects de auth,
+ * metadata absoluta e links gerados no backend.
  *
- * Preferimos NEXT_PUBLIC_APP_URL (canônico / allowlist do Supabase) ao Origin
- * da requisição: previews e hosts alternativos costumam não estar na allowlist
- * e o Auth então redireciona para o Site URL (tela de login) em vez de
- * `/auth/update-password`.
+ * Produção (Vercel): NEXT_PUBLIC_APP_URL é obrigatória. Sem ela, falhamos
+ * de forma explícita em vez de cair em localhost ou em um host de preview.
+ *
+ * Desenvolvimento e preview: localhost:3002, Origin da requisição ou
+ * VERCEL_URL — nunca um domínio institucional hardcoded.
  */
+const LOCAL_DEV_ORIGIN = "http://localhost:3002";
+
 export function resolveAppOrigin(requestOrigin?: string | null): string {
   const configured = process.env.NEXT_PUBLIC_APP_URL?.trim();
   if (configured) {
     return normalizeOrigin(configured);
+  }
+
+  if (process.env.VERCEL_ENV === "production") {
+    throw new Error("Missing environment variable: NEXT_PUBLIC_APP_URL");
   }
 
   const fromHeader = requestOrigin?.trim();
@@ -27,7 +35,7 @@ export function resolveAppOrigin(requestOrigin?: string | null): string {
     return `https://${host}`;
   }
 
-  return "http://localhost:3002";
+  return LOCAL_DEV_ORIGIN;
 }
 
 export function passwordRecoveryRedirectUrl(requestOrigin?: string | null): string {

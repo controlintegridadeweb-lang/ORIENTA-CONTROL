@@ -102,7 +102,9 @@ Para scripts de banco, informe uma URL em `SUPABASE_DB_URL`, `DATABASE_URL` ou
 
 O projeto já inclui `vercel.json` (Next.js, região `gru1`, workers separados para operações de ciclo, importações, pacotes de relatórios, notificações e limpeza). Passo a passo, variáveis obrigatórias e
 ajustes no Supabase Auth estão em
-[`docs/current/DEPLOY.md`](docs/current/DEPLOY.md).
+[`docs/current/DEPLOY.md`](docs/current/DEPLOY.md). O domínio institucional da
+COTIC (`orienta.control.rn.gov.br`) está descrito em
+[`docs/custom-domain.md`](docs/custom-domain.md).
 
 ## Banco de dados
 
@@ -187,6 +189,7 @@ branches; rotas críticas também possuem testes diretos de contrato, enquanto U
 - [`docs/current/FLUXO_OPERACIONAL.md`](docs/current/FLUXO_OPERACIONAL.md): sequência canônica entre os perfis.
 - [`docs/current/DEPLOY.md`](docs/current/DEPLOY.md): publicação na Vercel,
   variáveis de ambiente e Auth do Supabase.
+- [`docs/custom-domain.md`](docs/custom-domain.md): domínio institucional da COTIC.
 - [`docs/current/SEGURANCA.md`](docs/current/SEGURANCA.md): modelo de
   autorização, RLS e validação local.
 - [`docs/current/MFA_RECOVERY.md`](docs/current/MFA_RECOVERY.md): recuperação administrativa de MFA com simulação e auditoria append-only.

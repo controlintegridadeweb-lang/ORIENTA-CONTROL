@@ -14,6 +14,8 @@ Principais documentos:
 - [`current/SEGURANCA.md`](./current/SEGURANCA.md)
 - [`current/MANUTENCAO.md`](./current/MANUTENCAO.md)
 - [`current/MIGRACAO_NOVO_SUPABASE.md`](./current/MIGRACAO_NOVO_SUPABASE.md)
+- [`current/DEPLOY.md`](./current/DEPLOY.md)
+- [`custom-domain.md`](./custom-domain.md) — domínio institucional da COTIC na Vercel
 - [`current/design-system/tipografia.md`](./current/design-system/tipografia.md)
 
 ## Decisões arquiteturais
