@@ -108,9 +108,7 @@ COTIC (`orienta.control.rn.gov.br`) está descrito em
 
 ## Banco de dados
 
-Há **23 migrations timestampadas** em `supabase/migrations/`: 10 migrations imutáveis da baseline greenfield, já validadas em PostgreSQL 17 real, mais 13 evoluções pós-baseline para alteração de prazo, FAMI preliminar, exportação/monitoramento, reparo controlado da carga 2026, listagem de respondentes, progresso monotônico do plano de integridade e compliance, integridade do encerramento com emissão oficial automática, leitura do estado do ciclo no rascunho de validação, comprovação opcional da execução no aceite/encerramento, acompanhamento bimestral com FAMI preliminar `prelim_v2`, catálogo de histórico com relatórios anuais e bimestrais e consolidação do histórico na emissão mais recente de cada grupo do catálogo — ver
-[`docs/current/BANCO.md`](docs/current/BANCO.md) e
-[`docs/current/BASELINE_PRIMEIRA_IMPLANTACAO.md`](docs/current/BASELINE_PRIMEIRA_IMPLANTACAO.md). A validação da baseline em PostgreSQL real está documentada em [`docs/current/VALIDACAO_BASELINE_POSTGRESQL.md`](docs/current/VALIDACAO_BASELINE_POSTGRESQL.md).
+Há **24 migrations timestampadas** em `supabase/migrations/`: 10 da baseline greenfield imutável e 14 evoluções posteriores. O inventário e a ordem canônica estão em [`supabase/migrations/README.md`](supabase/migrations/README.md); a decisão de consolidação está em [`docs/current/BANCO.md`](docs/current/BANCO.md). A validação da baseline em PostgreSQL real está documentada em [`docs/current/VALIDACAO_BASELINE_POSTGRESQL.md`](docs/current/VALIDACAO_BASELINE_POSTGRESQL.md).
 A sequência antiga `0001`–`0054` foi aposentada como fonte executável antes da primeira implantação. A baseline atual nasce diretamente no estado final, em ordem de dependências, sem patches, backfills históricos ou migrations corretivas intermediárias.
 
 Para subir e validar a stack local:
@@ -273,10 +271,3 @@ validação estrutural com `file_validation_status = valid`.
 - [Backup e restore](docs/current/BACKUP_RESTORE.md)
 - [Rollback](docs/current/ROLLBACK.md)
 - [Resposta a incidentes](docs/current/INCIDENT_RESPONSE.md)
-
-### Etapa 3 — Clean Code e complexidade (2026-08-12)
-
-O gate `npm run check:complexity` está aprovado sem aumento de limites. A
-refatoração separou read models de evidências, apresentação/decisão de documentos,
-detalhes de evidência do respondente, testes do `EvidenceCard` e validação de
-identidade do script administrativo CBM/RN. Esse orçamento permanece protegido por `npm run check:complexity`; relatórios históricos de refatoração não fazem parte da documentação normativa corrente.

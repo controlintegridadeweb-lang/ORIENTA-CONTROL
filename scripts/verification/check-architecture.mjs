@@ -169,6 +169,26 @@ function stronglyConnectedComponents(graph) {
 assertAllowedChildren("src", allowedSrcDirectories, "Diretório de src");
 assertAllowedChildren("scripts", allowedScriptDirectories, "Categoria de scripts");
 
+const scriptDocs = [
+  "docs/current/ARQUITETURA.md",
+  "docs/current/MANUTENCAO.md",
+  "scripts/README.md",
+];
+const obsoleteScriptDirectories = ["data-migration", "quality", "security"];
+for (const doc of scriptDocs) {
+  const source = readFileSync(join(ROOT, doc), "utf8");
+  for (const dir of allowedScriptDirectories) {
+    if (!source.includes(`${dir}/`)) {
+      errors.push(`${doc} não documenta scripts/${dir}/`);
+    }
+  }
+  for (const dir of obsoleteScriptDirectories) {
+    if (new RegExp(`(?:scripts/|├── |└── )${dir}/`).test(source)) {
+      errors.push(`${doc} documenta pasta de scripts inexistente: ${dir}/`);
+    }
+  }
+}
+
 for (const forbidden of ["src/lib", "src/components", "src/presentation", "private-import"]) {
   if (existsSync(forbidden)) errors.push(`Artefato ou camada obsoleta presente: ${forbidden}`);
 }

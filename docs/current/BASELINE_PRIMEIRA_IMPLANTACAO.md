@@ -23,9 +23,9 @@ A antiga sequência `0001`–`0054` foi aposentada como fonte executável. Seu e
 
 A migration `relations` existe para fechar FKs cuja criação depende de ambos os agregados já existirem, como `forms ↔ form_versions`; ela não é uma correção posterior de schema. `read_models` vem antes de `functions` porque RPCs de paginação dependem das views e, por isso, a ordem representa a DAG real de dependências.
 
-## Estado executável atual em 22/08/2026
+## Estado executável atual
 
-O diretório `supabase/migrations/` contém **23 migrations**: as 10 migrations imutáveis da baseline acima e 13 evoluções funcionais posteriores. Para criar um Supabase novo, aplique **todas as 23 na ordem do diretório**; não aplique apenas as dez primeiras. O gate `npm run db:audit:migrations` valida esse contrato.
+O diretório `supabase/migrations/` contém a baseline acima e as evoluções posteriores. Para criar um Supabase novo, aplique **todas as migrations na ordem do diretório**; não aplique apenas as dez primeiras. O inventário vigente está em [`BANCO.md`](./BANCO.md). O gate `npm run db:audit:migrations` valida esse contrato.
 
 ## Dados
 

@@ -2,7 +2,7 @@
 
 ## Fonte oficial
 
-A única fonte executável do schema é `supabase/migrations/`, com **23 migrations timestampadas**: 10 migrations imutáveis da baseline greenfield (`20260812000100` a `20260812001000`) e 13 evoluções pós-baseline (`20260812001100` a `20260902120000`). O intervalo completo é `20260812000100` a `20260902120000`.
+A única fonte executável do schema é `supabase/migrations/`, com **24 migrations timestampadas**: 10 migrations imutáveis da baseline greenfield (`20260812000100` a `20260812001000`) e 14 evoluções pós-baseline (`20260812001100` a `20260913200000`). O intervalo completo é `20260812000100` a `20260913200000`. O inventário de cada arquivo está em [`supabase/migrations/README.md`](../../supabase/migrations/README.md).
 
 A sequência evolutiva antiga `0001`–`0054` não participa mais da instalação. Ela foi consolidada antes da primeira implantação para evitar que um banco novo reproduza patches, backfills e correções intermediárias.
 
@@ -22,7 +22,7 @@ A sequência evolutiva antiga `0001`–`0054` não participa mais da instalaçã
 
 ## Instalação limpa
 
-1. Aplicar as 23 migrations em banco vazio.
+1. Aplicar as 24 migrations em banco vazio.
 2. Regenerar `database.types.ts` a partir desse banco.
 3. Executar verificadores SQL, RLS, Storage e advisors.
 4. Não executar seeds de desenvolvimento na implantação real.

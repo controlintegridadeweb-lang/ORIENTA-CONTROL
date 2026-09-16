@@ -23,13 +23,12 @@ src/
 scripts/
 ├── bootstrap/
 ├── database/
-├── data-migration/      # único pipeline greenfield (lib/tools/export/import/validate)
 ├── imports/
+├── maintenance/
 ├── production/
-├── quality/
-├── security/
 ├── shared/
-└── testing/
+├── testing/
+└── verification/
 ```
 
 ## Regras de localização
@@ -37,8 +36,8 @@ scripts/
 1. Código específico pertence a `src/features/<domínio>/`.
 2. UI específica fica em `src/features/<domínio>/components/`.
 3. UI genérica sem dependência de feature fica em `src/shared/ui/`.
-4. Um componente usado por outra feature deve ser exposto pela API pública
-   `src/features/<domínio>/ui.ts`.
+4. Um contrato consumido por outra feature deve ser exposto pela API pública
+   `index.ts`, `ui.ts` ou `server.ts` do domínio.
 5. Casos de uso que coordenam mais de um domínio ficam em `src/application/`.
 6. Regras puras e utilitários reutilizáveis ficam em `src/shared/`.
 7. Supabase, autenticação, segurança, telemetria e adaptadores ficam em
@@ -89,9 +88,12 @@ Não aumente limites para evitar uma refatoração necessária.
 |---|---|
 | `README.md` | Setup local e comandos principais |
 | `docs/current/ARQUITETURA.md` | Árvore e fronteiras técnicas |
+| `docs/current/BANCO.md` | Contrato e instalação do schema |
 | `docs/current/DEPLOY.md` | Deploy, variáveis e Auth |
+| `docs/custom-domain.md` | Domínio institucional da COTIC |
 | `docs/current/PRIMEIRO_ACESSO.md` | Bootstrap inicial |
 | `docs/current/SEGURANCA.md` | RLS, service role e isolamento |
+| `scripts/README.md` | Mapa dos scripts operacionais |
 | `supabase/migrations/README.md` | Ordem e política das migrations |
 | `src/features/fami/README.md` | Regra FAMI |
 | `src/features/library/README.md` | Biblioteca de critérios |

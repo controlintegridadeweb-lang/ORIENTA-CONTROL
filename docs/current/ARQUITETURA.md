@@ -16,19 +16,27 @@ src/
 ├── app/                    # Entradas HTTP e composição de páginas do Next.js
 ├── application/            # Casos de uso que coordenam dois ou mais domínios
 ├── features/               # Domínios funcionais completos
+│   ├── admin/              # Superfície administrativa compartilhada
 │   ├── app-shell/          # Shell autenticado e navegação estrutural
 │   ├── auth/               # Login, recuperação, MFA e ações de sessão
-│   ├── support/            # Canais oficiais de suporte e orientações de uso
 │   ├── cycles/             # Ciclos e máquina de estados do diagnóstico
+│   ├── dashboard/          # Painéis e métricas de leitura
 │   ├── evidences/          # Documentos, links e uploads pendentes
+│   ├── fami/               # Resultado FAMI e leituras congeladas
 │   ├── forms/              # Formulários, versões, respostas e atribuições
+│   ├── imports/            # Importações institucionais
 │   ├── improvement-management/
 │   │   ├── recommendations/
 │   │   ├── action-plans/
 │   │   └── monitoring/
+│   ├── library/            # Eixos, seções, critérios e recomendações-base
+│   ├── organizations/      # Órgãos e contas vinculadas
+│   ├── profile/            # Perfil do usuário autenticado
+│   ├── reports/            # Emissões oficiais e PDF
 │   ├── respondent-progress/# Leitura consolidada do progresso do respondente
+│   ├── support/            # Canais oficiais de suporte
 │   ├── validation/         # Formulário unificado e decisões de validação
-│   └── ...
+│   └── workbench/          # Preenchimento do diagnóstico pelo respondente
 ├── infrastructure/         # Supabase, Auth, HTTP, segurança e observabilidade
 ├── shared/                 # Domínio comum, utilitários e UI sem regra de feature
 └── test/                   # Setup e stubs compartilhados de teste
@@ -56,7 +64,7 @@ Regras obrigatórias:
 3. Features não importam `app`.
 4. Dependências entre features não podem formar ciclos.
 5. Qualquer contrato consumido por outra feature é exposto pela API pública
-   `index.ts` do domínio; imports profundos de pastas internas são proibidos.
+   `index.ts`, `ui.ts` ou `server.ts` do domínio; imports profundos de pastas internas são proibidos.
 6. Um caso de uso que coordena domínios independentes pertence a `application`.
 7. Arquivos `route.ts` apenas autenticam/orquestram o adaptador HTTP e delegam o
    caso de uso; regras extensas não permanecem na rota.
@@ -104,21 +112,21 @@ scripts/
 ├── bootstrap/       # Primeiro acesso e catálogos oficiais
 ├── database/        # Migrations, tipos, verificações e migração de projeto
 ├── imports/         # Cargas institucionais e históricas
-├── quality/         # Guardrails estáticos
-├── security/        # Procedimentos operacionais privilegiados e auditados
+├── maintenance/     # Operações administrativas excepcionais
+├── production/      # Deploy, smoke, backup e go-live
 ├── shared/          # Infraestrutura comum dos scripts
-└── testing/         # Preparação dos testes integrados
+├── testing/         # Preparação dos testes integrados
+└── verification/    # Gates estáticos de arquitetura, segurança e complexidade
 ```
 
 Dados históricos não fazem parte do pacote. Durante uma importação controlada,
 o manifesto é copiado temporariamente para `var/imports/`, ignorado pelo Git.
 
-## Inventário verificável em 4 de setembro de 2026
+## Inventário verificável em 16 de setembro de 2026
 
 - **57 páginas** do App Router.
 - **110 rotas de API**.
-- Vitest | **341 arquivos** em `src/`.
-- **4 testes Node.js** de scripts, executados fora do Vitest.
+- Vitest | **341 arquivos** em `src/` e **7** em `scripts/`.
 - **1 jornada Playwright canônica**.
 
 Os números devem ser atualizados quando a árvore mudar.

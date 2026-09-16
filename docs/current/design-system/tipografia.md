@@ -204,7 +204,7 @@ Ordem visual em `MetricCard`:
 
 A hierarquia visual deve refletir a arquitetura da informação sem criar novos níveis decorativos.
 
-- Contexto hierárquico: use `ContextTrail` para caminhos como **Diagnóstico → Eixo → Seção**.
+- Contexto hierárquico: a ordem **Diagnóstico → Eixo → Seção** deve aparecer no conteúdo da página (título, subtítulo ou sumário), sem um breadcrumb paralelo.
 - Identidade do eixo: use `AxisBadge`/`getAxisTheme`; não replique hexadecimal de Governança, Ambiental ou Social em features.
 - Abas locais: use `UnderlineTabs`; em telas estreitas o componente preserva uma única linha com rolagem horizontal.
 - Status: use `StatusPill` ou badges de domínio construídos sobre ele. Não crie spans locais equivalentes.

@@ -24,7 +24,6 @@ export default defineConfig({
       "node_modules/**",
       "dist/**",
       ".next/**",
-      // Usa node:test (npm run data:migration:test-source-guard), não Vitest.
     ],
     coverage: {
       provider: "v8",
