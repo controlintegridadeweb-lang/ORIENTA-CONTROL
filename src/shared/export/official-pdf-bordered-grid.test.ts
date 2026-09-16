@@ -23,12 +23,13 @@ async function createHost(): Promise<PdfGridHost & { pdf: PDFDocument }> {
     bold: await pdf.embedFont(StandardFonts.HelveticaBold),
     italic: await pdf.embedFont(StandardFonts.HelveticaOblique),
   };
+  const contentBottom = reportTheme.margin + reportTheme.footerH;
   return {
     pdf,
     fonts,
-    contentBottom: reportTheme.margin + reportTheme.footerH,
+    contentBottom,
     ensureSpace(cursor, needed) {
-      if (cursor.y - needed < this.contentBottom) {
+      if (cursor.y - needed < contentBottom) {
         const page = pdf.addPage([reportTheme.page.w, reportTheme.page.h]);
         return { page, y: reportTheme.page.h - reportTheme.margin };
       }
