@@ -1,21 +1,147 @@
+import type { RGB } from "pdf-lib";
 import { drawRoundedRect, drawVariableRoundedRect } from "@/shared/export/pdf-rounded-rect";
 import { latinPdfSafe } from "@/shared/export/text";
 import type { Cursor, PdfGridHost, ReportFonts } from "@/shared/export/official-pdf-types";
-import { contentWidth, reportTheme } from "@/shared/export/official-pdf-theme";
+import { contentWidth, reportAxisTheme, reportTheme } from "@/shared/export/official-pdf-theme";
 
-const PAD = 10;
+const GRID_RADIUS = 6;
+const OUTER_BORDER = 0.9;
+const INNER_BORDER = 0.45;
+const PAD_X = 10;
+const PAD_Y = 6;
+const MIN_H = 24;
 const LINE = 12;
-const MIN_H = 32;
-const SIZE = 8;
-const ASCENT = 6;
-const GRID_RADIUS = 0;
-const BORDER = 0.75;
+const GRID_PAGE_PAD = 14;
+
+export type GridCellTone = "header" | "subheader" | "label" | "value" | "notice";
+export type GridCellAlign = "left" | "center";
+
+export type GridPalette = {
+  headerBg: RGB;
+  headerFg: RGB;
+  subheaderBg: RGB;
+  subheaderFg: RGB;
+  labelBg: RGB;
+  border: RGB;
+  line: RGB;
+};
+
+export type GridDrawOptions = {
+  spans?: readonly number[];
+  palette?: GridPalette;
+};
 
 export type GridCell = {
   text: string;
   width: number;
   bold?: boolean;
+  tone?: GridCellTone;
+  align?: GridCellAlign;
 };
+
+export function defaultGridPalette(): GridPalette {
+  return {
+    headerBg: reportTheme.tableHeader,
+    headerFg: reportTheme.white,
+    subheaderBg: reportTheme.gridSubheaderBg,
+    subheaderFg: reportTheme.brandDark,
+    labelBg: reportTheme.gridLabelBg,
+    border: reportTheme.gridInk,
+    line: reportTheme.gridLine,
+  };
+}
+
+/** Paleta da grade institucional a partir da identidade visual do eixo. */
+export function gridPaletteForAxis(axisName: string): GridPalette {
+  const axis = reportAxisTheme(axisName);
+  return {
+    headerBg: axis.strong,
+    headerFg: reportTheme.white,
+    subheaderBg: axis.tint,
+    subheaderFg: axis.strong,
+    labelBg: axis.softBackground,
+    border: axis.border,
+    line: axis.tint,
+  };
+}
+
+type CellStyle = {
+  bg: RGB;
+  color: RGB;
+  size: number;
+  line: number;
+  bold: boolean;
+  italic: boolean;
+  align: GridCellAlign;
+  minH: number;
+  padX: number;
+  padY: number;
+};
+
+function resolveTone(cell: GridCell): GridCellTone {
+  if (cell.tone) return cell.tone;
+  return cell.bold ? "label" : "value";
+}
+
+function cellStyle(cell: GridCell, palette: GridPalette = defaultGridPalette()): CellStyle {
+  const tone = resolveTone(cell);
+  const align = cell.align ?? "left";
+  const box = { line: LINE, minH: MIN_H, padX: PAD_X, padY: PAD_Y, align };
+  switch (tone) {
+    case "header":
+      return {
+        ...box,
+        bg: palette.headerBg,
+        color: palette.headerFg,
+        size: 8,
+        bold: true,
+        italic: false,
+      };
+    case "subheader":
+      return {
+        ...box,
+        bg: palette.subheaderBg,
+        color: palette.subheaderFg,
+        size: 8,
+        bold: true,
+        italic: false,
+      };
+    case "label":
+      return {
+        ...box,
+        bg: palette.labelBg,
+        color: reportTheme.slate700,
+        size: 8,
+        bold: true,
+        italic: false,
+      };
+    case "notice":
+      return {
+        ...box,
+        bg: reportTheme.white,
+        color: reportTheme.slate600,
+        size: 8,
+        bold: false,
+        italic: true,
+      };
+    case "value":
+    default:
+      return {
+        ...box,
+        bg: reportTheme.white,
+        color: reportTheme.slate900,
+        size: 8,
+        bold: Boolean(cell.bold),
+        italic: false,
+      };
+  }
+}
+
+function cellFont(doc: PdfGridHost, style: CellStyle): ReportFonts["regular"] {
+  if (style.italic) return doc.fonts.italic;
+  if (style.bold) return doc.fonts.bold;
+  return doc.fonts.regular;
+}
 
 function wrapParagraph(
   font: ReportFonts["regular"],
@@ -74,14 +200,20 @@ function wrapLines(
   return lines.length > 0 ? lines : [""];
 }
 
+function wrappedLines(doc: PdfGridHost, cell: GridCell): string[] {
+  const style = cellStyle(cell);
+  const font = cellFont(doc, style);
+  return wrapLines(font, cell.text, style.size, Math.max(12, cell.width - style.padX * 2));
+}
+
 function rowHeight(doc: PdfGridHost, cells: GridCell[]): number {
-  let lines = 1;
+  let height = 0;
   for (const cell of cells) {
-    const font = cell.bold ? doc.fonts.bold : doc.fonts.regular;
-    const wrapped = wrapLines(font, cell.text, SIZE, Math.max(12, cell.width - PAD * 2));
-    lines = Math.max(lines, wrapped.length);
+    const style = cellStyle(cell);
+    const wrapped = wrappedLines(doc, cell);
+    height = Math.max(height, Math.max(style.minH, wrapped.length * style.line + style.padY * 2));
   }
-  return Math.max(MIN_H, lines * LINE + PAD * 2);
+  return height;
 }
 
 function drawCellText(
@@ -91,24 +223,48 @@ function drawCellText(
   x: number,
   top: number,
   height: number,
+  palette: GridPalette,
 ): void {
-  const font = cell.bold ? doc.fonts.bold : doc.fonts.regular;
-  const maxW = Math.max(12, cell.width - PAD * 2);
-  const lines = wrapLines(font, cell.text, SIZE, maxW);
-  const blockH = (lines.length - 1) * LINE + ASCENT;
-  let y = top - (height - blockH) / 2 - ASCENT;
+  const style = cellStyle(cell, palette);
+  const font = cellFont(doc, style);
+  const maxW = Math.max(12, cell.width - style.padX * 2);
+  const lines = wrapLines(font, cell.text, style.size, maxW);
+  const ascent = style.size * 0.72;
+  const blockH = (lines.length - 1) * style.line + ascent;
+  let y = top - (height - blockH) / 2 - ascent;
+
   for (const line of lines) {
-    const lineW = font.widthOfTextAtSize(line, SIZE);
+    const lineW = font.widthOfTextAtSize(line, style.size);
+    const textX =
+      style.align === "center" ? x + (cell.width - lineW) / 2 : x + style.padX;
     page.drawText(line, {
-      x: x + (cell.width - lineW) / 2,
+      x: textX,
       y,
-      size: SIZE,
+      size: style.size,
       font,
-      color: reportTheme.slate900,
+      color: style.color,
       maxWidth: maxW,
     });
-    y -= LINE;
+    y -= style.line;
   }
+}
+
+function cornerRadii(
+  rowIndex: number,
+  rowCount: number,
+  cellIndex: number,
+  cellCount: number,
+): { tl: number; tr: number; br: number; bl: number } {
+  const firstRow = rowIndex === 0;
+  const lastRow = rowIndex === rowCount - 1;
+  const firstCell = cellIndex === 0;
+  const lastCell = cellIndex === cellCount - 1;
+  return {
+    tl: firstRow && firstCell ? GRID_RADIUS : 0,
+    tr: firstRow && lastCell ? GRID_RADIUS : 0,
+    br: lastRow && lastCell ? GRID_RADIUS : 0,
+    bl: lastRow && firstCell ? GRID_RADIUS : 0,
+  };
 }
 
 function drawCellBackground(
@@ -117,7 +273,7 @@ function drawCellBackground(
   bottom: number,
   width: number,
   height: number,
-  color: typeof reportTheme.white,
+  color: RGB,
   radii: { tl: number; tr: number; br: number; bl: number },
 ): void {
   const hasRadius = radii.tl + radii.tr + radii.br + radii.bl > 0;
@@ -139,29 +295,32 @@ function drawGridLine(
   page: Cursor["page"],
   start: { x: number; y: number },
   end: { x: number; y: number },
+  color: RGB,
 ): void {
   page.drawLine({
     start,
     end,
-    thickness: BORDER,
-    color: reportTheme.gridInk,
+    thickness: INNER_BORDER,
+    color,
   });
 }
 
-/** Bloco de grade com borda externa retangular e linhas internas. */
+/** Bloco de grade com cantos suaves, cabeçalho em destaque e texto alinhado à leitura. */
 export function drawGridBlock(
   doc: PdfGridHost,
   cursor: Cursor,
   rows: GridCell[][],
+  options?: Pick<GridDrawOptions, "palette">,
 ): Cursor {
   if (rows.length === 0) return cursor;
 
+  const palette = options?.palette ?? defaultGridPalette();
   const heights = rows.map((cells) => rowHeight(doc, cells));
   const totalH = heights.reduce((sum, height) => sum + height, 0);
   const w = contentWidth();
   const x0 = reportTheme.margin;
 
-  const cur = doc.ensureSpace(cursor, totalH + 14);
+  const cur = doc.ensureSpace(cursor, totalH + GRID_PAGE_PAD);
   const blockTop = cur.y;
   const blockBottom = blockTop - totalH;
 
@@ -174,15 +333,19 @@ export function drawGridBlock(
     rowBounds.push({ top: yTop, bottom, cells });
 
     let x = x0;
-    for (const cell of cells) {
-      const bg = cell.bold ? reportTheme.gridLabelBg : reportTheme.white;
-      drawCellBackground(cur.page, x, bottom, cell.width, height, bg, {
-        tl: 0,
-        tr: 0,
-        bl: 0,
-        br: 0,
-      });
-      drawCellText(doc, cur.page, cell, x, yTop, height);
+    for (let cellIndex = 0; cellIndex < cells.length; cellIndex += 1) {
+      const cell = cells[cellIndex]!;
+      const style = cellStyle(cell, palette);
+      drawCellBackground(
+        cur.page,
+        x,
+        bottom,
+        cell.width,
+        height,
+        style.bg,
+        cornerRadii(rowIndex, rows.length, cellIndex, cells.length),
+      );
+      drawCellText(doc, cur.page, cell, x, yTop, height, palette);
       x += cell.width;
     }
 
@@ -197,6 +360,7 @@ export function drawGridBlock(
         cur.page,
         { x: x0, y: bottom },
         { x: x0 + w, y: bottom },
+        palette.line,
       );
     }
 
@@ -207,6 +371,7 @@ export function drawGridBlock(
         cur.page,
         { x, y: bottom },
         { x, y: top },
+        palette.line,
       );
     }
   }
@@ -217,48 +382,136 @@ export function drawGridBlock(
     width: w,
     height: totalH,
     radius: GRID_RADIUS,
-    borderColor: reportTheme.gridInk,
-    borderWidth: BORDER,
+    borderColor: palette.border,
+    borderWidth: OUTER_BORDER,
   });
 
   return { ...cur, y: blockBottom - 12 };
 }
 
-/** Quebra grades longas em blocos que cabem acima da área reservada ao rodapé. */
+export type GridPageBatch = {
+  start: number;
+  end: number;
+  newPageBefore: boolean;
+};
+
+function resolveGridSpans(rowCount: number, spans?: readonly number[]): number[] {
+  if (rowCount <= 0) return [];
+  if (!spans || spans.length === 0) return [rowCount];
+  const valid =
+    spans.every((span) => span > 0) && spans.reduce((sum, span) => sum + span, 0) === rowCount;
+  return valid ? [...spans] : [rowCount];
+}
+
+/**
+ * Agrupa linhas para cada bloco desenhado, sem deixar sobras de uma ação
+ * virarem tabelas soltas no rodapé ou na página seguinte.
+ */
+export function planGridPageBatches(
+  heights: readonly number[],
+  spans: readonly number[],
+  firstAvailable: number,
+  pageAvailable: number,
+): GridPageBatch[] {
+  const groups: Array<{ start: number; end: number; height: number }> = [];
+  let offset = 0;
+  for (const span of resolveGridSpans(heights.length, spans)) {
+    const end = offset + span;
+    const height = heights.slice(offset, end).reduce((sum, value) => sum + value, 0);
+    groups.push({ start: offset, end, height });
+    offset = end;
+  }
+
+  const batches: GridPageBatch[] = [];
+  let remaining = firstAvailable;
+  let batchStart = -1;
+  let batchEnd = -1;
+  let newPageBefore = false;
+
+  const commit = () => {
+    if (batchStart < 0) return;
+    batches.push({ start: batchStart, end: batchEnd, newPageBefore });
+    batchStart = -1;
+    batchEnd = -1;
+    newPageBefore = false;
+  };
+
+  const append = (start: number, end: number) => {
+    if (batchStart < 0) batchStart = start;
+    batchEnd = end;
+  };
+
+  const startNewPage = () => {
+    commit();
+    newPageBefore = true;
+    remaining = pageAvailable;
+  };
+
+  for (const group of groups) {
+    if (group.height > remaining) {
+      const onFreshPage = batchStart < 0 && remaining >= pageAvailable - 0.5;
+      if (!onFreshPage) startNewPage();
+    }
+
+    if (group.height <= remaining) {
+      append(group.start, group.end);
+      remaining -= group.height;
+      continue;
+    }
+
+    for (let row = group.start; row < group.end; row += 1) {
+      const height = heights[row]!;
+      if (batchStart >= 0 && height > remaining) startNewPage();
+      append(row, row + 1);
+      remaining = Math.max(0, remaining - height);
+    }
+  }
+  commit();
+  return batches;
+}
+
+function isGridPageTop(cursor: Cursor): boolean {
+  return cursor.y >= reportTheme.page.h - reportTheme.margin - 0.5;
+}
+
+function gridAvailableHeight(doc: PdfGridHost, cursor: Cursor): number {
+  return cursor.y - doc.contentBottom - GRID_PAGE_PAD;
+}
+
+function gridPageCapacity(doc: PdfGridHost): number {
+  return reportTheme.page.h - reportTheme.margin - doc.contentBottom - GRID_PAGE_PAD;
+}
+
+/** Quebra a grade só entre grupos que cabem juntos; não solta linhas de uma ação. */
 export function drawGridBlockPaginated(
   doc: PdfGridHost,
   cursor: Cursor,
   rows: GridCell[][],
+  options?: GridDrawOptions,
 ): Cursor {
   if (rows.length === 0) return cursor;
 
   const heights = rows.map((cells) => rowHeight(doc, cells));
+  const batches = planGridPageBatches(
+    heights,
+    resolveGridSpans(rows.length, options?.spans),
+    Math.max(0, gridAvailableHeight(doc, cursor)),
+    Math.max(0, gridPageCapacity(doc)),
+  );
+
   let cur = cursor;
-  let index = 0;
-
-  while (index < rows.length) {
-    let batchHeight = 0;
-    let batchEnd = index;
-
-    while (batchEnd < rows.length) {
-      const nextHeight = heights[batchEnd]!;
-      const totalIfAdded = batchHeight + nextHeight;
-      const available = cur.y - doc.contentBottom - 14;
-
-      if (batchEnd > index && totalIfAdded > available) break;
-
-      batchHeight = totalIfAdded;
-      batchEnd += 1;
+  for (const batch of batches) {
+    if (batch.newPageBefore && !isGridPageTop(cur)) {
+      cur = doc.ensureSpace(cur, gridAvailableHeight(doc, cur) + 1);
     }
-
-    cur = drawGridBlock(doc, cur, rows.slice(index, batchEnd));
-    index = batchEnd;
+    cur = drawGridBlock(doc, cur, rows.slice(batch.start, batch.end), {
+      palette: options?.palette,
+    });
   }
-
   return cur;
 }
 
-/** Linha de grade com borda preta e texto centralizado (modelo de referência). */
+/** Linha de grade institucional (mesmo bloco visual das tabelas de critério). */
 export function drawGridRow(
   doc: PdfGridHost,
   cursor: Cursor,
@@ -267,26 +520,51 @@ export function drawGridRow(
   return drawGridBlock(doc, cursor, [cells]);
 }
 
+export function gridColumnWidth(span: 1 | 2 | 3 | 4 = 1): number {
+  return (contentWidth() / 4) * span;
+}
+
 export function headerRowCells(title: string): GridCell[] {
-  return [{ text: title, width: contentWidth(), bold: true }];
+  return [{ text: title, width: contentWidth(), bold: true, tone: "header", align: "left" }];
+}
+
+export function subheaderRowCells(title: string): GridCell[] {
+  return [
+    { text: title, width: contentWidth(), bold: true, tone: "subheader", align: "left" },
+  ];
+}
+
+export function headerValueRowCells(label: string, value: string): GridCell[] {
+  const col = gridColumnWidth();
+  return [
+    { text: label, width: col, bold: true, tone: "header", align: "left" },
+    { text: value, width: gridColumnWidth(3), tone: "value", align: "left" },
+  ];
+}
+
+export function noticeRowCells(text: string): GridCell[] {
+  const col = gridColumnWidth();
+  return [
+    { text: "", width: col, bold: true, tone: "label", align: "left" },
+    { text, width: gridColumnWidth(3), tone: "notice", align: "left" },
+  ];
 }
 
 export function labelValueRowCells(label: string, value: string): GridCell[] {
-  const w = contentWidth();
-  const labelW = w * 0.25;
+  const col = gridColumnWidth();
   return [
-    { text: label, width: labelW, bold: true },
-    { text: value, width: w - labelW },
+    { text: label, width: col, bold: true, tone: "label", align: "left" },
+    { text: value, width: gridColumnWidth(3), tone: "value", align: "left" },
   ];
 }
 
 export function quadRowCells(a: string, b: string, c: string, d: string): GridCell[] {
-  const q = contentWidth() / 4;
+  const col = gridColumnWidth();
   return [
-    { text: a, width: q, bold: true },
-    { text: b, width: q },
-    { text: c, width: q, bold: true },
-    { text: d, width: q },
+    { text: a, width: col, bold: true, tone: "label", align: "left" },
+    { text: b, width: col, tone: "value", align: "left" },
+    { text: c, width: col, bold: true, tone: "label", align: "left" },
+    { text: d, width: col, tone: "value", align: "left" },
   ];
 }
 

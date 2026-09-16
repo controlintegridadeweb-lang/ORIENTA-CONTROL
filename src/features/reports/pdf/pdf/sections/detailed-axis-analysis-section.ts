@@ -7,20 +7,25 @@ import type {
 } from "@/features/reports/pdf/report-types";
 import {
   prepareDetailedAnalysis,
+  REPORT_EMPTY_ACTION_DOCUMENTS,
   REPORT_EMPTY_RECOMMENDATION_ACTIONS,
   REPORT_EMPTY_SECTION_RECOMMENDATIONS,
 } from "@/features/reports/pdf/prepare-detailed-analysis";
 import { latinPdfSafe } from "@/shared/export/text";
 import { formatReportPercentage, formatReportPoints } from "../formatters";
 import type { Cursor, OrientaPdfDocument } from "../document";
-import { contentWidth, reportTheme } from "../theme";
+import { contentWidth, reportAxisTheme, reportTheme } from "../theme";
 import { drawRoundedRectFill } from "../helpers";
 import {
-  drawGridBlock,
-  headerRowCells,
+  drawGridBlockPaginated,
+  gridPaletteForAxis,
+  headerValueRowCells,
   labelValueRowCells,
+  noticeRowCells,
   quadRowCells,
+  subheaderRowCells,
   type GridCell,
+  type GridPalette,
 } from "../primitives/bordered-grid";
 import { drawReportTable } from "../table";
 
@@ -41,6 +46,7 @@ function drawPlainHeading(
   doc: OrientaPdfDocument,
   cursor: Cursor,
   title: string,
+  color = reportTheme.slate900,
 ): Cursor {
   let cur = { ...cursor, y: cursor.y - 16 };
   cur = doc.ensureSpace(cur, 48);
@@ -49,7 +55,7 @@ function drawPlainHeading(
     y: cur.y,
     size: 13,
     font: doc.fonts.bold,
-    color: reportTheme.slate900,
+    color,
   });
   return { ...cur, y: cur.y - 20 };
 }
@@ -101,6 +107,7 @@ function renderSectionSummaryCard(
   doc: OrientaPdfDocument,
   cursor: Cursor,
   section: ReportSectionView,
+  palette: GridPalette,
 ): Cursor {
   const s = section.summary;
   const includeFami = doc.data.tracking == null;
@@ -115,7 +122,7 @@ function renderSectionSummaryCard(
     w,
     cardH,
     8,
-    reportTheme.sectionSummaryCard,
+    palette.labelBg,
   );
 
   const cols = includeFami
@@ -163,8 +170,45 @@ function latestUpdate(action: ReportActionView): string {
 }
 
 function documentsLabel(action: ReportActionView): string {
-  if (action.documents.length === 0) return "";
+  if (action.documents.length === 0) return REPORT_EMPTY_ACTION_DOCUMENTS;
   return action.documents.map((document) => document.line).join("\n");
+}
+
+function recommendationGridModel(
+  recommendation: ReportRecommendationView,
+  recIndex: number,
+): { rows: GridCell[][]; spans: number[] } {
+  const rows: GridCell[][] = [
+    labelValueRowCells("Critério", recommendation.originCriterion),
+    quadRowCells(
+      "Resposta",
+      dash(recommendation.answerLabel),
+      "Resultado da análise",
+      dash(recommendation.adminAnalysisLabel),
+    ),
+    labelValueRowCells("Fundamentação", dash(recommendation.reasonLabel)),
+    headerValueRowCells(`Recomendação ${recIndex + 1}`, recommendation.recommendationText),
+  ];
+  const spans = [rows.length];
+
+  if (recommendation.actions.length === 0) {
+    rows.push(
+      subheaderRowCells("Plano de integridade e compliance"),
+      noticeRowCells(REPORT_EMPTY_RECOMMENDATION_ACTIONS),
+    );
+    spans.push(2);
+    return { rows, spans };
+  }
+
+  for (const [actionIndex, action] of recommendation.actions.entries()) {
+    const actionRows = [
+      ...(actionIndex === 0 ? [subheaderRowCells("Plano de integridade e compliance")] : []),
+      ...actionGridRows(action, actionIndex),
+    ];
+    rows.push(...actionRows);
+    spans.push(actionRows.length);
+  }
+  return { rows, spans };
 }
 
 function actionGridRows(action: ReportActionView, index: number): GridCell[][] {
@@ -187,43 +231,16 @@ function actionGridRows(action: ReportActionView, index: number): GridCell[][] {
   ];
 }
 
-function recommendationGridRows(
-  recommendation: ReportRecommendationView,
-  recIndex: number,
-): GridCell[][] {
-  const rows: GridCell[][] = [
-    labelValueRowCells("Critério", recommendation.originCriterion),
-    quadRowCells(
-      "Resposta",
-      dash(recommendation.answerLabel),
-      "Resultado da análise",
-      dash(recommendation.adminAnalysisLabel),
-    ),
-    labelValueRowCells("Fundamentação", dash(recommendation.reasonLabel)),
-    headerRowCells(`Recomendação ${recIndex + 1}`),
-    [{ text: recommendation.recommendationText, width: contentWidth() }],
-    headerRowCells("Plano de integridade e compliance"),
-  ];
-
-  if (recommendation.actions.length === 0) {
-    rows.push(headerRowCells(REPORT_EMPTY_RECOMMENDATION_ACTIONS));
-    return rows;
-  }
-
-  for (const [actionIndex, action] of recommendation.actions.entries()) {
-    rows.push(...actionGridRows(action, actionIndex));
-  }
-  return rows;
-}
-
 function renderRecommendationGrid(
   doc: OrientaPdfDocument,
   cursor: Cursor,
   recommendation: ReportRecommendationView,
   recIndex: number,
+  palette: GridPalette,
 ): Cursor {
+  const { rows, spans } = recommendationGridModel(recommendation, recIndex);
   const cur = doc.ensureSpace(cursor, 80);
-  const next = drawGridBlock(doc, cur, recommendationGridRows(recommendation, recIndex));
+  const next = drawGridBlockPaginated(doc, cur, rows, { spans, palette });
   return { ...next, y: next.y - 16 };
 }
 
@@ -231,9 +248,10 @@ function renderSection(
   doc: OrientaPdfDocument,
   cursor: Cursor,
   section: ReportSectionView,
+  palette: GridPalette,
 ): Cursor {
   let cur = drawPlainHeading(doc, cursor, sectionAnalysisHeading(section));
-  cur = renderSectionSummaryCard(doc, cur, section);
+  cur = renderSectionSummaryCard(doc, cur, section, palette);
 
   if (section.recommendations.length === 0) {
     return doc.drawParagraph(cur, REPORT_EMPTY_SECTION_RECOMMENDATIONS, {
@@ -244,7 +262,7 @@ function renderSection(
   }
 
   section.recommendations.forEach((recommendation, index) => {
-    cur = renderRecommendationGrid(doc, cur, recommendation, index);
+    cur = renderRecommendationGrid(doc, cur, recommendation, index, palette);
   });
   return cur;
 }
@@ -255,13 +273,15 @@ function renderAxis(
   axis: ReportAxisView,
 ): Cursor {
   const heading = axisAnalysisHeading(axis);
+  const palette = gridPaletteForAxis(axis.title);
+  const axisColor = reportAxisTheme(axis.title).strong;
   doc.registerTocEntry(`axis-${axis.id}`, heading, 1);
-  let cur = drawPlainHeading(doc, cursor, heading);
+  let cur = drawPlainHeading(doc, cursor, heading, axisColor);
   cur = renderAxisSummary(doc, cur, axis);
   cur = { ...cur, y: cur.y - 8 };
 
   for (const section of axis.sections) {
-    cur = renderSection(doc, cur, section);
+    cur = renderSection(doc, cur, section, palette);
   }
   return cur;
 }

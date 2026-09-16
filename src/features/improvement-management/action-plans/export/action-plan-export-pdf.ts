@@ -10,9 +10,12 @@ import type {
 } from "@/features/improvement-management/recommendations/export/portfolio-export-types";
 import {
   drawGridBlock,
+  drawGridBlockPaginated,
+  gridPaletteForAxis,
   headerRowCells,
   labelValueRowCells,
   quadRowCells,
+  type GridPalette,
 } from "@/shared/export/official-pdf-bordered-grid";
 import {
   contentWidth,
@@ -314,6 +317,7 @@ function drawSummaryCard(
   doc: ActionPlanPdfDocument,
   cursor: Cursor,
   summary: ReturnType<typeof sectionActionSummary>,
+  palette: GridPalette,
 ): Cursor {
   const cardH = 64;
   const cur = doc.ensureSpace(cursor, cardH + 18);
@@ -326,7 +330,7 @@ function drawSummaryCard(
     w,
     cardH,
     8,
-    reportTheme.sectionSummaryCard,
+    palette.labelBg,
   );
 
   const cols = [
@@ -373,15 +377,21 @@ function drawRecommendationOrigin(
   cursor: Cursor,
   section: RecommendationPortfolioExportSectionView,
   recommendationIndex: number,
+  palette: GridPalette,
 ): Cursor {
   const recommendation = section.recommendations[recommendationIndex]!;
   const originLabel = `R${section.sectionDisplayNumber}.${recommendationIndex + 1}`;
-  const cur = drawGridBlock(doc, cursor, [
-    headerRowCells(`Recomendação de origem ${originLabel}`),
-    labelValueRowCells("Pergunta", recommendation.questionText),
-    labelValueRowCells("Recomendação", recommendation.recommendationText),
-    labelValueRowCells("Situação da recomendação", recommendation.recommendationStatus),
-  ]);
+  const cur = drawGridBlockPaginated(
+    doc,
+    cursor,
+    [
+      headerRowCells(`Recomendação de origem ${originLabel}`),
+      labelValueRowCells("Pergunta", recommendation.questionText),
+      labelValueRowCells("Recomendação", recommendation.recommendationText),
+      labelValueRowCells("Situação da recomendação", recommendation.recommendationStatus),
+    ],
+    { palette },
+  );
   return { ...cur, y: cur.y - 12 };
 }
 
@@ -391,15 +401,21 @@ function drawActionGrid(
   action: RecommendationPortfolioExportActionView,
   actionNumber: number,
   originLabel: string,
+  palette: GridPalette,
 ): Cursor {
-  const cur = drawGridBlock(doc, cursor, [
-    labelValueRowCells(`Ação ${actionNumber}`, action.title),
-    labelValueRowCells("Origem", originLabel),
-    quadRowCells("Prazo inicial", action.startDate, "Prazo final", action.endDate),
-    quadRowCells("Situação", action.status, "Progresso", action.progress),
-    labelValueRowCells("Responsável", action.responsible),
-    labelValueRowCells("Última atualização", action.updatedAt),
-  ]);
+  const cur = drawGridBlockPaginated(
+    doc,
+    cursor,
+    [
+      labelValueRowCells(`Ação ${actionNumber}`, action.title),
+      labelValueRowCells("Origem", originLabel),
+      quadRowCells("Prazo inicial", action.startDate, "Prazo final", action.endDate),
+      quadRowCells("Situação", action.status, "Progresso", action.progress),
+      labelValueRowCells("Responsável", action.responsible),
+      labelValueRowCells("Última atualização", action.updatedAt),
+    ],
+    { palette },
+  );
   return { ...cur, y: cur.y - 12 };
 }
 
@@ -407,17 +423,18 @@ function drawSection(
   doc: ActionPlanPdfDocument,
   cursor: Cursor,
   section: RecommendationPortfolioExportSectionView,
+  palette: GridPalette,
 ): Cursor {
   let cur = doc.drawPlainHeading(
     cursor,
     `Seção ${section.sectionDisplayNumber} - ${section.sectionName}`,
   );
   const summary = sectionActionSummary(section);
-  cur = drawSummaryCard(doc, cur, summary);
+  cur = drawSummaryCard(doc, cur, summary, palette);
 
   cur = doc.drawSubsectionTitle(cur, "Recomendações de origem");
   section.recommendations.forEach((_, index) => {
-    cur = drawRecommendationOrigin(doc, cur, section, index);
+    cur = drawRecommendationOrigin(doc, cur, section, index, palette);
   });
 
   cur = doc.drawSubsectionTitle(cur, "Plano de integridade e compliance da seção");
@@ -433,7 +450,7 @@ function drawSection(
     const originLabel = `R${section.sectionDisplayNumber}.${recommendationIndex + 1}`;
     for (const action of recommendation.actions) {
       actionNumber += 1;
-      cur = drawActionGrid(doc, cur, action, actionNumber, originLabel);
+      cur = drawActionGrid(doc, cur, action, actionNumber, originLabel, palette);
     }
   });
   return { ...cur, y: cur.y - 8 };
@@ -473,9 +490,10 @@ export async function generateActionPlanPdf(
     cur = drawContextBlock(doc, cur, context, issuedOnLabel);
 
     for (const axis of context.axes) {
+      const palette = gridPaletteForAxis(axis.axisName);
       cur = drawAxisBar(doc, cur, axis.axisName);
       for (const section of axis.sections) {
-        cur = drawSection(doc, cur, section);
+        cur = drawSection(doc, cur, section, palette);
       }
       cur = { ...cur, y: cur.y - 10 };
     }

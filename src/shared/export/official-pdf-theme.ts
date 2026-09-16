@@ -31,9 +31,14 @@ export const reportTheme = {
   tableStripe: rgb(250 / 255, 250 / 255, 250 / 255),
   /** Card de resumo da seção (referência “Pontuação do critério”). */
   sectionSummaryCard: rgb(234 / 255, 246 / 255, 249 / 255),
-  gridInk: rgb(0, 0, 0),
-  /** Fundo das células-rótulo (negrito) da grade de critério. */
+  /** Contorno externo da grade institucional. */
+  gridInk: rgb(168 / 255, 196 / 255, 194 / 255),
+  /** Linhas internas da grade. */
+  gridLine: rgb(226 / 255, 232 / 255, 240 / 255),
+  /** Fundo das células-rótulo. */
   gridLabelBg: rgb(238 / 255, 247 / 255, 251 / 255),
+  /** Fundo de subtítulo de bloco (plano, agrupadores). */
+  gridSubheaderBg: rgb(220 / 255, 240 / 255, 236 / 255),
   amber: rgb(0.75, 0.45, 0.1),
   amberBg: rgb(1, 0.97, 0.92),
   rose: rgb(0.78, 0.22, 0.28),
@@ -66,6 +71,7 @@ export function pdfRgbFromHex(hex: string): RGB {
 export function reportAxisTheme(axisName: string): {
   primary: RGB;
   strong: RGB;
+  tint: RGB;
   softBackground: RGB;
   border: RGB;
   text: RGB;
@@ -74,6 +80,7 @@ export function reportAxisTheme(axisName: string): {
   return {
     primary: pdfRgbFromHex(theme.primary),
     strong: pdfRgbFromHex(theme.strong),
+    tint: pdfRgbFromHex(theme.tint),
     softBackground: pdfRgbFromHex(theme.softBackground),
     border: pdfRgbFromHex(theme.border),
     text: pdfRgbFromHex(theme.text),
