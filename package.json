@@ -118,7 +118,7 @@
     "postcss": "8.5.26",
     "supabase": "^2.108.0",
     "tailwindcss": "^4",
-    "typescript": "^5",
+    "typescript": "^7",
     "vitest": "^4.1.4"
   },
   "packageManager": "npm@10.9.2"
