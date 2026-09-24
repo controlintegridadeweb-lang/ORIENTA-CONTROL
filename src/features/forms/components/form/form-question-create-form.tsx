@@ -6,7 +6,7 @@ import { formSurface } from "@/shared/layout/form-surface";
 import type { LibraryAxis, LibrarySection } from "@/features/library";
 import { FormAllowsNotApplicableField } from "./form-allows-not-applicable-field";
 import { FormEvidenceRequirementField } from "./form-evidence-requirement-field";
-import { sectionLabel } from "./form-questions-configurator-helpers";
+import { groupLibrarySectionsByAxis } from "./form-questions-configurator-helpers";
 
 export type NewFormQuestion = {
   prompt: string;
@@ -89,11 +89,17 @@ export function FormQuestionCreateForm({
                 ? "Nenhuma seção disponível"
                 : "Selecione a seção…"}
           </option>
-          {(catalog?.sections ?? []).map((section) => (
-            <option key={section.id} value={section.id}>
-              {sectionLabel(section, catalog?.axes ?? [])}
-            </option>
-          ))}
+          {groupLibrarySectionsByAxis(catalog?.sections ?? [], catalog?.axes ?? []).map(
+            (group) => (
+              <optgroup key={group.axisId} label={group.axisName}>
+                {group.sections.map((section) => (
+                  <option key={section.id} value={section.id}>
+                    {section.name}
+                  </option>
+                ))}
+              </optgroup>
+            ),
+          )}
         </select>
         <p className={formSurface.fieldHint}>
           A seção define o eixo ESG e é obrigatória para a publicação do formulário.

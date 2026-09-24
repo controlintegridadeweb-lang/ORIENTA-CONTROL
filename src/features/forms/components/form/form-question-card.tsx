@@ -14,7 +14,7 @@ import { typography } from "@/shared/layout/design-system";
 import { formSurface } from "@/shared/layout/form-surface";
 import {
   RECOMMENDATION_TEXT_MAX,
-  sectionLabel,
+  groupLibrarySectionsByAxis,
   type WaiversByQuestion,
 } from "./form-questions-configurator-helpers";
 
@@ -281,10 +281,17 @@ export function FormQuestionCard({
                     onChange={(e) => onSectionChange(e.target.value)}
                   >
                     <option value="">Selecione a seção…</option>
-                    {(catalog?.sections ?? []).map((section) => (
-                      <option key={section.id} value={section.id}>
-                        {sectionLabel(section, catalog?.axes ?? [])}
-                      </option>
+                    {groupLibrarySectionsByAxis(
+                      catalog?.sections ?? [],
+                      catalog?.axes ?? [],
+                    ).map((group) => (
+                      <optgroup key={group.axisId} label={group.axisName}>
+                        {group.sections.map((section) => (
+                          <option key={section.id} value={section.id}>
+                            {section.name}
+                          </option>
+                        ))}
+                      </optgroup>
                     ))}
                   </select>
                 </label>
