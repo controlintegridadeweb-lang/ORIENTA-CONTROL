@@ -15,4 +15,4 @@ export const SUPPORT_CHANNELS = {
 export const SUPPORT_PAGE_TITLE = "Suporte";
 
 export const SUPPORT_PAGE_DESCRIPTION =
-  "Fale com o Setor de Integridade por e-mail ou WhatsApp.";
+  "Fale com a Unidade de Integridade por e-mail ou WhatsApp.";

@@ -17,11 +17,11 @@ vi.mock("next/image", () => ({
 }));
 
 describe("InstitutionalFooter", () => {
-  it("identifica a CGE e o Setor de Integridade", () => {
+  it("identifica a CGE e a Unidade de Integridade", () => {
     render(<InstitutionalFooter />);
 
     const footer = screen.getByRole("contentinfo");
-    expect(footer.textContent).toContain("Setor de Integridade");
+    expect(footer.textContent).toContain("Unidade de Integridade");
     expect(footer.textContent).toContain(String(new Date().getFullYear()));
     expect(
       screen.getByRole("img", {

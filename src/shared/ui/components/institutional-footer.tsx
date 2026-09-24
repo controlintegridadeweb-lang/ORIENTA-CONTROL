@@ -9,7 +9,7 @@ const CGE_LOGO = {
 } as const;
 
 /**
- * Rodapé institucional da CGE/Setor de Integridade.
+ * Rodapé institucional da CGE/Unidade de Integridade.
  * Usado no login e na área autenticada (admin e respondente).
  */
 export function InstitutionalFooter() {
@@ -39,7 +39,7 @@ export function InstitutionalFooter() {
         <p className="min-w-0 text-left text-sm leading-snug text-white/80">
           &copy; {new Date().getFullYear()} Controladoria-Geral do Estado do Rio Grande do Norte
           {" · "}
-          Setor de Integridade
+          Unidade de Integridade
         </p>
       </div>
     </footer>
