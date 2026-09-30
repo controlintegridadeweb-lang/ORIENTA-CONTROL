@@ -66,6 +66,26 @@ export function createSupabaseUserClient(accessToken: string) {
   });
 }
 
+/**
+ * Cliente de autenticação isolado da sessão do navegador.
+ * Usado para conferir a senha atual sem gravar cookies nem rebaixar o AAL2.
+ */
+export function createSupabaseEphemeralAuthClient() {
+  const url = requireEnv("NEXT_PUBLIC_SUPABASE_URL");
+  const anonKey = requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+
+  return createClient(url, anonKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false,
+    },
+    global: {
+      fetch: fetchWithoutStaleKeepAlive,
+    },
+  });
+}
+
 // Tipo canônico do cliente Supabase usado pelos serviços da aplicação.
 import type { SupabaseClient } from "@supabase/supabase-js";
 export type TypedSupabaseClient = SupabaseClient<Database>;

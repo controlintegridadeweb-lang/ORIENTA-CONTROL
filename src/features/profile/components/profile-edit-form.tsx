@@ -2,20 +2,17 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { z } from "zod";
 import { Building2, CheckCircle2, Mail } from "lucide-react";
 import { LoadingButton } from "@/shared/ui/components/loading";
 import { PanelSection } from "@/shared/ui/components/panel-section";
 import { ProfileContentLayout } from "@/features/profile/components/profile-content-layout";
 import { parseJson } from "@/infrastructure/api/fetch-client";
-import { createSupabaseBrowserClient } from "@/infrastructure/supabase/browser";
 import type { CurrentUser } from "@/infrastructure/auth/current-user";
 import { MIN_PASSWORD_LENGTH, validatePassword } from "@/infrastructure/auth/password-policy";
 import { typography } from "@/shared/layout/design-system";
 import { formSurface } from "@/shared/layout/form-surface";
-
-type BrowserClient = ReturnType<typeof createSupabaseBrowserClient>;
 
 const profileUpdateResponseSchema = z.object({
   error: z.unknown().optional(),
@@ -23,6 +20,11 @@ const profileUpdateResponseSchema = z.object({
     fullName: z.string().nullable(),
     preferences: z.record(z.string(), z.unknown()).optional(),
   }).optional(),
+}).passthrough();
+
+const passwordChangeResponseSchema = z.object({
+  ok: z.boolean().optional(),
+  error: z.string().optional(),
 }).passthrough();
 
 function FieldAlert({
@@ -74,15 +76,6 @@ function ReadOnlyFact({
 
 export function ProfileEditForm({ user }: { user: CurrentUser }) {
   const router = useRouter();
-  // Client criado preguiçosamente (browser-only): evita instanciar durante o
-  // render no servidor/prerender, onde as envs públicas não existem.
-  const supabaseRef = useRef<BrowserClient | null>(null);
-  function getSupabase(): BrowserClient {
-    if (!supabaseRef.current) {
-      supabaseRef.current = createSupabaseBrowserClient();
-    }
-    return supabaseRef.current;
-  }
   const [fullName, setFullName] = useState(user.fullName ?? "");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [saving, setSaving] = useState(false);
@@ -163,22 +156,40 @@ export function ProfileEditForm({ user }: { user: CurrentUser }) {
     }
 
     setSavingPassword(true);
-    const { error: signInError } = await getSupabase().auth.signInWithPassword({
-      email,
-      password: currentPassword,
-    });
-    if (signInError) {
+    let res: Response;
+    try {
+      res = await fetch("/api/profile/password", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+    } catch {
       setSavingPassword(false);
-      setPasswordMessage({ type: "error", text: "Senha atual incorreta." });
-      return;
-    }
-
-    const { error: updateError } = await getSupabase().auth.updateUser({ password: newPassword });
-    setSavingPassword(false);
-    if (updateError) {
       setPasswordMessage({
         type: "error",
         text: "Não foi possível atualizar a senha. Tente de novo.",
+      });
+      return;
+    }
+
+    let data: z.infer<typeof passwordChangeResponseSchema>;
+    try {
+      data = await parseJson(res, passwordChangeResponseSchema);
+    } catch {
+      setSavingPassword(false);
+      setPasswordMessage({
+        type: "error",
+        text: "O servidor retornou uma resposta inválida. Tente novamente.",
+      });
+      return;
+    }
+
+    setSavingPassword(false);
+    if (!res.ok) {
+      setPasswordMessage({
+        type: "error",
+        text: data.error ?? "Não foi possível atualizar a senha. Tente de novo.",
       });
       return;
     }
