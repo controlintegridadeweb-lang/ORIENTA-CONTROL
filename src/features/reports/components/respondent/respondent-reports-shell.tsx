@@ -89,8 +89,8 @@ export function RespondentReportsShell() {
 
       <section className={layout.panelStack}>
         <PanelSection
-          title={reportCatalogLabels.historyTitle}
-          description={reportCatalogLabels.historyDescription}
+          title={reportCatalogLabels.monitoringHistoryTitle}
+          description={reportCatalogLabels.monitoringHistoryDescription}
           variant="plain"
           id="relatorios-historico"
           contentClassName="space-y-4"
@@ -138,7 +138,7 @@ export function RespondentReportsShell() {
             )}
 
             {total > pageSize ? (
-              <nav className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4" aria-label="Paginação do histórico de relatórios">
+              <nav className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4" aria-label="Paginação dos relatórios de monitoramento">
                 <p className="text-xs text-slate-500">
                   Exibindo {Math.min(offset + 1, total)}–{Math.min(offset + pageSize, total)} de {total} emissões
                 </p>

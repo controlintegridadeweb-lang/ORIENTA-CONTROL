@@ -8,6 +8,10 @@ import { useDebounce } from "@/shared/hooks/use-debounce";
 import { usePagination } from "@/shared/hooks/use-pagination";
 import { describeError, notify } from "@/infrastructure/notifications/notify";
 import type { RespondentRecommendationItem } from "@/features/improvement-management/recommendations/respondent-presentation";
+import {
+  downloadIntegrityPlanDepartureReport,
+  type IntegrityPlanReportFormat,
+} from "@/features/improvement-management/action-plans/export/integrity-plan-departure-client";
 import { downloadRespondentPortfolioExport } from "@/features/improvement-management/recommendations/export/portfolio-export-client";
 import type { RecommendationPortfolioExportFormat } from "@/features/improvement-management/recommendations/export/portfolio-export-types";
 import { Pagination } from "@/shared/ui/components/pagination";
@@ -29,11 +33,7 @@ import {
 } from "./respondent-recommendation-summary-cards";
 import { RespondentRecommendationsHero } from "./respondent-recommendations-hero";
 import { RESPONDENT_PAGE_HERO_BLEED } from "@/shared/layout/respondent-page-layout";
-import {
-  RESPONDENT_ACTION_PLAN_LIST_PATH,
-  respondentActionWorkspacePath,
-} from "@/shared/navigation/respondent-portfolio-paths";
-import { respondentBimonthlyReportsPath } from "@/shared/navigation/report-paths";
+import { respondentActionWorkspacePath } from "@/shared/navigation/respondent-portfolio-paths";
 import {
   respondentRecommendationPage,
   respondentRecommendationListPath,
@@ -42,11 +42,7 @@ import {
   type RespondentRecommendationListView,
 } from "@/shared/navigation/respondent-navigation-context";
 
-import { UnderlineTabs } from "@/shared/ui/components/underline-tabs";
-import {
-  RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL,
-  RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL,
-} from "@/shared/navigation/respondent-portfolio-paths";
+import { RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL } from "@/shared/navigation/respondent-portfolio-paths";
 import { isInvalidUuidParam, parseUuidParam, uuidParamOrEmpty } from "@/shared/validation/uuid";
 import {
   buildSectionActionPlanHierarchy,
@@ -80,18 +76,6 @@ function normalizeFilterForView(
   filter: RespondentRecommendationFilterValue,
 ): RespondentRecommendationFilterValue {
   return view === "action-plan" ? { ...filter, withPlan: "with" } : filter;
-}
-
-function filterForViewSwitch(
-  view: RespondentRecommendationListView,
-  filter: RespondentRecommendationFilterValue,
-): RespondentRecommendationFilterValue {
-  return normalizeFilterForView(view, {
-    ...filter,
-    status: "",
-    pendingOnly: false,
-    withPlan: view === "action-plan" ? "with" : "all",
-  });
 }
 
 function filterFromSearchParams(
@@ -280,15 +264,6 @@ export function RespondentRecommendationsShell() {
     () => respondentRecommendationListPath(view, toNavigationFilter(filter, pagination.page)),
     [filter, pagination.page, view],
   );
-  const analysisTabPath = useMemo(
-    () =>
-      respondentRecommendationListPath(
-        "analysis",
-        toNavigationFilter(filterForViewSwitch("analysis", filter)),
-      ),
-    [filter],
-  );
-  const actionPlanTabPath = RESPONDENT_ACTION_PLAN_LIST_PATH;
 
   useEffect(() => {
     const nextFilter = filterFromSearchParams(view, searchParams);
@@ -324,7 +299,7 @@ export function RespondentRecommendationsShell() {
   }, [router, searchParams, view]);
 
   // URL ← estado só em handlers (updateFilter / clear / summary). Um efeito
-  // contínuo state→URL reescrevia filtros antigos na troca de aba e fazia a
+  // contínuo state→URL reescrevia filtros antigos ao trocar de visão e fazia a
   // tela alternar sozinha.
 
   const updateFilter = useCallback(
@@ -387,6 +362,19 @@ export function RespondentRecommendationsShell() {
     );
   }
 
+  async function handleIntegrityPlanExport(format: IntegrityPlanReportFormat) {
+    const withActions = filteredRows.filter((item) => item.plans.length > 0);
+    if (withActions.length === 0) {
+      notify.info("Nenhuma ação cadastrada para exportar a partida do plano.");
+      return;
+    }
+    await notify.promise(downloadIntegrityPlanDepartureReport(withActions, format), {
+      loading: "Gerando o relatório do plano de integridade e compliance...",
+      success: "Exportação iniciada.",
+      error: (error) => describeError(error, "Falha ao exportar."),
+    });
+  }
+
   const hasActiveFilters =
     Boolean(filter.search.trim()) ||
     Boolean(filter.status) ||
@@ -422,23 +410,6 @@ export function RespondentRecommendationsShell() {
     ? "A estrutura parte do diagnóstico e avança por eixo, seção, plano da seção e ações, mantendo as recomendações como referência para identificar a origem de cada ação."
     : "Apresentadas na mesma sequência do diagnóstico, por eixo, seção e recomendação.";
 
-  const workspaceTabs = useMemo(
-    () => [
-      {
-        href: analysisTabPath,
-        label: RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL,
-        active: !actionPlanView,
-      },
-      {
-        href: actionPlanTabPath,
-        label: RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL,
-        title: "Planos de integridade e compliance agrupados por eixo e seção",
-        active: actionPlanView,
-      },
-    ],
-    [actionPlanView, analysisTabPath],
-  );
-
   return (
     <div className={layout.pageStack}>
       <div className={RESPONDENT_PAGE_HERO_BLEED}>
@@ -447,20 +418,10 @@ export function RespondentRecommendationsShell() {
           onRefresh={handleRefresh}
           refreshing={loading}
           onExport={actionPlanView ? undefined : handleExport}
+          onExportIntegrityPlan={actionPlanView ? handleIntegrityPlanExport : undefined}
           exportDisabled={filteredRows.length === 0}
-          catalogHref={
-            actionPlanView
-              ? respondentBimonthlyReportsPath({ cycleId: filter.cycleId || undefined })
-              : undefined
-          }
+          integrityExportDisabled={!filteredRows.some((item) => item.plans.length > 0)}
         />
-        <div className="-mt-px overflow-hidden rounded-b-2xl border border-slate-200/90 bg-white shadow-sm">
-          <UnderlineTabs
-            embedded
-            aria-label="Visões do workspace de recomendações"
-            tabs={workspaceTabs}
-          />
-        </div>
       </div>
 
       <section className={`${layout.panelStack} pt-4`}>

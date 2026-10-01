@@ -24,6 +24,9 @@ export type ActionPlanExportHeader = (typeof ACTION_PLAN_EXPORT_HEADERS)[number]
 
 export type ActionPlanExportFormat = "xlsx" | "pdf";
 
+/** `departure` é a partida do diagnóstico; `live` é a leitura corrente usada na supervisão. */
+export type ActionPlanExportVariant = "live" | "departure";
+
 /**
  * Camada única de dados da exportação do plano de integridade e compliance.
  * Excel e PDF consomem a mesma estrutura; só a apresentação muda.
@@ -33,4 +36,5 @@ export type ActionPlanExportData = {
   rows: RecommendationPortfolioExportRow[];
   document: RecommendationPortfolioExportDocument;
   issuedOn: string;
+  variant?: ActionPlanExportVariant;
 };

@@ -5,8 +5,11 @@ import { AdminMonitoringService } from "@/features/improvement-management/monito
 import { actionPlansCsv } from "@/features/improvement-management/monitoring/csv";
 import {
   generateActionPlanExcel,
+  generateActionPlanPdf,
+  generateIntegrityPlanDepartureExcel,
   getActionPlanExportData,
   toActionPlanExportSourceFromAdmin,
+  toDepartureActionPlanSourceFromAdmin,
   type ActionPlanExportFormat,
 } from "@/features/improvement-management/action-plans/export";
 import {
@@ -36,6 +39,42 @@ export const GET = withRoute(
     const result = await new AdminMonitoringService().listActionPlans(query);
     if (query.export === "true") {
       const format = parseExportFormat(query.format);
+
+      if (query.snapshot === "departure" && (format === "pdf" || format === "xlsx")) {
+        const data = {
+          ...getActionPlanExportData(
+            result.items
+              .map(toDepartureActionPlanSourceFromAdmin)
+              .filter((source) => source != null),
+          ),
+          variant: "departure" as const,
+        };
+        if (data.rows.length === 0) {
+          return NextResponse.json(
+            { error: "Nenhuma ação cadastrada para exportar a partida do plano." },
+            { status: 409 },
+          );
+        }
+        if (format === "pdf") {
+          const file = await generateActionPlanPdf(data);
+          return new NextResponse(Buffer.from(file.content), {
+            headers: {
+              "Content-Type": "application/pdf",
+              "Content-Disposition": `attachment; filename="${file.filename}"`,
+              "Cache-Control": "no-store",
+            },
+          });
+        }
+        const file = await generateIntegrityPlanDepartureExcel(data);
+        return new NextResponse(new Uint8Array(file.content), {
+          headers: {
+            "Content-Type":
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "Content-Disposition": `attachment; filename="${file.filename}"`,
+            "Cache-Control": "no-store",
+          },
+        });
+      }
 
       if (format === "xlsx") {
         const data = getActionPlanExportData(

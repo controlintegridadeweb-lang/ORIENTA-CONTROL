@@ -15,6 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import type { AppRole } from "@/shared/domain/app-role";
+import { reportCatalogLabels } from "@/shared/labels/official-labels";
 import {
   RESPONDENT_ACTION_PLAN_LIST_PATH,
   RESPONDENT_ACTION_PLAN_MODULE_LABEL,
@@ -57,7 +58,7 @@ const ADMIN_NAV: NavItem[] = [
   { href: "/admin/maturidade", label: "Resultado FAMI", icon: Gauge, group: "analise" },
   { href: "/admin/recomendacoes", label: "Recomendações", icon: Lightbulb, group: "analise" },
   { href: "/admin/plano-acao", label: "Plano de integridade e compliance", icon: ListChecks, group: "analise" },
-  { href: "/admin/relatorios", label: "Relatórios", icon: FileBarChart, group: "analise" },
+  { href: "/admin/relatorios", label: reportCatalogLabels.monitoringNav, icon: FileBarChart, group: "analise" },
   { href: "/admin/organizacoes", label: "Organizações", icon: Building2, group: "sistema" },
   { href: "/admin/usuarios", label: "Usuários", icon: Users, group: "sistema" },
   { href: "/admin/perfil", label: "Meu Perfil", icon: User, group: "sistema" },
@@ -88,7 +89,7 @@ export const navigationByRole: Record<AppRole, NavItem[]> = {
       icon: ListChecks,
       group: "principal",
     },
-    { href: "/respondente/relatorios", label: "Relatórios e Histórico", icon: FileBarChart, group: "principal" },
+    { href: "/respondente/relatorios", label: reportCatalogLabels.monitoringNav, icon: FileBarChart, group: "principal" },
     { href: "/respondente/perfil", label: "Meu Perfil", icon: User, group: "sistema" },
     { href: "/respondente/suporte", label: "Suporte", icon: LifeBuoy, group: "sistema" },
   ],

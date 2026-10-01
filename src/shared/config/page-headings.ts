@@ -1,7 +1,7 @@
 /**
  * Titulos e subtitulos do cabeçalho principal por rota (prefixo mais longo vence).
  */
-import { evidenceLabels } from "@/shared/labels/official-labels";
+import { evidenceLabels, reportCatalogLabels } from "@/shared/labels/official-labels";
 import { SUPPORT_PAGE_DESCRIPTION, SUPPORT_PAGE_TITLE } from "@/shared/config/support-contacts";
 
 export type PageHeading = {
@@ -93,9 +93,8 @@ const ADMIN_HEADINGS: RouteHeading[] = [
   },
   {
     prefix: "/admin/relatorios",
-    title: "Relatórios",
-    description:
-      "Relatório anual dos diagnósticos concluídos e relatórios bimestrais gerados do plano de integridade e compliance.",
+    title: reportCatalogLabels.monitoringNav,
+    description: reportCatalogLabels.monitoringAdminPageDescription,
     shellHeaderMode: "controls-only",
   },
   {
@@ -143,9 +142,8 @@ const RESPONDENT_HEADINGS: RouteHeading[] = [
   },
   {
     prefix: "/respondente/relatorios",
-    title: "Relatórios e Histórico",
-    description:
-      "Relatórios anuais do diagnóstico e relatórios bimestrais já gerados, com download e visualização do PDF.",
+    title: reportCatalogLabels.monitoringNav,
+    description: reportCatalogLabels.monitoringPageDescription,
     shellHeaderMode: "controls-only",
   },
   {

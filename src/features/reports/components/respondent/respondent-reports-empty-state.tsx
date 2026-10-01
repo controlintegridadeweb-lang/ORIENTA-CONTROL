@@ -10,8 +10,8 @@ type Variant = "no-reports" | "no-filter-results";
 
 function emptyBody(kind: "" | ReportCatalogKind): string {
   if (kind === "annual") return reportCatalogLabels.emptyAnnualDescription;
-  if (kind === "bimonthly") return reportCatalogLabels.emptyBimonthlyDescription;
-  return reportCatalogLabels.emptyDescription;
+  if (kind === "bimonthly") return reportCatalogLabels.monitoringEmptyBimonthlyDescription;
+  return reportCatalogLabels.monitoringEmptyDescription;
 }
 
 type Props = {

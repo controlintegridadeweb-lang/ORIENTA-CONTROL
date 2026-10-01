@@ -1,16 +1,17 @@
 import { parseUuidParam } from "@/shared/validation/uuid";
 import { SECTION_ACTION_WORKSPACE_TAB_PATTERN } from "./section-action-workspace";
 
-/** Aba de recomendações dentro do workspace unificado do respondente. */
+/** Lista de recomendações do respondente. */
 export const RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL = "Recomendações";
 
-/** Aba do plano dentro do workspace unificado do respondente. */
+/** Lista do plano de integridade e compliance do respondente. */
 export const RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL = "Plano de integridade e compliance";
 
 /**
- * Contexto de retorno entre a aba de recomendações e a aba do plano de integridade e compliance.
+ * Contexto de retorno entre a lista de recomendações e a lista do plano.
  *
- * A lista usa um único workspace com duas visões. O caminho legado de
+ * Cada destino fica só no menu. A mesma página troca o conteúdo pelo parâmetro
+ * `view`, sem uma segunda aba dentro de Recomendações. O caminho legado de
  * `/respondente/plano-acao` continua aceito apenas para redirecionamentos e retornos já salvos.
  */
 export type RespondentRecommendationListView = "analysis" | "action-plan";

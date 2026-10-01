@@ -122,10 +122,12 @@ function ensureRecommendation(
   const key = row.sort.recommendationId;
   let recommendation = section.recommendations.get(key);
   if (!recommendation) {
+    const diagnosticOrigin = row.diagnosticOrigin?.trim();
     recommendation = {
       questionText: displayText(row.questionText),
       recommendationText: displayText(row.recommendationText),
       recommendationStatus: displayText(row.recommendationStatus),
+      ...(diagnosticOrigin ? { diagnosticOrigin } : {}),
       actions: [],
       questionOrder: row.sort.questionOrder,
     };
@@ -141,6 +143,9 @@ function freezeRecommendation(
     questionText: recommendation.questionText,
     recommendationText: recommendation.recommendationText,
     recommendationStatus: recommendation.recommendationStatus,
+    ...(recommendation.diagnosticOrigin
+      ? { diagnosticOrigin: recommendation.diagnosticOrigin }
+      : {}),
     actions: recommendation.actions,
   };
 }

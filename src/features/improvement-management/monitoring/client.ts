@@ -124,6 +124,20 @@ export function exportAdminActionPlansCsv(query: AdminActionPlanMonitoringQuery)
   return exportAdminActionPlans(query, "csv");
 }
 
+export function exportAdminIntegrityPlanReport(
+  query: AdminActionPlanMonitoringQuery,
+  format: "pdf" | "xlsx",
+): Promise<void> {
+  const params = actionPlanParams(query, { export: true, format });
+  params.set("snapshot", "departure");
+  return downloadExportFile(
+    `/api/admin/action-plans/monitoring?${params.toString()}`,
+    format === "pdf"
+      ? "relatorio-plano-de-integridade-e-compliance.pdf"
+      : "relatorio-plano-de-integridade-e-compliance.xlsx",
+  );
+}
+
 export function exportAdminActionPlans(
   query: AdminActionPlanMonitoringQuery,
   format: "csv" | "xlsx" | "pdf" = "csv",

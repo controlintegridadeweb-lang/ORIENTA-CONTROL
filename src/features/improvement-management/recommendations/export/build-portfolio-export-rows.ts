@@ -103,6 +103,7 @@ function rowFromSource(
     progress: progressPercent == null ? null : progressPercent / 100,
     progressPercent,
     updatedAt: action ? parseTimestamp(action.updatedAt) : null,
+    diagnosticOrigin: source.diagnosticOrigin,
     sort: {
       recommendationId: source.recommendationId,
       sectionOrder: source.sectionOrder,

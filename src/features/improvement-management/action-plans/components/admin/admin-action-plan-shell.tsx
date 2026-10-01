@@ -9,7 +9,10 @@ import {
 } from "@/features/improvement-management/monitoring/components/admin-monitoring-view-switcher";
 import { AsyncErrorState } from "@/shared/ui/components/async-error-state";
 import { TableSkeleton } from "@/shared/ui/components/loading";
-import { exportAdminActionPlans } from "@/features/improvement-management/monitoring/client";
+import {
+  exportAdminActionPlans,
+  exportAdminIntegrityPlanReport,
+} from "@/features/improvement-management/monitoring/client";
 import type { AdminActionPlanMonitoringQuery } from "@/features/improvement-management/monitoring/types";
 import { parseAdminListUrlFilters } from "@/shared/config/admin-list-url";
 import { useAdminMonitoringListControls } from "@/features/improvement-management/monitoring/hooks/use-admin-monitoring-list-controls";
@@ -25,7 +28,7 @@ import { AdminActionPlanOrganizationView } from "./admin-action-plan-organizatio
 import { AdminActionPlanSummaryCards } from "./admin-action-plan-summary-cards";
 import { AdminActionPlanHero } from "./admin-action-plan-hero";
 import { useAdminActionPlans } from "./hooks/use-admin-action-plans";
-import { adminBimonthlyReportsPath } from "@/shared/navigation/report-paths";
+import { describeError, notify } from "@/infrastructure/notifications/notify";
 
 type Props = {
   initialFilters?: Partial<AdminPlanFiltersState>;
@@ -170,11 +173,19 @@ export function AdminActionPlanShell({
       hero={
         <AdminActionPlanHero
           loading={loading}
+          exportDisabled={data.total === 0}
           onRefresh={() => void presentation.actions.refresh()}
-          catalogHref={adminBimonthlyReportsPath({
-            organizationId: filters.organizationId || undefined,
-            cycleId: filters.cycleId || undefined,
-          })}
+          onExportIntegrityPlan={async (format) => {
+            if (data.total === 0) {
+              notify.info("Nenhuma ação cadastrada para exportar a partida do plano.");
+              return;
+            }
+            await notify.promise(exportAdminIntegrityPlanReport(query, format), {
+              loading: "Gerando o relatório do plano de integridade e compliance...",
+              success: "Exportação iniciada.",
+              error: (error) => describeError(error, "Falha ao exportar."),
+            });
+          }}
         />
       }
       error={error}

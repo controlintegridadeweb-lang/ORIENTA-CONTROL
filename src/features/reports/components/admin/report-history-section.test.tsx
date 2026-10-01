@@ -69,7 +69,7 @@ describe("ReportHistorySection", () => {
   it("apresenta a emissão com a hierarquia visual dos demais cards institucionais", () => {
     render(<ReportHistorySection controller={controller()} />);
 
-    expect(screen.getByRole("heading", { name: "Histórico de relatórios" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Relatórios de monitoramento" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "teste" })).toBeTruthy();
     expect(screen.getByText("Relatório anual 2026")).toBeTruthy();
     expect(screen.getByText("Emissão")).toBeTruthy();

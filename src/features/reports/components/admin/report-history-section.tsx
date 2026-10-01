@@ -113,14 +113,14 @@ function ReportHistoryItem({
 
 function historyDescription(kind: "" | "annual" | "bimonthly"): string {
   if (kind === "annual") return reportCatalogLabels.annualHint;
-  if (kind === "bimonthly") return reportCatalogLabels.bimonthlyHint;
-  return reportCatalogLabels.historyDescription;
+  if (kind === "bimonthly") return reportCatalogLabels.monitoringEmptyBimonthlyDescription;
+  return reportCatalogLabels.monitoringHistoryDescription;
 }
 
 function historyEmptyDescription(kind: "" | "annual" | "bimonthly"): string {
   if (kind === "annual") return reportCatalogLabels.emptyAnnualDescription;
-  if (kind === "bimonthly") return reportCatalogLabels.emptyBimonthlyDescription;
-  return reportCatalogLabels.adminEmptyDescription;
+  if (kind === "bimonthly") return reportCatalogLabels.monitoringEmptyBimonthlyDescription;
+  return reportCatalogLabels.monitoringHistoryDescription;
 }
 
 export function ReportHistorySection({ controller }: { controller: ReportsController }) {
@@ -133,7 +133,7 @@ export function ReportHistorySection({ controller }: { controller: ReportsContro
 
   return (
     <PanelSection
-      title={reportCatalogLabels.historyTitle}
+      title={reportCatalogLabels.monitoringHistoryTitle}
       description={historyDescription(state.historyKind)}
       variant="plain"
     >

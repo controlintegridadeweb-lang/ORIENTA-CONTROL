@@ -1,22 +1,40 @@
 "use client";
 
-import Link from "next/link";
-import { FileBarChart } from "lucide-react";
+import { FileSpreadsheet, FileText } from "lucide-react";
 import { AdminMonitoringHero } from "@/features/improvement-management/monitoring/components/admin-monitoring-hero";
 import { ADMIN_PLANO_ACAO_HERO_IMAGE } from "@/shared/config/page-assets/admin-action-plan-hero-image";
 import { reportCatalogLabels } from "@/shared/labels/official-labels";
-import { formSurface } from "@/shared/layout/form-surface";
+import { ExportMenu, type ExportMenuOption } from "@/shared/ui/components/export-menu";
+
+type IntegrityPlanReportFormat = "pdf" | "xlsx";
+
+const INTEGRITY_PLAN_EXPORT_OPTIONS: Array<ExportMenuOption<IntegrityPlanReportFormat>> = [
+  {
+    format: "pdf",
+    label: "Exportar PDF",
+    icon: FileText,
+    hint: reportCatalogLabels.integrityPlanReportPdfHint,
+  },
+  {
+    format: "xlsx",
+    label: "Exportar Excel",
+    icon: FileSpreadsheet,
+    hint: reportCatalogLabels.integrityPlanReportXlsxHint,
+  },
+];
 
 type Props = {
   loading?: boolean;
+  exportDisabled?: boolean;
   onRefresh: () => void;
-  catalogHref: string;
+  onExportIntegrityPlan: (format: IntegrityPlanReportFormat) => Promise<void>;
 };
 
 export function AdminActionPlanHero({
   loading,
+  exportDisabled,
   onRefresh,
-  catalogHref,
+  onExportIntegrityPlan,
 }: Props) {
   return (
     <AdminMonitoringHero
@@ -28,10 +46,12 @@ export function AdminActionPlanHero({
       loading={loading}
       onRefresh={onRefresh}
       catalogAction={
-        <Link href={catalogHref} className={formSurface.secondaryButtonSm}>
-          <FileBarChart className="h-3.5 w-3.5" aria-hidden />
-          {reportCatalogLabels.bimonthlyCatalogCta}
-        </Link>
+        <ExportMenu
+          label={reportCatalogLabels.integrityPlanReportCta}
+          options={INTEGRITY_PLAN_EXPORT_OPTIONS}
+          onExport={onExportIntegrityPlan}
+          disabled={loading || exportDisabled}
+        />
       }
     />
   );

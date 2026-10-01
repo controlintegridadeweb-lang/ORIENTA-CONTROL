@@ -57,7 +57,7 @@ export function RespondentReportsFilters({ value, onChange, onClear, availableYe
 
   return (
     <ResponsiveFilterPanel
-      ariaLabel="Filtros do histórico"
+      ariaLabel="Filtros dos relatórios de monitoramento"
       searchValue={value.search}
       onSearchChange={(search) => patch({ search })}
       searchPlaceholder="Nome do formulário…"

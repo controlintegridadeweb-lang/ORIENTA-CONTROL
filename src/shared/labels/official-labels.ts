@@ -108,7 +108,7 @@ export const famiPreliminaryLabels = {
   generatingBimester: "Gerando…",
   downloadBimester: "Baixar PDF",
   downloadingBimester: "Baixando…",
-  viewBimonthlyHistory: "Ver no histórico",
+  viewBimonthlyHistory: "Ver em relatórios de monitoramento",
   exportMenu: "Exportar",
   exportPdf: "Exportar PDF",
   exportXlsx: "Exportar Excel",
@@ -153,6 +153,22 @@ export const reportCatalogLabels = {
   adminEmptyDescription:
     "Não há PDF anual nem relatório bimestral para o filtro atual. A primeira emissão anual ocorre no encerramento do diagnóstico. O relatório bimestral é gerado no Resultado FAMI → Evolução.",
   bimonthlyCatalogCta: "Relatórios bimestrais",
+  integrityPlanReportCta: "Relatórios (plano de integridade e compliance)",
+  integrityPlanReportPdfHint:
+    "Partida do plano a partir do diagnóstico: pergunta, motivo, recomendação e ações cadastradas, antes do acompanhamento.",
+  integrityPlanReportXlsxHint: "Planilha da mesma partida, com uma linha por ação.",
+  monitoringNav: "Relatórios de monitoramento",
+  monitoringPageDescription:
+    "Relatórios gerados depois do plano de integridade e compliance, com as ações atualizadas no acompanhamento.",
+  monitoringAdminPageDescription:
+    "Emita o relatório anual do diagnóstico e consulte os relatórios de monitoramento, com as ações atualizadas depois da partida do plano de integridade e compliance.",
+  monitoringHistoryTitle: "Relatórios de monitoramento",
+  monitoringHistoryDescription:
+    "Fotografias posteriores à partida do plano de integridade e compliance, com as ações atualizadas. O relatório anual do diagnóstico também fica neste catálogo.",
+  monitoringEmptyDescription:
+    "A partida do plano é exportada em Plano de integridade e compliance. Os relatórios de monitoramento aparecem aqui depois de gerados no acompanhamento, com as ações atualizadas.",
+  monitoringEmptyBimonthlyDescription:
+    "O relatório de monitoramento é gerado no acompanhamento, na aba Evolução do Resultado FAMI, e traz as ações atualizadas. Esta área apenas consulta o PDF já gerado.",
   bimonthlyOriginCta: "Abrir acompanhamento no Resultado FAMI",
   cycleScopeLabel: "Exibindo relatórios deste diagnóstico.",
   clearCycleScope: "Ver todos",

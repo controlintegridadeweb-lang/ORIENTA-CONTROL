@@ -41,6 +41,8 @@ export type RecommendationPortfolioExportSource = {
   questionPrompt: string;
   recommendationText: string;
   recommendationStatus: RecommendationStatus;
+  /** Motivo congelado no diagnóstico. A partida do plano o exibe; o acompanhamento não depende dele. */
+  diagnosticOrigin?: string | null;
   plans: ActionPlanAction[];
 };
 
@@ -69,6 +71,7 @@ export type RecommendationPortfolioExportRow = {
   /** Percentual inteiro 0–100 para CSV/PDF; null sem ação. */
   progressPercent: number | null;
   updatedAt: Date | null;
+  diagnosticOrigin?: string | null;
   sort: {
     recommendationId: string;
     sectionOrder: number;
@@ -97,6 +100,7 @@ export type RecommendationPortfolioExportRecommendationView = {
   questionText: string;
   recommendationText: string;
   recommendationStatus: string;
+  diagnosticOrigin?: string;
   actions: RecommendationPortfolioExportActionView[];
 };
 

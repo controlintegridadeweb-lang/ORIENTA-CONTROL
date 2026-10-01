@@ -10,7 +10,7 @@ export const RESPONDENT_RECOMMENDATIONS_LIST_PATH = "/respondente/portfolio-reco
 
 /**
  * Lista do Plano de integridade e compliance.
- * Menu e aba usam este endereço, sem filtros herdados da visão de recomendações.
+ * O menu abre este endereço direto, sem filtros herdados da lista de recomendações.
  * `/respondente/plano-acao` continua só como redirecionamento de links antigos.
  */
 export const RESPONDENT_ACTION_PLAN_LIST_PATH =

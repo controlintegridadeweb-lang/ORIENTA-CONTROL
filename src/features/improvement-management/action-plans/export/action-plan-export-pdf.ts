@@ -277,11 +277,17 @@ function drawContextBlock(
   cursor: Cursor,
   context: RecommendationPortfolioExportContextView,
   issuedOnLabel: string,
+  departure: boolean,
 ): Cursor {
   const titled = doc.drawSubsectionTitle(cursor, "Contexto");
   const cur = drawGridBlock(doc, titled, [
-    quadRowCells("Formulário", context.formName, "Órgão", context.organizationName),
-    quadRowCells("Ciclo", context.period, "Data de emissão", issuedOnLabel),
+    quadRowCells(
+      "Formulário",
+      context.formName,
+      departure ? "Organização" : "Órgão",
+      context.organizationName,
+    ),
+    quadRowCells(departure ? "Período" : "Ciclo", context.period, "Data de emissão", issuedOnLabel),
   ]);
   return { ...cur, y: cur.y - 16 };
 }
@@ -318,6 +324,7 @@ function drawSummaryCard(
   cursor: Cursor,
   summary: ReturnType<typeof sectionActionSummary>,
   palette: GridPalette,
+  departure: boolean,
 ): Cursor {
   const cardH = 64;
   const cur = doc.ensureSpace(cursor, cardH + 18);
@@ -339,11 +346,11 @@ function drawSummaryCard(
       value: String(summary.total),
     },
     {
-      label: "Concluídas",
+      label: departure ? "Concluídas na partida" : "Concluídas",
       value: String(summary.completed),
     },
     {
-      label: "Execução média",
+      label: departure ? "Progresso na partida" : "Execução média",
       value: summary.averageProgress == null ? "—" : `${summary.averageProgress}%`,
     },
   ];
@@ -381,17 +388,16 @@ function drawRecommendationOrigin(
 ): Cursor {
   const recommendation = section.recommendations[recommendationIndex]!;
   const originLabel = `R${section.sectionDisplayNumber}.${recommendationIndex + 1}`;
-  const cur = drawGridBlockPaginated(
-    doc,
-    cursor,
-    [
-      headerRowCells(`Recomendação de origem ${originLabel}`),
-      labelValueRowCells("Pergunta", recommendation.questionText),
-      labelValueRowCells("Recomendação", recommendation.recommendationText),
-      labelValueRowCells("Situação da recomendação", recommendation.recommendationStatus),
-    ],
-    { palette },
-  );
+  const rows = [
+    headerRowCells(`Recomendação de origem ${originLabel}`),
+    labelValueRowCells("Pergunta", recommendation.questionText),
+    ...(recommendation.diagnosticOrigin
+      ? [labelValueRowCells("Motivo no diagnóstico", recommendation.diagnosticOrigin)]
+      : []),
+    labelValueRowCells("Recomendação", recommendation.recommendationText),
+    labelValueRowCells("Situação da recomendação", recommendation.recommendationStatus),
+  ];
+  const cur = drawGridBlockPaginated(doc, cursor, rows, { palette });
   return { ...cur, y: cur.y - 12 };
 }
 
@@ -402,6 +408,7 @@ function drawActionGrid(
   actionNumber: number,
   originLabel: string,
   palette: GridPalette,
+  departure: boolean,
 ): Cursor {
   const cur = drawGridBlockPaginated(
     doc,
@@ -410,9 +417,14 @@ function drawActionGrid(
       labelValueRowCells(`Ação ${actionNumber}`, action.title),
       labelValueRowCells("Origem", originLabel),
       quadRowCells("Prazo inicial", action.startDate, "Prazo final", action.endDate),
-      quadRowCells("Situação", action.status, "Progresso", action.progress),
+      quadRowCells(
+        departure ? "Situação na partida" : "Situação",
+        action.status,
+        departure ? "Progresso na partida" : "Progresso",
+        action.progress,
+      ),
       labelValueRowCells("Responsável", action.responsible),
-      labelValueRowCells("Última atualização", action.updatedAt),
+      labelValueRowCells(departure ? "Cadastro da ação" : "Última atualização", action.updatedAt),
     ],
     { palette },
   );
@@ -424,33 +436,40 @@ function drawSection(
   cursor: Cursor,
   section: RecommendationPortfolioExportSectionView,
   palette: GridPalette,
+  departure: boolean,
 ): Cursor {
   let cur = doc.drawPlainHeading(
     cursor,
     `Seção ${section.sectionDisplayNumber} - ${section.sectionName}`,
   );
   const summary = sectionActionSummary(section);
-  cur = drawSummaryCard(doc, cur, summary, palette);
+  cur = drawSummaryCard(doc, cur, summary, palette, departure);
 
-  cur = doc.drawSubsectionTitle(cur, "Recomendações de origem");
-  section.recommendations.forEach((_, index) => {
-    cur = drawRecommendationOrigin(doc, cur, section, index, palette);
-  });
-
-  cur = doc.drawSubsectionTitle(cur, "Plano de integridade e compliance da seção");
-  if (summary.total === 0) {
+  if (section.recommendations.length === 0) {
     return doc.drawParagraph(cur, "Nenhuma ação cadastrada nesta seção.", {
       size: 9,
       color: reportTheme.slate500,
     });
   }
 
+  // Cada origem fica imediatamente seguida das ações que ela gerou,
+  // ainda dentro do mesmo eixo e da mesma seção.
   let actionNumber = 0;
   section.recommendations.forEach((recommendation, recommendationIndex) => {
+    cur = doc.drawSubsectionTitle(cur, "Recomendações de origem");
+    cur = drawRecommendationOrigin(doc, cur, section, recommendationIndex, palette);
+    cur = doc.drawSubsectionTitle(cur, "Plano de integridade e compliance da seção");
+    if (recommendation.actions.length === 0) {
+      cur = doc.drawParagraph(cur, "Nenhuma ação cadastrada para esta recomendação.", {
+        size: 9,
+        color: reportTheme.slate500,
+      });
+      return;
+    }
     const originLabel = `R${section.sectionDisplayNumber}.${recommendationIndex + 1}`;
     for (const action of recommendation.actions) {
       actionNumber += 1;
-      cur = drawActionGrid(doc, cur, action, actionNumber, originLabel, palette);
+      cur = drawActionGrid(doc, cur, action, actionNumber, originLabel, palette, departure);
     }
   });
   return { ...cur, y: cur.y - 8 };
@@ -459,11 +478,22 @@ function drawSection(
 /**
  * PDF do plano de integridade e compliance com a identidade visual do relatório oficial:
  * título com barra institucional, contexto em grade, eixo colorido,
- * card de resumo da seção e ações/recomendações em grade bordada.
+ * card de resumo da seção e, em cada seção, a recomendação de origem
+ * imediatamente seguida das ações do plano.
  */
+const LIVE_TITLE = "Plano de integridade e compliance";
+const DEPARTURE_TITLE = "Relatório (plano de integridade e compliance)";
+const LIVE_INTRO =
+  "Leitura por encadeamento: as ações formam o plano de cada seção; as seções compõem os eixos. As recomendações identificam a origem de cada ação.";
+const DEPARTURE_INTRO =
+  "Partida do plano a partir do diagnóstico. Mostra como a organização começou: pergunta, motivo, recomendação e ações cadastradas, antes das atualizações de acompanhamento.";
+
 export async function generateActionPlanPdf(
   data: ActionPlanExportData,
 ): Promise<{ filename: string; content: Uint8Array }> {
+  const departure = data.variant === "departure";
+  const title = departure ? DEPARTURE_TITLE : LIVE_TITLE;
+  const intro = departure ? DEPARTURE_INTRO : LIVE_INTRO;
   const doc = await ActionPlanPdfDocument.create();
   const issuedOnLabel = formatPlatformDate(
     data.issuedOn,
@@ -472,11 +502,7 @@ export async function generateActionPlanPdf(
   );
 
   let cur = doc.newPage();
-  cur = doc.drawSectionTitle(
-    cur,
-    "Plano de integridade e compliance",
-    "Leitura por encadeamento: as ações formam o plano de cada seção; as seções compõem os eixos. As recomendações identificam a origem de cada ação.",
-  );
+  cur = doc.drawSectionTitle(cur, title, intro);
 
   if (data.document.contexts.length === 0) {
     cur = doc.drawParagraph(cur, "Nenhuma ação para exportar.", { size: 11 });
@@ -485,23 +511,26 @@ export async function generateActionPlanPdf(
   for (const [contextIndex, context] of data.document.contexts.entries()) {
     if (contextIndex > 0) {
       cur = doc.newPage();
-      cur = doc.drawSectionTitle(cur, "Plano de integridade e compliance");
+      cur = doc.drawSectionTitle(cur, title);
     }
-    cur = drawContextBlock(doc, cur, context, issuedOnLabel);
+    cur = drawContextBlock(doc, cur, context, issuedOnLabel, departure);
 
     for (const axis of context.axes) {
       const palette = gridPaletteForAxis(axis.axisName);
       cur = drawAxisBar(doc, cur, axis.axisName);
       for (const section of axis.sections) {
-        cur = drawSection(doc, cur, section, palette);
+        cur = drawSection(doc, cur, section, palette, departure);
       }
       cur = { ...cur, y: cur.y - 10 };
     }
   }
 
   doc.applyFooters();
+  const prefix = departure
+    ? "relatorio-plano-de-integridade-e-compliance"
+    : "plano-de-integridade-e-compliance";
   return {
-    filename: `plano-de-integridade-e-compliance-${businessToday()}.pdf`,
+    filename: `${prefix}-${businessToday()}.pdf`,
     content: await doc.pdf.save(),
   };
 }

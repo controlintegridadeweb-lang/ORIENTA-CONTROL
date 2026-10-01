@@ -5,6 +5,8 @@ import type { RecommendationPortfolioExportRow } from "@/features/improvement-ma
 import {
   actionPlanExcelAutoFilterFeature,
   buildActionPlanXlsxSheets,
+  buildIntegrityPlanDepartureXlsxSheets,
+  integrityPlanDepartureExcelAutoFilterFeature,
 } from "./action-plan-export-xlsx-sheets";
 
 type NodeFileContent = Buffer | import("node:stream").Stream | import("node:buffer").Blob;
@@ -29,4 +31,20 @@ export async function generateActionPlanExcel(
   data: ActionPlanExportData,
 ): Promise<{ filename: string; content: Buffer }> {
   return buildActionPlanXlsx(data.rows);
+}
+
+export async function generateIntegrityPlanDepartureExcel(
+  data: ActionPlanExportData,
+): Promise<{ filename: string; content: Buffer }> {
+  const sheets = buildIntegrityPlanDepartureXlsxSheets<NodeFileContent>(data.rows);
+  const file = await writeXlsxFile(sheets, {
+    fontFamily: "Arial",
+    fontSize: 10,
+    features: [integrityPlanDepartureExcelAutoFilterFeature<NodeFileContent>(data.rows.length)],
+  }).toBuffer();
+
+  return {
+    filename: `relatorio-plano-de-integridade-e-compliance-${data.issuedOn}.xlsx`,
+    content: Buffer.from(file),
+  };
 }

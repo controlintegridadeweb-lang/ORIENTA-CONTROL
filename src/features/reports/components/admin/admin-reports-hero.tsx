@@ -1,15 +1,16 @@
 import { IllustratedPageHero } from "@/shared/ui/components/illustrated-page-hero";
 import { ADMIN_RELATORIOS_HERO_IMAGE } from "@/shared/config/page-assets/admin-relatorios-hero-image";
+import { reportCatalogLabels } from "@/shared/labels/official-labels";
 
 export function AdminReportsHero() {
   return (
     <IllustratedPageHero
       theme="admin"
       size="compact"
-      ariaLabel="Relatórios"
-      overline="Catálogo de documentos"
-      title="Relatórios"
-      description="Emita o relatório anual dos diagnósticos concluídos e consulte também os relatórios bimestrais já gerados."
+      ariaLabel={reportCatalogLabels.monitoringNav}
+      overline="Acompanhamento das organizações"
+      title={reportCatalogLabels.monitoringNav}
+      description={reportCatalogLabels.monitoringAdminPageDescription}
       image={ADMIN_RELATORIOS_HERO_IMAGE}
       imageWidth={1024}
       imageHeight={1024}

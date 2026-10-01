@@ -4,14 +4,19 @@ import { computeActionSla } from "@/features/improvement-management/action-plans
 import type { AdminPlanItem } from "@/features/improvement-management/action-plans/admin-monitoring";
 import type { RecommendationPortfolioExportSource } from "@/features/improvement-management/recommendations/export/portfolio-export-types";
 import { PORTFOLIO_EXPORT_MISSING_VALUE } from "@/features/improvement-management/recommendations/export/portfolio-export-types";
+import type { RespondentRecommendationItem } from "@/features/improvement-management/recommendations/respondent-presentation";
 import {
   getActionPlanExportData,
   toActionPlanExportSourceFromAdmin,
+  toDepartureActionPlanSourceFromAdmin,
+  toDepartureActionPlanSourceFromRespondent,
 } from "./get-action-plan-export-data";
 import { ACTION_PLAN_EXPORT_HEADERS } from "./action-plan-export-types";
 import {
   actionPlanExportRowToExcelCells,
   buildActionPlanXlsxSheets,
+  buildIntegrityPlanDepartureXlsxSheets,
+  INTEGRITY_PLAN_DEPARTURE_HEADERS,
 } from "./action-plan-export-xlsx-sheets";
 import { generateActionPlanPdf } from "./action-plan-export-pdf";
 import { generateActionPlanExcel } from "./action-plan-export-xlsx";
@@ -274,6 +279,84 @@ describe("getActionPlanExportData", () => {
     expect(JSON.stringify(cells)).not.toContain("rec-1");
     expect(JSON.stringify(cells)).not.toContain("plan-1");
   });
+
+  it("congela a partida no cadastro, sem o progresso posterior", () => {
+    const item = {
+      recommendationId: "rec-1",
+      questionId: "q-1",
+      cycleId: "cycle-1",
+      cycleState: "validated",
+      canCreateActionPlan: true,
+      periodLabel: "2026",
+      formId: "form-1",
+      formName: "Diagnóstico de Integridade 2026",
+      formVersion: 1,
+      organizationId: "org-1",
+      organizationName: "Corpo de Bombeiros Militar do RN",
+      axisId: "axis-1",
+      axisName: "Governança",
+      sectionId: "section-1",
+      sectionName: "Governança e Estrutura de Integridade",
+      sectionOrder: 1,
+      questionOrder: 1,
+      questionPrompt: "A organização publica informações no portal institucional?",
+      recommendationText: "Publicar informações no portal institucional.",
+      recommendationType: "nao_implementacao",
+      status: "in_action_plan",
+      planStatus: "in_progress",
+      hasPlan: true,
+      progress: 80,
+      needsAction: true,
+      actionCount: 1,
+      slaLabel: "ok",
+      createdAt: "2026-03-01T00:00:00.000Z",
+      updatedAt: "2026-08-01T00:00:00.000Z",
+      plan: null,
+      plans: [
+        makeAction({
+          id: "a1",
+          progressPercentage: 80,
+          status: "in_progress",
+          createdAt: "2026-03-01T12:00:00.000Z",
+          updatedAt: "2026-08-01T12:00:00.000Z",
+        }),
+      ],
+    } satisfies RespondentRecommendationItem;
+
+    const data = {
+      ...getActionPlanExportData([toDepartureActionPlanSourceFromRespondent(item)], "2026-08-14"),
+      variant: "departure" as const,
+    };
+
+    expect(data.rows[0]?.actionStatus).toBe("Não iniciado");
+    expect(data.rows[0]?.progressPercent).toBe(0);
+    expect(data.rows[0]?.diagnosticOrigin).toBe("Não implementado");
+    expect(data.rows[0]?.updatedAt?.toISOString()).toBe("2026-03-01T12:00:00.000Z");
+    expect(data.document.contexts[0]?.axes[0]?.sections[0]?.recommendations[0]?.diagnosticOrigin).toBe(
+      "Não implementado",
+    );
+
+    const sheet = buildIntegrityPlanDepartureXlsxSheets(data.rows)[0];
+    expect(sheet?.data?.[0]).toHaveLength(INTEGRITY_PLAN_DEPARTURE_HEADERS.length);
+    expect(INTEGRITY_PLAN_DEPARTURE_HEADERS).toContain("Motivo no diagnóstico");
+    expect(INTEGRITY_PLAN_DEPARTURE_HEADERS).toContain("Situação na partida");
+    const originCell = (sheet?.data?.[1] as Array<{ value?: string }>)[11];
+    expect(originCell?.value).toBe("Não implementado");
+  });
+
+  it("aplica a mesma partida na linha do administrador", () => {
+    const source = toDepartureActionPlanSourceFromAdmin(
+      makeAdminItem({
+        recommendationType: "ausencia_evidencia",
+        progress: 70,
+        planStatus: "in_progress",
+      }),
+    );
+    const data = getActionPlanExportData(source ? [source] : []);
+    expect(data.rows[0]?.actionStatus).toBe("Não iniciado");
+    expect(data.rows[0]?.progressPercent).toBe(0);
+    expect(data.rows[0]?.diagnosticOrigin).toBe("Evidência não apresentada");
+  });
 });
 
 describe("Excel analítico do plano de integridade e compliance", () => {
@@ -366,6 +449,12 @@ describe("PDF institucional do plano de integridade e compliance", () => {
     const pdf = await PDFDocument.load(populated.content);
     expect(pdf.getPageCount()).toBeGreaterThanOrEqual(1);
     expect(populated.filename).toMatch(/^plano-de-integridade-e-compliance-\d{4}-\d{2}-\d{2}\.pdf$/);
+
+    const departure = await generateActionPlanPdf({ ...data, variant: "departure" });
+    expect(departure.filename).toMatch(
+      /^relatorio-plano-de-integridade-e-compliance-\d{4}-\d{2}-\d{2}\.pdf$/,
+    );
+    expect(Buffer.from(departure.content).subarray(0, 4).toString()).toBe("%PDF");
     // Hierarquia institucional: contexto → eixo → seção → origem → ações.
     expect(data.document.contexts[0]?.axes[0]?.sections[0]?.recommendations).toHaveLength(1);
   });

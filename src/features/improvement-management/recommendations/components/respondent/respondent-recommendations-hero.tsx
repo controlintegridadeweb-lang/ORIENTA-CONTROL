@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, FileBarChart, FileSpreadsheet, FileText, Table2 } from "lucide-react";
+import { ArrowRight, FileSpreadsheet, FileText, Table2 } from "lucide-react";
 import { IllustratedPageHero } from "@/shared/ui/components/illustrated-page-hero";
 import { RefreshActionButton } from "@/shared/ui/components/refresh-action-button";
 import {
@@ -10,6 +10,7 @@ import {
 } from "@/shared/navigation/respondent-portfolio-paths";
 import { formSurface } from "@/shared/layout/form-surface";
 import type { RespondentRecommendationListView } from "@/shared/navigation/respondent-navigation-context";
+import type { IntegrityPlanReportFormat } from "@/features/improvement-management/action-plans/export/integrity-plan-departure-client";
 import type { RecommendationPortfolioExportFormat } from "@/features/improvement-management/recommendations/export/portfolio-export-types";
 import { ExportMenu, type ExportMenuOption } from "@/shared/ui/components/export-menu";
 import { reportCatalogLabels } from "@/shared/labels/official-labels";
@@ -21,8 +22,9 @@ type Props = {
   onRefresh: () => void;
   refreshing: boolean;
   onExport?: (format: RecommendationPortfolioExportFormat) => Promise<void>;
+  onExportIntegrityPlan?: (format: IntegrityPlanReportFormat) => Promise<void>;
   exportDisabled?: boolean;
-  catalogHref?: string;
+  integrityExportDisabled?: boolean;
 };
 
 const HERO_COPY = {
@@ -37,11 +39,26 @@ const HERO_COPY = {
     overline: "Execução e acompanhamento",
     title: RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL,
     description: "Acompanhe ações, responsáveis, início, final e progresso dos planos já criados.",
-    // Pendentes sem plano ficam na aba de recomendações (analysis).
+    // Pendentes sem plano ficam na lista de recomendações.
     ctaHref: "/respondente/portfolio-recomendacoes?status=generated&pendingOnly=1",
     ctaLabel: "Ver recomendações pendentes",
   },
 } as const;
+
+const INTEGRITY_PLAN_EXPORT_OPTIONS: Array<ExportMenuOption<IntegrityPlanReportFormat>> = [
+  {
+    format: "pdf",
+    label: "Exportar PDF",
+    icon: FileText,
+    hint: reportCatalogLabels.integrityPlanReportPdfHint,
+  },
+  {
+    format: "xlsx",
+    label: "Exportar Excel",
+    icon: FileSpreadsheet,
+    hint: reportCatalogLabels.integrityPlanReportXlsxHint,
+  },
+];
 
 const PORTFOLIO_EXPORT_OPTIONS: Array<ExportMenuOption<RecommendationPortfolioExportFormat>> = [
   {
@@ -69,8 +86,9 @@ export function RespondentRecommendationsHero({
   onRefresh,
   refreshing,
   onExport,
+  onExportIntegrityPlan,
   exportDisabled,
-  catalogHref,
+  integrityExportDisabled,
 }: Props) {
   const copy = HERO_COPY[view];
 
@@ -94,11 +112,13 @@ export function RespondentRecommendationsHero({
               disabled={exportDisabled || refreshing}
             />
           ) : null}
-          {view === "action-plan" && catalogHref ? (
-            <Link href={catalogHref} className={formSurface.secondaryButtonSm}>
-              <FileBarChart className="h-3.5 w-3.5" aria-hidden />
-              {reportCatalogLabels.bimonthlyCatalogCta}
-            </Link>
+          {view === "action-plan" && onExportIntegrityPlan ? (
+            <ExportMenu
+              label={reportCatalogLabels.integrityPlanReportCta}
+              options={INTEGRITY_PLAN_EXPORT_OPTIONS}
+              onExport={onExportIntegrityPlan}
+              disabled={integrityExportDisabled || refreshing}
+            />
           ) : null}
           <Link href={copy.ctaHref} className={formSurface.primaryButtonSm}>
             {copy.ctaLabel}
