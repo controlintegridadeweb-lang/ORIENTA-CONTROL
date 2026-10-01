@@ -155,6 +155,10 @@ describe("SectionActionPlanWorkspace", () => {
     });
 
     expect(listAllActionPlansForCycle).toHaveBeenCalledWith("respondent", CYCLE_ID);
+    const tabNav = screen.getByRole("navigation", { name: "Seções do workspace" });
+    expect(
+      Array.from(tabNav.querySelectorAll("a")).map((link) => link.textContent),
+    ).toEqual(["Visão geral", "Ações", "Monitoramento", "Problemas e soluções"]);
     const treeTab = screen.getByRole("link", { name: "Problemas e soluções" });
     expect(treeTab.getAttribute("href")).toContain(`/secao/${SECTION_ID}/problemas-solucoes`);
     expect(treeTab.getAttribute("href")).toContain(`cycleId=${CYCLE_ID}`);

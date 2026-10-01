@@ -1,8 +1,8 @@
 export const SECTION_ACTION_WORKSPACE_TABS = [
   "visao-geral",
-  "problemas-solucoes",
   "acoes",
   "monitoramento",
+  "problemas-solucoes",
 ] as const;
 
 export type SectionActionWorkspaceTab = (typeof SECTION_ACTION_WORKSPACE_TABS)[number];
