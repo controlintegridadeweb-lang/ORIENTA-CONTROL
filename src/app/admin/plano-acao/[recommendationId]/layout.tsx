@@ -31,7 +31,7 @@ export default async function AdminPlanoAcaoDetailLayout({ children, params }: P
         listPath="/admin/plano-acao"
         detailBasePath={`/admin/plano-acao/${recommendationId}`}
         actionsTabHrefSegment="acoes"
-        actionsTabLabel="Plano de integridade e compliance"
+        actionsTabLabel="Ações"
         workspaceSurface="supervision"
       >
         {children}

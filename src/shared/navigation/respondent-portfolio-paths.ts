@@ -8,8 +8,13 @@ import type { SectionActionWorkspaceTab } from "./section-action-workspace";
 /** Caminho canônico da lista de recomendações do respondente. */
 export const RESPONDENT_RECOMMENDATIONS_LIST_PATH = "/respondente/portfolio-recomendacoes";
 
-/** Caminho canônico da lista do plano (redireciona para a visão action-plan do workspace). */
-export const RESPONDENT_ACTION_PLAN_LIST_PATH = "/respondente/plano-acao";
+/**
+ * Lista do Plano de integridade e compliance.
+ * Menu e aba usam este endereço, sem filtros herdados da visão de recomendações.
+ * `/respondente/plano-acao` continua só como redirecionamento de links antigos.
+ */
+export const RESPONDENT_ACTION_PLAN_LIST_PATH =
+  "/respondente/portfolio-recomendacoes?view=action-plan";
 
 export {
   RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL,

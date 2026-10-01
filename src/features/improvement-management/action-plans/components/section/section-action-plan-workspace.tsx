@@ -35,6 +35,7 @@ import { formSurface } from "@/shared/layout/form-surface";
 import { layout, typography } from "@/shared/layout/design-system";
 import { adminReturnLabel } from "@/shared/navigation/admin-navigation-context";
 import { respondentReturnLabel } from "@/shared/navigation/respondent-navigation-context";
+import { RESPONDENT_ACTION_PLAN_LIST_PATH } from "@/shared/navigation/respondent-portfolio-paths";
 
 export type { SectionActionPlanWorkspaceRole, SectionActionPlanWorkspaceTab };
 
@@ -126,7 +127,7 @@ export function SectionActionPlanWorkspace({
   }, [load]);
 
   const listFallback =
-    role === "respondent" ? "/respondente/portfolio-recomendacoes" : "/admin/plano-acao";
+    role === "respondent" ? RESPONDENT_ACTION_PLAN_LIST_PATH : "/admin/plano-acao";
   const backPath = returnTo || listFallback;
   const backLabel = role === "admin" ? adminReturnLabel(backPath) : respondentReturnLabel(backPath);
   const tabs = useMemo(() => {

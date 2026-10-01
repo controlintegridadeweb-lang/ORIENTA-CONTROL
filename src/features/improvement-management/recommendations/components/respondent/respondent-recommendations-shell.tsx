@@ -30,6 +30,7 @@ import {
 import { RespondentRecommendationsHero } from "./respondent-recommendations-hero";
 import { RESPONDENT_PAGE_HERO_BLEED } from "@/shared/layout/respondent-page-layout";
 import {
+  RESPONDENT_ACTION_PLAN_LIST_PATH,
   respondentActionWorkspacePath,
 } from "@/shared/navigation/respondent-portfolio-paths";
 import { respondentBimonthlyReportsPath } from "@/shared/navigation/report-paths";
@@ -287,14 +288,7 @@ export function RespondentRecommendationsShell() {
       ),
     [filter],
   );
-  const actionPlanTabPath = useMemo(
-    () =>
-      respondentRecommendationListPath(
-        "action-plan",
-        toNavigationFilter(filterForViewSwitch("action-plan", filter)),
-      ),
-    [filter],
-  );
+  const actionPlanTabPath = RESPONDENT_ACTION_PLAN_LIST_PATH;
 
   useEffect(() => {
     const nextFilter = filterFromSearchParams(view, searchParams);
@@ -442,7 +436,7 @@ export function RespondentRecommendationsShell() {
         active: actionPlanView,
       },
     ],
-    [actionPlanTabPath, actionPlanView, analysisTabPath],
+    [actionPlanView, analysisTabPath],
   );
 
   return (

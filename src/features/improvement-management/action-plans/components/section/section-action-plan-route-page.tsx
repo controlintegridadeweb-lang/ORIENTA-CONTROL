@@ -3,6 +3,7 @@ import { SectionActionPlanWorkspace, type SectionActionPlanWorkspaceRole, type S
 import { parseUuidParam } from "@/shared/validation/uuid";
 import { respondentReturnPathOrFallback } from "@/shared/navigation/respondent-navigation-context";
 import { adminReturnPathOrFallback } from "@/shared/navigation/admin-navigation-context";
+import { RESPONDENT_ACTION_PLAN_LIST_PATH } from "@/shared/navigation/respondent-portfolio-paths";
 
 export type SectionActionPlanRouteProps = {
   params: Promise<{ sectionId: string }>;
@@ -27,7 +28,7 @@ export async function SectionActionPlanRoutePage({
   const cycleId = parseUuidParam(first(sp.cycleId));
   const listFallback = role === "admin"
     ? "/admin/plano-acao"
-    : "/respondente/portfolio-recomendacoes";
+    : RESPONDENT_ACTION_PLAN_LIST_PATH;
   if (!sectionId || !cycleId) redirect(listFallback);
 
   const rawReturnTo = first(sp.returnTo);

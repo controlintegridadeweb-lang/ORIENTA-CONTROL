@@ -51,7 +51,7 @@ export function RecommendationDetailProvider({
   listPath,
   detailBasePath: detailBasePathOverride,
   actionsTabHrefSegment = "plano",
-  actionsTabLabel = "Plano de integridade e compliance",
+  actionsTabLabel = "Ações",
   workspaceSurface = "default",
   children,
 }: {

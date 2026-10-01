@@ -23,7 +23,7 @@ export const SECTION_WORKSPACE_TAB_ORDER = SECTION_ACTION_WORKSPACE_TABS;
 export const SECTION_WORKSPACE_TAB_LABELS: Record<SectionActionPlanWorkspaceTab, string> = {
   "visao-geral": "Visão geral",
   "problemas-solucoes": "Problemas e soluções",
-  acoes: "Plano de integridade e compliance",
+  acoes: "Ações",
   monitoramento: "Monitoramento",
 };
 

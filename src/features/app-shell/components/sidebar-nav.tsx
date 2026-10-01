@@ -28,7 +28,11 @@ export function isSidebarNavActive(pathname: string, href: string, search = ""):
     );
   }
 
-  if (hrefPathname === "/respondente/plano-acao") {
+  const isRespondentPlanEntry =
+    hrefPathname === "/respondente/plano-acao" ||
+    (hrefPathname === "/respondente/portfolio-recomendacoes" &&
+      hrefParams.get("view") === "action-plan");
+  if (isRespondentPlanEntry) {
     if (pathname.startsWith("/respondente/plano-acao")) return true;
     return (
       pathname === "/respondente/portfolio-recomendacoes" &&

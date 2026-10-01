@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation";
 import { firstSearchParam } from "@/features/admin/search-params";
-import { respondentActionWorkspacePath } from "@/shared/navigation/respondent-portfolio-paths";
+import {
+  RESPONDENT_ACTION_PLAN_LIST_PATH,
+  respondentActionWorkspacePath,
+} from "@/shared/navigation/respondent-portfolio-paths";
 import { parseUuidParam } from "@/shared/validation/uuid";
 
 type Props = {
@@ -17,7 +20,7 @@ export default async function RespondentePlanoAcaoDetailIndexPage({
   const sp = await searchParams;
   const recommendationId = parseUuidParam(rawId);
   if (!recommendationId) {
-    redirect("/respondente/portfolio-recomendacoes");
+    redirect(RESPONDENT_ACTION_PLAN_LIST_PATH);
   }
 
   redirect(

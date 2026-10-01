@@ -21,7 +21,7 @@ import {
 
 function supervisionTabLabel(pathname: string): string | null {
   if (pathname.endsWith("/monitoramento")) return "Monitoramento";
-  if (pathname.endsWith("/acoes")) return "Plano de integridade e compliance";
+  if (pathname.endsWith("/acoes")) return "Ações";
   if (pathname.endsWith("/visao-geral")) return "Visão geral";
   return null;
 }

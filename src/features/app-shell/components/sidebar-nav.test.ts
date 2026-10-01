@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { RESPONDENT_ACTION_PLAN_LIST_PATH } from "@/shared/navigation/respondent-portfolio-paths";
 import { isSidebarNavActive } from "./sidebar-nav";
 
 const RECOMMENDATIONS = "/respondente/portfolio-recomendacoes";
-const ACTION_PLAN = "/respondente/plano-acao";
+const ACTION_PLAN = RESPONDENT_ACTION_PLAN_LIST_PATH;
 
 describe("isSidebarNavActive", () => {
   it("marca Recomendações apenas na lista de análise", () => {
