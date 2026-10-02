@@ -29,6 +29,11 @@ export type GridPalette = {
 export type GridDrawOptions = {
   spans?: readonly number[];
   palette?: GridPalette;
+  /**
+   * O título já foi desenhado nesta página. O bloco continua aqui em vez de
+   * ir inteiro para a folha seguinte e deixar o título sozinho.
+   */
+  continueFromHeading?: boolean;
 };
 
 export type GridCell = {
@@ -204,6 +209,16 @@ function wrappedLines(doc: PdfGridHost, cell: GridCell): string[] {
   const style = cellStyle(cell);
   const font = cellFont(doc, style);
   return wrapLines(font, cell.text, style.size, Math.max(12, cell.width - style.padX * 2));
+}
+
+export function measureGridRowHeights(doc: PdfGridHost, rows: GridCell[][]): number[] {
+  return rows.map((cells) => rowHeight(doc, cells));
+}
+
+/** Reserva pedida por `drawGridBlock` antes de desenhar as linhas. */
+export function gridBlockReserve(rowHeights: readonly number[]): number {
+  const total = rowHeights.reduce((sum, height) => sum + height, 0);
+  return total + GRID_PAGE_PAD;
 }
 
 function rowHeight(doc: PdfGridHost, cells: GridCell[]): number {
@@ -404,14 +419,52 @@ function resolveGridSpans(rowCount: number, spans?: readonly number[]): number[]
 }
 
 /**
+ * O título e o conteúdo que o acompanha mudam de página juntos quando o par
+ * não cabe no restante, mas cabe numa página nova.
+ * Conteúdo maior que a página não abre uma folha só com o título: a grade
+ * continua o bloco a partir da posição atual.
+ */
+export function shouldStartPageBeforeHeading(
+  remaining: number,
+  pageCapacity: number,
+  headingReserve: number,
+  contentReserve: number,
+  minimumContentReserve: number,
+): boolean {
+  const together = headingReserve + contentReserve;
+  if (together <= remaining) return false;
+
+  const minimum = Math.min(together, headingReserve + minimumContentReserve);
+  const target = together <= pageCapacity ? together : minimum;
+  return target > remaining && target <= pageCapacity;
+}
+
+/**
+ * A recomendação só muda de página junto do plano quando ela mesma não cabe
+ * e a sequência inteira ainda cabe numa página nova.
+ */
+export function shouldStartPageBeforePreface(
+  remaining: number,
+  pageCapacity: number,
+  prefaceReserve: number,
+  followingReserve: number,
+): boolean {
+  if (prefaceReserve <= remaining) return false;
+  return prefaceReserve + followingReserve <= pageCapacity;
+}
+
+/**
  * Agrupa linhas para cada bloco desenhado, sem deixar sobras de uma ação
  * virarem tabelas soltas no rodapé ou na página seguinte.
+ * Com `continueFromHeading`, o primeiro grupo segue na página do título
+ * e só continua na folha seguinte o que não couber.
  */
 export function planGridPageBatches(
   heights: readonly number[],
   spans: readonly number[],
   firstAvailable: number,
   pageAvailable: number,
+  options?: { continueFromHeading?: boolean },
 ): GridPageBatch[] {
   const groups: Array<{ start: number; end: number; height: number }> = [];
   let offset = 0;
@@ -447,10 +500,11 @@ export function planGridPageBatches(
     remaining = pageAvailable;
   };
 
-  for (const group of groups) {
+  for (const [groupIndex, group] of groups.entries()) {
     if (group.height > remaining) {
       const onFreshPage = batchStart < 0 && remaining >= pageAvailable - 0.5;
-      if (!onFreshPage) startNewPage();
+      const continueHere = Boolean(options?.continueFromHeading) && groupIndex === 0;
+      if (!onFreshPage && !continueHere) startNewPage();
     }
 
     if (group.height <= remaining) {
@@ -497,6 +551,7 @@ export function drawGridBlockPaginated(
     resolveGridSpans(rows.length, options?.spans),
     Math.max(0, gridAvailableHeight(doc, cursor)),
     Math.max(0, gridPageCapacity(doc)),
+    { continueFromHeading: options?.continueFromHeading },
   );
 
   let cur = cursor;

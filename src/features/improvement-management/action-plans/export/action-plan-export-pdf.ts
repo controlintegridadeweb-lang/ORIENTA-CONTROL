@@ -11,10 +11,16 @@ import type {
 import {
   drawGridBlock,
   drawGridBlockPaginated,
+  gridBlockReserve,
   gridPaletteForAxis,
   headerRowCells,
   labelValueRowCells,
+  measureGridRowHeights,
+  noticeRowCells,
   quadRowCells,
+  shouldStartPageBeforePreface,
+  subheaderRowCells,
+  type GridCell,
   type GridPalette,
 } from "@/shared/export/official-pdf-bordered-grid";
 import {
@@ -31,6 +37,11 @@ const CIVIL_DATE_FORMAT = {
   month: "2-digit",
   year: "numeric",
 } as const;
+
+/** Reserva de `drawSubsectionTitle` — o título não pode ser medido à parte do conteúdo. */
+const SUBSECTION_TITLE_RESERVE = 48;
+const PLAN_SECTION_HEADING = "Plano de integridade e compliance da seção";
+const EMPTY_RECOMMENDATION_ACTIONS = "Nenhuma ação cadastrada para esta recomendação.";
 
 /** Documento de conteúdo com a mesma gramática visual do relatório oficial. */
 class ActionPlanPdfDocument implements PdfGridHost {
@@ -181,7 +192,7 @@ class ActionPlanPdfDocument implements PdfGridHost {
   }
 
   drawSubsectionTitle(c: Cursor, title: string): Cursor {
-    let cur = this.ensureSpace(c, 48);
+    let cur = this.ensureSpace(c, SUBSECTION_TITLE_RESERVE);
     cur.page.drawText(latinPdfSafe(title), {
       x: reportTheme.margin,
       y: cur.y,
@@ -379,16 +390,21 @@ function drawSummaryCard(
   return { page: cur.page, y: bottom - 18 };
 }
 
-function drawRecommendationOrigin(
-  doc: ActionPlanPdfDocument,
-  cursor: Cursor,
+function pageCapacity(doc: ActionPlanPdfDocument): number {
+  return doc.contentTop - doc.contentBottom;
+}
+
+function remainingContent(doc: ActionPlanPdfDocument, cursor: Cursor): number {
+  return cursor.y - doc.contentBottom;
+}
+
+function originRows(
   section: RecommendationPortfolioExportSectionView,
   recommendationIndex: number,
-  palette: GridPalette,
-): Cursor {
+): GridCell[][] {
   const recommendation = section.recommendations[recommendationIndex]!;
   const originLabel = `R${section.sectionDisplayNumber}.${recommendationIndex + 1}`;
-  const rows = [
+  return [
     headerRowCells(`Recomendação de origem ${originLabel}`),
     labelValueRowCells("Pergunta", recommendation.questionText),
     ...(recommendation.diagnosticOrigin
@@ -397,38 +413,95 @@ function drawRecommendationOrigin(
     labelValueRowCells("Recomendação", recommendation.recommendationText),
     labelValueRowCells("Situação da recomendação", recommendation.recommendationStatus),
   ];
-  const cur = drawGridBlockPaginated(doc, cursor, rows, { palette });
-  return { ...cur, y: cur.y - 12 };
 }
 
-function drawActionGrid(
-  doc: ActionPlanPdfDocument,
-  cursor: Cursor,
+function actionRows(
   action: RecommendationPortfolioExportActionView,
   actionNumber: number,
   originLabel: string,
+  departure: boolean,
+): GridCell[][] {
+  return [
+    labelValueRowCells(`Ação ${actionNumber}`, action.title),
+    labelValueRowCells("Origem", originLabel),
+    quadRowCells("Prazo inicial", action.startDate, "Prazo final", action.endDate),
+    quadRowCells(
+      departure ? "Situação na partida" : "Situação",
+      action.status,
+      departure ? "Progresso na partida" : "Progresso",
+      action.progress,
+    ),
+    labelValueRowCells("Responsável", action.responsible),
+    labelValueRowCells(departure ? "Cadastro da ação" : "Última atualização", action.updatedAt),
+  ];
+}
+
+function recommendationPlanModel(
+  section: RecommendationPortfolioExportSectionView,
+  recommendationIndex: number,
+  actionNumberStart: number,
+  departure: boolean,
+): { rows: GridCell[][]; spans: number[]; nextActionNumber: number } {
+  const recommendation = section.recommendations[recommendationIndex]!;
+  const originLabel = `R${section.sectionDisplayNumber}.${recommendationIndex + 1}`;
+  const rows = originRows(section, recommendationIndex);
+  const spans = [rows.length];
+
+  if (recommendation.actions.length === 0) {
+    rows.push(subheaderRowCells(PLAN_SECTION_HEADING), noticeRowCells(EMPTY_RECOMMENDATION_ACTIONS));
+    spans.push(2);
+    return { rows, spans, nextActionNumber: actionNumberStart };
+  }
+
+  let actionNumber = actionNumberStart;
+  recommendation.actions.forEach((action, actionIndex) => {
+    actionNumber += 1;
+    const block = actionRows(action, actionNumber, originLabel, departure);
+    if (actionIndex === 0) {
+      rows.push(subheaderRowCells(PLAN_SECTION_HEADING), ...block);
+      spans.push(block.length + 1);
+      return;
+    }
+    rows.push(...block);
+    spans.push(block.length);
+  });
+  return { rows, spans, nextActionNumber: actionNumber };
+}
+
+function drawRecommendationSequence(
+  doc: ActionPlanPdfDocument,
+  cursor: Cursor,
+  section: RecommendationPortfolioExportSectionView,
+  recommendationIndex: number,
+  actionNumberStart: number,
   palette: GridPalette,
   departure: boolean,
-): Cursor {
-  const cur = drawGridBlockPaginated(
-    doc,
-    cursor,
-    [
-      labelValueRowCells(`Ação ${actionNumber}`, action.title),
-      labelValueRowCells("Origem", originLabel),
-      quadRowCells("Prazo inicial", action.startDate, "Prazo final", action.endDate),
-      quadRowCells(
-        departure ? "Situação na partida" : "Situação",
-        action.status,
-        departure ? "Progresso na partida" : "Progresso",
-        action.progress,
-      ),
-      labelValueRowCells("Responsável", action.responsible),
-      labelValueRowCells(departure ? "Cadastro da ação" : "Última atualização", action.updatedAt),
-    ],
-    { palette },
+): { cursor: Cursor; nextActionNumber: number } {
+  const model = recommendationPlanModel(
+    section,
+    recommendationIndex,
+    actionNumberStart,
+    departure,
   );
-  return { ...cur, y: cur.y - 12 };
+  const heights = measureGridRowHeights(doc, model.rows);
+  const originCount = model.spans[0] ?? 0;
+  const planCount = model.spans[1] ?? 0;
+  const originReserve = gridBlockReserve(heights.slice(0, originCount));
+  const planReserve = heights.slice(originCount, originCount + planCount).reduce((sum, height) => sum + height, 0);
+
+  const cur = shouldStartPageBeforePreface(
+    remainingContent(doc, cursor),
+    pageCapacity(doc),
+    originReserve,
+    planReserve,
+  )
+    ? doc.newPage()
+    : cursor;
+
+  return {
+    cursor: drawGridBlockPaginated(doc, cur, model.rows, { palette, spans: model.spans }),
+    nextActionNumber: model.nextActionNumber,
+  };
 }
 
 function drawSection(
@@ -452,25 +525,19 @@ function drawSection(
     });
   }
 
-  // Cada origem fica imediatamente seguida das ações que ela gerou,
-  // ainda dentro do mesmo eixo e da mesma seção.
   let actionNumber = 0;
-  section.recommendations.forEach((recommendation, recommendationIndex) => {
-    cur = doc.drawSubsectionTitle(cur, "Recomendações de origem");
-    cur = drawRecommendationOrigin(doc, cur, section, recommendationIndex, palette);
-    cur = doc.drawSubsectionTitle(cur, "Plano de integridade e compliance da seção");
-    if (recommendation.actions.length === 0) {
-      cur = doc.drawParagraph(cur, "Nenhuma ação cadastrada para esta recomendação.", {
-        size: 9,
-        color: reportTheme.slate500,
-      });
-      return;
-    }
-    const originLabel = `R${section.sectionDisplayNumber}.${recommendationIndex + 1}`;
-    for (const action of recommendation.actions) {
-      actionNumber += 1;
-      cur = drawActionGrid(doc, cur, action, actionNumber, originLabel, palette, departure);
-    }
+  section.recommendations.forEach((_, recommendationIndex) => {
+    const drawn = drawRecommendationSequence(
+      doc,
+      cur,
+      section,
+      recommendationIndex,
+      actionNumber,
+      palette,
+      departure,
+    );
+    cur = drawn.cursor;
+    actionNumber = drawn.nextActionNumber;
   });
   return { ...cur, y: cur.y - 8 };
 }
@@ -486,7 +553,7 @@ const DEPARTURE_TITLE = "Relatório (plano de integridade e compliance)";
 const LIVE_INTRO =
   "Leitura por encadeamento: as ações formam o plano de cada seção; as seções compõem os eixos. As recomendações identificam a origem de cada ação.";
 const DEPARTURE_INTRO =
-  "Partida do plano a partir do diagnóstico. Mostra como a organização começou: pergunta, motivo, recomendação e ações cadastradas, antes das atualizações de acompanhamento.";
+  "Apresenta a construção inicial do Plano de Integridade e Compliance com base no diagnóstico realizado, reunindo as perguntas, os motivos identificados, as recomendações emitidas e as ações cadastradas, antes do início do acompanhamento.";
 
 export async function generateActionPlanPdf(
   data: ActionPlanExportData,
