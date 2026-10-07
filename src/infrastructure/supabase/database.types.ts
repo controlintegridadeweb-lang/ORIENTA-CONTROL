@@ -4807,7 +4807,7 @@ export type Database = {
           p_search?: string
         }
         Returns: {
-          appointment: Database["public"]["Enums"]["respondent_appointment"] | null
+          appointment: Database["public"]["Enums"]["respondent_appointment"]
           created_at: string
           email: string
           full_name: string
@@ -5518,6 +5518,7 @@ export type Database = {
           p_target_user_id: string
         }
         Returns: {
+          appointment: Database["public"]["Enums"]["respondent_appointment"] | null
           declaration_text: string | null
           id: string
           organizational_unit: string | null

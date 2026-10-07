@@ -4,6 +4,7 @@ import { formatPlatformDate } from "@/shared/datetime/platform-date-time";
 import { latinPdfSafe } from "@/shared/export/text";
 import { drawRoundedRect } from "@/shared/export/pdf-rounded-rect";
 import type {
+  RecommendationPortfolioExportActionView,
   RecommendationPortfolioExportContextView,
   RecommendationPortfolioExportSectionView,
 } from "@/features/improvement-management/recommendations/export/portfolio-export-types";
@@ -476,7 +477,7 @@ const DEPARTURE_TITLE = "Relatório (plano de integridade e compliance)";
 const LIVE_INTRO =
   "Leitura por encadeamento: as ações formam o plano de cada seção; as seções compõem os eixos. As recomendações identificam a origem de cada ação.";
 const DEPARTURE_INTRO =
-  "Apresenta a construção inicial do Plano de Integridade e Compliance com base no diagnóstico realizado, reunindo as perguntas, os motivos identificados, as recomendações emitidas e as ações cadastradas, antes do início do acompanhamento.";
+  "Apresenta a construção inicial do Plano de integridade e compliance com base no diagnóstico realizado, reunindo as perguntas, os motivos identificados, as recomendações emitidas e as ações cadastradas, antes do início do acompanhamento.";
 
 export async function generateActionPlanPdf(
   data: ActionPlanExportData,
