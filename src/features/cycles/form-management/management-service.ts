@@ -1,3 +1,5 @@
+import { EVIDENCE_BUCKET } from "@/features/evidences/pending-evidence-uploads";
+import { REPORTS_BUCKET } from "@/features/reports/pdf/report-file-path";
 import { hasDatabaseErrorCode } from "@/infrastructure/supabase/database-error";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -47,8 +49,46 @@ async function loadScopedCycles(
   );
 }
 
+const ACTION_PLAN_DOCUMENT_BUCKET = "planos-acao";
+
+function storagePaths(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === "string" && item.length > 0);
+}
+
+async function removeStoragePaths(
+  supabase: SupabaseClient,
+  bucket: string,
+  paths: string[],
+) {
+  const unique = [...new Set(paths)];
+  for (let index = 0; index < unique.length; index += 100) {
+    const chunk = unique.slice(index, index + 100);
+    await supabase.storage.from(bucket).remove(chunk);
+  }
+}
+
 function mapRpcError(error: { message?: string } | null, fallback: string): never {
   const message = error?.message ?? "";
+  if (hasDatabaseErrorCode(message, "form_collection_not_fully_suspended")) {
+    throw new DomainConflictError(
+      "Suspenda a coleta de todas as organizações em preenchimento ou correção antes de despublicar ou excluir.",
+    );
+  }
+  if (hasDatabaseErrorCode(message, "form_not_published")) {
+    throw new DomainConflictError("O formulário já não está publicado.");
+  }
+  if (hasDatabaseErrorCode(message, "form_not_found")) {
+    throw new DomainConflictError("Formulário não encontrado.");
+  }
+  if (
+    hasDatabaseErrorCode(message, "unpublish_justification_required") ||
+    hasDatabaseErrorCode(message, "delete_justification_required")
+  ) {
+    throw new DomainValidationError([
+      { path: "justification", message: "Informe a justificativa administrativa." },
+    ]);
+  }
   if (hasDatabaseErrorCode(message, "deadline_must_be_future") || hasDatabaseErrorCode(message, "reopen_deadline_must_be_future")) {
     throw new DomainValidationError([
       { path: "newDeadlineAt", message: "O novo prazo deve ser posterior ao momento atual." },
@@ -356,5 +396,66 @@ export async function reopenFormApplicationValidation(
     updated: Number(payload.reopened ?? 0),
     reopened: Number(payload.reopened ?? 0),
     action: payload.action ?? "reopen_validation",
+  };
+}
+
+function requireWithdrawalJustification(justification: string) {
+  const justificationError = validateJustification(justification);
+  if (justificationError) {
+    throw new DomainValidationError([
+      { path: "justification", message: justificationError },
+    ]);
+  }
+}
+
+export async function unpublishSuspendedForm(
+  supabase: SupabaseClient,
+  input: { formId: string; justification: string; actorUserId: string },
+): Promise<FormManagementMutationResult> {
+  requireWithdrawalJustification(input.justification);
+  const { data, error } = await supabase.rpc("admin_unpublish_suspended_form", {
+    p_form_id: input.formId,
+    p_justification: input.justification.trim(),
+    p_actor_user_id: input.actorUserId,
+  });
+  if (error) mapRpcError(error, "Não foi possível despublicar o formulário.");
+  const payload = (data ?? {}) as { batchId?: string; updated?: number; action?: string };
+  return {
+    batchId: payload.batchId ?? "",
+    updated: Number(payload.updated ?? 0),
+    action: payload.action ?? "unpublish",
+  };
+}
+
+export async function deleteSuspendedForm(
+  supabase: SupabaseClient,
+  input: { formId: string; justification: string; actorUserId: string },
+): Promise<FormManagementMutationResult> {
+  requireWithdrawalJustification(input.justification);
+  const { data, error } = await supabase.rpc("admin_delete_suspended_form", {
+    p_form_id: input.formId,
+    p_justification: input.justification.trim(),
+    p_actor_user_id: input.actorUserId,
+  });
+  if (error) mapRpcError(error, "Não foi possível excluir o formulário.");
+  const payload = (data ?? {}) as {
+    batchId?: string;
+    updated?: number;
+    action?: string;
+    evidencePaths?: unknown;
+    reportPaths?: unknown;
+    actionPlanPaths?: unknown;
+  };
+  await removeStoragePaths(supabase, EVIDENCE_BUCKET, storagePaths(payload.evidencePaths));
+  await removeStoragePaths(supabase, REPORTS_BUCKET, storagePaths(payload.reportPaths));
+  await removeStoragePaths(
+    supabase,
+    ACTION_PLAN_DOCUMENT_BUCKET,
+    storagePaths(payload.actionPlanPaths),
+  );
+  return {
+    batchId: payload.batchId ?? "",
+    updated: Number(payload.updated ?? 0),
+    action: payload.action ?? "delete",
   };
 }

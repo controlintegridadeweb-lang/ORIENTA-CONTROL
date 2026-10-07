@@ -246,5 +246,30 @@ describe("form-management domain", () => {
     expect(byKey.reopen_responses?.available).toBe(true);
     expect(byKey.resume?.available).toBe(false);
     expect(byKey.resume?.reason).toMatch(/suspensa/i);
+    expect(byKey.unpublish?.available).toBe(false);
+    expect(byKey.delete?.available).toBe(false);
+  });
+
+  it("libera despublicar e excluir quando a coleta está toda suspensa", () => {
+    const cycles = [
+      cycle({
+        id: "1",
+        organizationId: "o1",
+        state: "in_response",
+        responseCollectionPausedAt: "2026-08-01T10:00:00.000Z",
+      }),
+      cycle({ id: "2", organizationId: "o2", state: "completed" }),
+    ];
+    const actions = listFormAdminActions({
+      status: "mixed",
+      counts: countFormApplicationOrganizations(cycles, now),
+      cycles,
+      published: true,
+      now,
+    });
+    const byKey = Object.fromEntries(actions.map((action) => [action.key, action]));
+    expect(byKey.unpublish?.available).toBe(true);
+    expect(byKey.delete?.available).toBe(true);
+    expect(byKey.suspend?.available).toBe(false);
   });
 });

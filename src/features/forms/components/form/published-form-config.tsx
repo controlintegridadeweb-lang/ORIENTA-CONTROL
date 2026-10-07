@@ -5,6 +5,7 @@ import {
   FormTabPanel,
 } from "@/features/forms/components/form/form-tab-panel";
 import { FormAssignmentsPanel } from "@/features/forms/components/form/form-assignments-panel";
+import { PublishedFormWithdrawal } from "@/features/forms/components/form/published-form-withdrawal";
 import { formManagementUi } from "@/features/forms/components/form/form-management-ui";
 import { diagnosisLabels } from "@/shared/labels/official-labels";
 import { formSurface } from "@/shared/layout/form-surface";
@@ -12,16 +13,17 @@ import { formSurface } from "@/shared/layout/form-surface";
 type Props = {
   formId: string;
   formName: string;
+  /** Coleta suspensa: despublicar e excluir ficam habilitados. */
+  canWithdraw: boolean;
 };
 
 /**
  * Configuração de um formulário já publicado.
  *
- * Criação, edição, renomeação e exclusão de rascunhos pertencem somente ao
- * assistente de publicação. Esta tela não contém ações de rascunho nem zonas
- * de exclusão que não podem ser utilizadas após a publicação.
+ * Criação e renomeação de rascunhos pertencem ao assistente de publicação.
+ * Despublicar e excluir aparecem aqui quando a coleta está suspensa.
  */
-export function PublishedFormConfig({ formId, formName }: Props) {
+export function PublishedFormConfig({ formId, formName, canWithdraw }: Props) {
   return (
     <FormTabPanel
       title="Configuração do formulário"
@@ -45,6 +47,8 @@ export function PublishedFormConfig({ formId, formName }: Props) {
             </div>
           </div>
         </FormManagementSection>
+
+        <PublishedFormWithdrawal formId={formId} canWithdraw={canWithdraw} />
 
         <FormManagementSection
           title="Diagnósticos deste formulário"

@@ -10,6 +10,8 @@ const ACTION_LABELS: Record<string, string> = {
   reopen_validation: "Reabertura de validação",
   suspend: "Suspensão da coleta",
   resume: "Retomada da coleta",
+  unpublish: "Despublicação",
+  delete: "Exclusão do formulário",
 };
 
 export function FormManagementHistorySection({

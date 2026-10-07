@@ -32,6 +32,8 @@ export type FormAdminActionKey =
   | "early_close"
   | "suspend"
   | "resume"
+  | "unpublish"
+  | "delete"
   | "view_history";
 
 export type FormAdminActionAvailability = {
@@ -72,6 +74,8 @@ export const FORM_ADMIN_ACTION_LABEL: Record<FormAdminActionKey, string> = {
   early_close: "Encerrar prazo antecipadamente",
   suspend: "Suspender formulário",
   resume: "Retomar formulário",
+  unpublish: "Despublicar",
+  delete: "Excluir",
   view_history: "Visualizar histórico de alterações",
 };
 
@@ -89,6 +93,24 @@ export const FORM_APPLICATION_STATUS_LABEL: Record<FormApplicationStatusKey, str
 export function isEditableResponseState(state: CycleState): boolean {
   return state === "in_response" || state === "awaiting_adjustment";
 }
+
+/**
+ * A coleta do formulário está suspensa quando ainda há órgãos em preenchimento
+ * ou correção e todos eles estão com a coleta pausada. Órgãos já concluídos
+ * não impedem despublicar nem excluir.
+ */
+export function isCollectionFullySuspended(
+  cycles: Array<Pick<FormManagementCycleInput, "state" | "responseCollectionPausedAt">>,
+): boolean {
+  const collecting = cycles.filter((cycle) => isEditableResponseState(cycle.state));
+  return (
+    collecting.length > 0 &&
+    collecting.every((cycle) => Boolean(cycle.responseCollectionPausedAt))
+  );
+}
+
+const WITHDRAWAL_BLOCKED_REASON =
+  "Suspenda a coleta de todas as organizações em preenchimento ou correção antes de despublicar ou excluir.";
 
 export function isResponseDeadlineOverdueAt(
   deadlineAt: string | null | undefined,
@@ -415,15 +437,25 @@ export function listFormAdminActions(input: {
   status: FormApplicationStatusKey;
   counts: FormApplicationCounts;
   cycles: FormManagementCycleInput[];
+  /** Coleta suspensa em todos os períodos do formulário. */
+  collectionFullySuspended?: boolean;
+  /** Há versão corrente publicada. */
+  published?: boolean;
   now?: Date;
 }): FormAdminActionAvailability[] {
   const now = input.now ?? new Date();
   const hasEditable = input.cycles.some((cycle) => isEditableResponseState(cycle.state));
+  const hasUnpausedCollection = input.cycles.some(
+    (cycle) => isEditableResponseState(cycle.state) && !cycle.responseCollectionPausedAt,
+  );
   const hasOverdue = input.counts.overdue > 0;
   const allPaused =
     input.cycles.length > 0 &&
     input.cycles.every((cycle) => Boolean(cycle.responseCollectionPausedAt));
   const anyPaused = input.cycles.some((cycle) => Boolean(cycle.responseCollectionPausedAt));
+  const collectionFullySuspended =
+    input.collectionFullySuspended ?? isCollectionFullySuspended(input.cycles);
+  const published = input.published ?? false;
   const reopen = resolveReopenEligibleCycles(input.cycles);
   const validationReopen = resolveValidationReopenEligibleCycles(input.cycles);
 
@@ -481,11 +513,11 @@ export function listFormAdminActions(input: {
     {
       key: "suspend",
       label: FORM_ADMIN_ACTION_LABEL.suspend,
-      available: hasEditable && !allPaused,
-      reason: allPaused
-        ? "O formulário já está suspenso para todas as organizações em coleta."
-        : !hasEditable
-          ? "Não há coleta em andamento para suspender."
+      available: hasUnpausedCollection,
+      reason: !hasEditable
+        ? "Não há coleta em andamento para suspender."
+        : !hasUnpausedCollection
+          ? "O formulário já está suspenso para todas as organizações em coleta."
           : undefined,
     },
     {
@@ -495,6 +527,22 @@ export function listFormAdminActions(input: {
       reason: anyPaused
         ? undefined
         : "Nenhuma organização está com a coleta suspensa.",
+    },
+    {
+      key: "unpublish",
+      label: FORM_ADMIN_ACTION_LABEL.unpublish,
+      available: collectionFullySuspended && published,
+      reason: !collectionFullySuspended
+        ? WITHDRAWAL_BLOCKED_REASON
+        : !published
+          ? "O formulário já não está publicado."
+          : undefined,
+    },
+    {
+      key: "delete",
+      label: FORM_ADMIN_ACTION_LABEL.delete,
+      available: collectionFullySuspended,
+      reason: collectionFullySuspended ? undefined : WITHDRAWAL_BLOCKED_REASON,
     },
     {
       key: "view_history",

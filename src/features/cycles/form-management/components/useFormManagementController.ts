@@ -12,9 +12,11 @@ import {
 } from "@/shared/datetime/fortaleza-date-time";
 import {
   changeFormApplicationDeadline,
+  deleteSuspendedForm,
   reopenFormApplication,
   reopenFormApplicationValidation,
   setFormApplicationPause,
+  unpublishSuspendedForm,
 } from "../client";
 import {
   buildDeadlineChangePreview,
@@ -44,7 +46,10 @@ function targetOrganizationIds(
   return scope === "all" || scope === "overdue" ? undefined : organizationIds;
 }
 
-export function useFormManagementController(initialDetails: FormManagementDetails) {
+export function useFormManagementController(
+  initialDetails: FormManagementDetails,
+  returnTo = "/admin/ciclos",
+) {
   const router = useRouter();
   const confirm = useConfirm();
   const [state, patchState] = usePatchState({
@@ -104,7 +109,9 @@ export function useFormManagementController(initialDetails: FormManagementDetail
 
   const previewText =
     activeAction &&
-    !["suspend", "resume", "reopen_validation"].includes(activeAction)
+    !["suspend", "resume", "reopen_validation", "unpublish", "delete"].includes(
+      activeAction,
+    )
       ? buildDeadlineChangePreview({
           previousDeadlines: scopedOrganizations.map((organization) =>
             formatManagementDeadline(organization.applicableDeadlineAt),
@@ -215,6 +222,20 @@ export function useFormManagementController(initialDetails: FormManagementDetail
       justification,
     };
 
+    if (activeAction === "unpublish") {
+      await unpublishSuspendedForm({
+        formId: details.formId,
+        justification,
+      });
+      return;
+    }
+    if (activeAction === "delete") {
+      await deleteSuspendedForm({
+        formId: details.formId,
+        justification,
+      });
+      return;
+    }
     if (activeAction === "suspend" || activeAction === "resume") {
       await setFormApplicationPause({
         ...base,
@@ -264,16 +285,31 @@ export function useFormManagementController(initialDetails: FormManagementDetail
         description:
           activeAction === "reopen_validation"
             ? "O FAMI e as decisões anteriores serão preservados no histórico. Uma nova rodada de validação será aberta. O novo FAMI só será consolidado após a conclusão dessa rodada."
-            : previewText ??
-              `Confirmar ${FORM_ADMIN_ACTION_LABEL[activeAction].toLowerCase()} para o formulário selecionado?`,
-        confirmLabel: "Confirmar",
+            : activeAction === "unpublish"
+              ? "O formulário deixa de estar publicado e volta a rascunho. Os diagnósticos já abertos permanecem, com a coleta suspensa."
+              : activeAction === "delete"
+                ? "O formulário e os diagnósticos, respostas, evidências e relatórios ligados a ele serão removidos de forma definitiva."
+                : previewText ??
+                  `Confirmar ${FORM_ADMIN_ACTION_LABEL[activeAction].toLowerCase()} para o formulário selecionado?`,
+        confirmLabel: activeAction === "delete" ? "Excluir" : "Confirmar",
         cancelLabel: "Cancelar",
+        tone: activeAction === "delete" ? "danger" : "default",
       });
       if (!confirmed) return;
 
       await executeAction();
-      notify.success("Operação administrativa concluída.");
+      notify.success(
+        activeAction === "delete"
+          ? "Formulário excluído."
+          : activeAction === "unpublish"
+            ? "Formulário despublicado."
+            : "Operação administrativa concluída.",
+      );
       resetForm();
+      if (activeAction === "delete") {
+        router.push(returnTo);
+        return;
+      }
       router.refresh();
     } catch (caught) {
       patchState({ error: describeError(caught, "Não foi possível concluir a operação.") });

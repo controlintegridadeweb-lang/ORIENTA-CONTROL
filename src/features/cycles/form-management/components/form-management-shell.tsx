@@ -19,7 +19,7 @@ export function FormManagementShell({
   details: FormManagementDetails;
   returnTo: string;
 }) {
-  const controller = useFormManagementController(initialDetails);
+  const controller = useFormManagementController(initialDetails, returnTo);
   const { details, startOrganizationAction } = controller;
 
   return (

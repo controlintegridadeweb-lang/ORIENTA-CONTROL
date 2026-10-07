@@ -72,6 +72,34 @@ export async function changeFormApplicationDeadline(input: {
   return body.result;
 }
 
+export async function unpublishSuspendedForm(input: {
+  formId: string;
+  justification: string;
+}): Promise<FormManagementMutationResult> {
+  const res = await fetch(formApplicationPath(input.formId, "/unpublish"), {
+    method: "POST",
+    headers: buildHeaders(),
+    body: JSON.stringify({ justification: input.justification }),
+  });
+  const body = await parseJson(res, mutationResponseSchema);
+  if (!res.ok || !body.result) throw new Error(formatError(body));
+  return body.result;
+}
+
+export async function deleteSuspendedForm(input: {
+  formId: string;
+  justification: string;
+}): Promise<FormManagementMutationResult> {
+  const res = await fetch(formApplicationPath(input.formId, "/delete"), {
+    method: "POST",
+    headers: buildHeaders(),
+    body: JSON.stringify({ justification: input.justification }),
+  });
+  const body = await parseJson(res, mutationResponseSchema);
+  if (!res.ok || !body.result) throw new Error(formatError(body));
+  return body.result;
+}
+
 export async function setFormApplicationPause(input: {
   formId: string;
   periodLabel: string;

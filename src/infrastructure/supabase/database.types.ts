@@ -3989,6 +3989,15 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_delete_suspended_form: {
+        Args: {
+          p_actor_user_id: string
+          p_batch_id?: string
+          p_form_id: string
+          p_justification: string
+        }
+        Returns: Json
+      }
       admin_reopen_validation_cycles: {
         Args: {
           p_actor_user_id: string
@@ -3996,6 +4005,15 @@ export type Database = {
           p_cycle_ids: string[]
           p_justification: string
           p_scope: string
+        }
+        Returns: Json
+      }
+      admin_unpublish_suspended_form: {
+        Args: {
+          p_actor_user_id: string
+          p_batch_id?: string
+          p_form_id: string
+          p_justification: string
         }
         Returns: Json
       }

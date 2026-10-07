@@ -19,5 +19,7 @@ export {
   setFormApplicationCollectionPause,
   reopenFormApplicationResponses,
   reopenFormApplicationValidation,
+  unpublishSuspendedForm,
+  deleteSuspendedForm,
 } from "./form-management/management-service";
 export { loadFormManagementDetails } from "./form-management/read-service";

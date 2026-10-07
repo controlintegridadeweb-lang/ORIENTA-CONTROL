@@ -34,6 +34,22 @@ function ActionGuidance({
       </p>
     );
   }
+  if (action === "unpublish") {
+    return (
+      <p className="text-xs leading-relaxed text-slate-600">
+        A versão publicada é arquivada e o formulário volta a rascunho. A
+        coleta continua suspensa nos órgãos que ainda estavam preenchendo.
+      </p>
+    );
+  }
+  if (action === "delete") {
+    return (
+      <p className="text-xs leading-relaxed text-slate-600">
+        Exclui o formulário e os diagnósticos deste modelo, inclusive respostas,
+        evidências e relatórios. Esta operação não pode ser desfeita.
+      </p>
+    );
+  }
   if (action === "reopen_responses") {
     return (
       <p className="text-xs leading-relaxed text-slate-600">
@@ -215,11 +231,14 @@ function ActiveActionForm({
 
   if (!activeAction) return null;
 
+  const showsScope = !["unpublish", "delete"].includes(activeAction);
   const showsDeadline = ![
     "suspend",
     "resume",
     "early_close",
     "reopen_validation",
+    "unpublish",
+    "delete",
   ].includes(activeAction);
 
   return (
@@ -228,7 +247,7 @@ function ActiveActionForm({
         {FORM_ADMIN_ACTION_LABEL[activeAction]}
       </h3>
       <ActionGuidance action={activeAction} />
-      <ScopeFields controller={controller} />
+      {showsScope ? <ScopeFields controller={controller} /> : null}
       <ReopenResponseFields controller={controller} />
 
       {showsDeadline ? (
@@ -310,7 +329,11 @@ export function FormManagementActionsSection({
             disabled={!action.available && action.key !== "view_history"}
             title={action.reason}
             onClick={() => startAction(action.key)}
-            className={`${formSurface.secondaryButtonSm} disabled:cursor-not-allowed disabled:opacity-50`}
+            className={`${
+              action.key === "delete"
+                ? formSurface.dangerButton
+                : formSurface.secondaryButtonSm
+            } disabled:cursor-not-allowed disabled:opacity-50`}
           >
             {action.label}
           </button>

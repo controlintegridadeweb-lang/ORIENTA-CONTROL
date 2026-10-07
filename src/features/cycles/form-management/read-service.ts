@@ -7,6 +7,7 @@ import {
   deriveFormApplicationStatus,
   FORM_APPLICATION_STATUS_LABEL,
   hasIndividualDeadlineExceptions,
+  isCollectionFullySuspended,
   isEditableResponseState,
   isExceptionalDeadline,
   isResponseDeadlineOverdueAt,
@@ -87,11 +88,16 @@ export async function loadFormManagementDetails(
   if (formError) throw formError;
   if (!formRow) return null;
 
-  let formVersion: { id: string; version: number; published_at: string | null } | null = null;
+  let formVersion: {
+    id: string;
+    version: number;
+    state: string;
+    published_at: string | null;
+  } | null = null;
   if (formRow.current_form_version_id) {
     const { data: versionRow, error: versionError } = await supabase
       .from("form_versions")
-      .select("id, version, published_at")
+      .select("id, version, state, published_at")
       .eq("id", formRow.current_form_version_id)
       .maybeSingle();
     if (versionError) throw versionError;
@@ -100,6 +106,7 @@ export async function loadFormManagementDetails(
           .object({
             id: z.string().min(1),
             version: z.number().int(),
+            state: z.string(),
             published_at: z.string().nullable(),
           })
           .parse(versionRow)
@@ -112,11 +119,14 @@ export async function loadFormManagementDetails(
     .eq("user_id", formRow.created_by)
     .maybeSingle();
 
+  const allCycles = await listCycles(supabase, { formId });
+  const collectionFullySuspended = isCollectionFullySuspended(
+    allCycles.map(toDomainCycle),
+  );
   let cycles = selectLatestCyclePerOrganization(
-    await listCycles(supabase, {
-      formId,
-      ...(input.periodLabel ? { periodLabel: input.periodLabel } : {}),
-    }),
+    input.periodLabel
+      ? allCycles.filter((cycle) => cycle.periodLabel === input.periodLabel)
+      : allCycles,
   );
 
   if (!input.periodLabel && cycles.length > 0) {
@@ -295,7 +305,14 @@ export async function loadFormManagementDetails(
     createdByName: creatorProfile?.full_name ?? null,
     deadlineMode: hasIndividualDeadlineExceptions(domainCycles) ? "mixed" : "global",
     counts,
-    actions: listFormAdminActions({ status, counts, cycles: domainCycles, now }),
+    actions: listFormAdminActions({
+      status,
+      counts,
+      cycles: domainCycles,
+      collectionFullySuspended,
+      published: formVersion?.state === "published",
+      now,
+    }),
     organizations,
     criteria,
     history,
