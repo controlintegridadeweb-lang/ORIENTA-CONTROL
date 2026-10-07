@@ -135,7 +135,7 @@ async function main() {
       const org = orgByAcronym.get(respondent.organizationAcronym);
       const profile = user ? profileByUserId.get(user.id) : null;
       if (!user || !profile || profile.role !== "respondent" || profile.organization_id !== org.id) {
-        failures.push(respondent.organizationAcronym);
+        failures.push(`${respondent.organizationAcronym} (${respondent.email})`);
       }
     }
     if (failures.length) throw new Error(`Verificação falhou para: ${failures.join(", ")}.`);
@@ -195,6 +195,7 @@ async function main() {
         p_email: respondent.email,
         p_full_name: respondent.fullName,
         p_organization_id: org.id,
+        p_appointment: respondent.appointment,
         p_actor_user_id: actorUserId,
       });
       if (error) {

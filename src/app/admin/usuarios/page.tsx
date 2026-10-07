@@ -76,7 +76,7 @@ export default async function AdminUsuariosPage({
 
         <PanelSection
           title="Criar respondente"
-          description="Cria a conta de acesso, vincula à organização escolhida e somente depois envia as instruções de primeiro acesso."
+          description="Cria a conta de acesso, vincula à organização e registra se a pessoa é titular ou suplente. A mesma organização pode receber várias pessoas, cada uma com a própria conta. As instruções de primeiro acesso só seguem depois que a conta e o perfil ficam consistentes."
           variant="card"
         >
           <CreateRespondentForm organizations={organizations} />

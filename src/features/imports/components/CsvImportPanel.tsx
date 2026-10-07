@@ -24,8 +24,8 @@ const COPY: Record<ImportKind, {
   },
   respondents: {
     title: "Importar respondentes por CSV",
-    description: "Crie contas em lote e vincule cada respondente pela sigla da organização. O acesso inicial é enviado somente após a criação consistente da conta e do perfil.",
-    placeholder: "email;nome;sigla_org\nusuario@org.gov.br;Nome;SEEX",
+    description: "Crie contas em lote e vincule cada pessoa pela sigla da organização. Informe o cargo como titular ou suplente. A mesma sigla pode se repetir, com um e-mail por pessoa. O acesso inicial é enviado somente após a criação consistente da conta e do perfil.",
+    placeholder: "email;nome;sigla_org;cargo\nusuario@org.gov.br;Nome;SEEX;titular",
     fileLabel: "Arquivo de respondentes",
   },
 };

@@ -9,6 +9,7 @@ describe("createRespondentSchema", () => {
       email: "  respondente@example.invalid  ",
       fullName: "  Respondente de Teste  ",
       organizationId: `  ${organizationId}  `,
+      appointment: "titular",
       password: "SenhaForte123!",
     });
 
@@ -16,6 +17,7 @@ describe("createRespondentSchema", () => {
       email: "respondente@example.invalid",
       fullName: "Respondente de Teste",
       organizationId,
+      appointment: "titular",
       password: "SenhaForte123!",
     });
   });
@@ -25,11 +27,23 @@ describe("createRespondentSchema", () => {
       email: "respondente@example.invalid",
       fullName: "   ",
       organizationId,
+      appointment: "suplente",
       password: "",
     });
 
     expect(parsed.fullName).toBeUndefined();
     expect(parsed.password).toBeUndefined();
+    expect(parsed.appointment).toBe("suplente");
+  });
+
+  it("exige cargo titular ou suplente", () => {
+    const parsed = createRespondentSchema.safeParse({
+      email: "respondente@example.invalid",
+      organizationId,
+      appointment: "coordenador",
+    });
+
+    expect(parsed.success).toBe(false);
   });
 
   it("rejeita valores de FormData que não sejam texto", () => {

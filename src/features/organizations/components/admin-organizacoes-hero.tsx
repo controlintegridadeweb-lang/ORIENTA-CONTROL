@@ -9,7 +9,7 @@ export function AdminOrganizacoesHero() {
       ariaLabel="Organizações"
       overline="Cadastro institucional"
       title="Organizações"
-      description="Cadastre e consulte as organizações avaliadas. Cada respondente pertence a exatamente uma organização; administradores têm visão global."
+      description="Cadastre e consulte as organizações avaliadas. Cada pessoa pertence a exatamente uma organização, e a mesma organização pode ter várias pessoas cadastradas. Administradores têm visão global."
       image={ADMIN_ORGANIZACOES_HERO_IMAGE}
       imageWidth={1024}
       imageHeight={1024}

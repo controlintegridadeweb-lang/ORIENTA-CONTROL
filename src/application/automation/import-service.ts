@@ -118,12 +118,23 @@ function validateOrganizationRows(rows: Array<Record<string, string>>): ImportRo
   });
 }
 
+function respondentAppointment(value: string): "titular" | "suplente" | null {
+  const normalized = value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLocaleLowerCase("pt-BR");
+  if (normalized === "titular" || normalized === "suplente") return normalized;
+  return null;
+}
+
 function validateRespondentRows(rows: Array<Record<string, string>>): ImportRowResult[] {
   const seen = new Set<string>();
   return rows.map((row, index) => {
     const email = first(row, ["email", "e_mail"]).toLocaleLowerCase("pt-BR");
     const acronym = first(row, ["organization_acronym", "sigla_organizacao", "sigla_org", "sigla"]).toUpperCase();
     const fullName = first(row, ["full_name", "nome", "nome_completo"]);
+    const appointment = respondentAppointment(first(row, ["appointment", "cargo", "tipo_cargo"]));
     const password = first(row, ["password", "senha_provisoria", "senha"]);
     const identity = email || `Linha ${index + 2}`;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -137,6 +148,9 @@ function validateRespondentRows(rows: Array<Record<string, string>>): ImportRowR
       identity,
       message: "Não inclua senhas no CSV. O acesso inicial é enviado somente após a criação segura da conta.",
     };
+    if (!appointment) {
+      return { row: index + 2, status: "failed", identity, message: "Informe o cargo como titular ou suplente." };
+    }
     if (seen.has(email)) return { row: index + 2, status: "failed", identity, message: "E-mail duplicado no próprio arquivo." };
     seen.add(email);
     return { row: index + 2, status: "valid", identity, message: "Registro válido." };
@@ -169,6 +183,7 @@ function sanitizedRespondentRow(row: Record<string, string>): Record<string, str
       row,
       ["organization_acronym", "sigla_organizacao", "sigla_org", "sigla"],
     ).toUpperCase(),
+    appointment: respondentAppointment(first(row, ["appointment", "cargo", "tipo_cargo"])) ?? "",
   };
 }
 
@@ -350,11 +365,14 @@ async function processImportItem(input: {
       const acronym = row.organization_acronym;
       const organizationId = input.organizations.get(acronym);
       if (!organizationId) throw new Error(`Organização com sigla ${acronym} não encontrada.`);
+      const appointment = respondentAppointment(row.appointment);
+      if (!appointment) throw new Error("Informe o cargo como titular ou suplente.");
       try {
         const created = await createRespondentUser({
           email,
           fullName: fullName || null,
           organizationId,
+          appointment,
           password: null,
           actorUserId: input.actorUserId,
         });

@@ -159,6 +159,7 @@ describe("createRespondentUser", () => {
       createRespondentUser({
         email: "r@org.gov.br",
         organizationId: "nao-e-uuid",
+        appointment: "titular",
         actorUserId: "admin-1",
       }),
     ).rejects.toBeInstanceOf(DomainValidationError);
@@ -170,6 +171,7 @@ describe("createRespondentUser", () => {
       createRespondentUser({
         email: "r@org.gov.br",
         organizationId: "33333333-3333-4333-8333-333333333333",
+        appointment: "titular",
         actorUserId: "admin-1",
       }),
     ).rejects.toBeInstanceOf(DomainValidationError);
@@ -179,6 +181,7 @@ describe("createRespondentUser", () => {
     const result = await createRespondentUser({
       email: "r@org.gov.br",
       organizationId: "33333333-3333-4333-8333-333333333333",
+      appointment: "titular",
       actorUserId: "admin-1",
     });
     expect(result.userId).toBe("new-user-1");
@@ -195,6 +198,7 @@ describe("createRespondentUser", () => {
           p_email: "r@org.gov.br",
           p_full_name: "",
           p_organization_id: "33333333-3333-4333-8333-333333333333",
+          p_appointment: "titular",
           p_actor_user_id: "admin-1",
         },
       },
@@ -207,6 +211,7 @@ describe("createRespondentUser", () => {
     const result = await createRespondentUser({
       email: "r@org.gov.br",
       organizationId: "33333333-3333-4333-8333-333333333333",
+      appointment: "titular",
       actorUserId: "admin-1",
     });
 
@@ -219,6 +224,7 @@ describe("createRespondentUser", () => {
     const result = await createRespondentUser({
       email: "r@org.gov.br",
       organizationId: "33333333-3333-4333-8333-333333333333",
+      appointment: "titular",
       password: "SenhaSegura123!",
       actorUserId: "admin-1",
     });
@@ -235,6 +241,7 @@ describe("createRespondentUser", () => {
       createRespondentUser({
         email: "r@org.gov.br",
         organizationId: "33333333-3333-4333-8333-333333333333",
+        appointment: "titular",
         actorUserId: "admin-1",
       }),
     ).rejects.toBeInstanceOf(DomainUnavailableError);
@@ -248,6 +255,7 @@ describe("createRespondentUser", () => {
       createRespondentUser({
         email: "r@org.gov.br",
         organizationId: "33333333-3333-4333-8333-333333333333",
+        appointment: "titular",
         actorUserId: "admin-1",
       }),
     ).rejects.toBeInstanceOf(DomainUnavailableError);
@@ -260,6 +268,7 @@ describe("createRespondentUser", () => {
       createRespondentUser({
         email: "r@org.gov.br",
         organizationId: "33333333-3333-4333-8333-333333333333",
+        appointment: "titular",
         actorUserId: "admin-1",
       }),
     ).rejects.toBeTruthy();
@@ -274,6 +283,7 @@ describe("createRespondentUser", () => {
       createRespondentUser({
         email: "r@org.gov.br",
         organizationId: "33333333-3333-4333-8333-333333333333",
+        appointment: "titular",
         actorUserId: "admin-1",
       }),
     ).rejects.toThrow("respondent_creation_inconsistent_state");
@@ -291,6 +301,7 @@ describe("createRespondentUser", () => {
       createRespondentUser({
         email: "r@org.gov.br",
         organizationId: "33333333-3333-4333-8333-333333333333",
+        appointment: "titular",
         actorUserId: "admin-1",
       }),
     ).rejects.toBeInstanceOf(DomainConflictError);
@@ -319,6 +330,7 @@ describe("admin user consistency", () => {
         email: "novo@org.gov.br",
         role: "respondent",
         organizationId: "33333333-3333-4333-8333-333333333333",
+        appointment: "titular",
         actorUserId: "admin-1",
       }),
     ).rejects.toThrow("profile update failed");
@@ -337,6 +349,7 @@ describe("admin user consistency", () => {
         email: "novo@org.gov.br",
         role: "respondent",
         organizationId: "33333333-3333-4333-8333-333333333333",
+        appointment: "titular",
         actorUserId: "admin-1",
       }),
     ).rejects.toThrow("user_update_inconsistent_state");

@@ -15,7 +15,7 @@ describe("AdminOrganizacoesHero", () => {
     expect(screen.getByRole("heading", { name: "Organizações" })).toBeTruthy();
     expect(
       screen.getByText(
-        "Cadastre e consulte as organizações avaliadas. Cada respondente pertence a exatamente uma organização; administradores têm visão global.",
+        "Cadastre e consulte as organizações avaliadas. Cada pessoa pertence a exatamente uma organização, e a mesma organização pode ter várias pessoas cadastradas. Administradores têm visão global.",
       ),
     ).toBeTruthy();
   });

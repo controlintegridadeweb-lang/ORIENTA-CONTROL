@@ -11,6 +11,10 @@ import { useConfirm } from "@/shared/ui/components/confirm-dialog";
 import { describeError, isNextRedirectError, notify } from "@/infrastructure/notifications/notify";
 import { copyTextToClipboard } from "@/shared/browser/clipboard";
 import { formSurface } from "@/shared/layout/form-surface";
+import {
+  respondentAppointmentLabels,
+  type RespondentAppointment,
+} from "@/features/admin/respondent-appointment";
 import { removeUserAction, resetPasswordAction, saveUserProfileAction } from "./actions";
 
 const cellClass = formSurface.brandTable.cell;
@@ -30,7 +34,7 @@ const dangerButtonClass =
 const EDITABLE_ROLES: AppRole[] = ["respondent"];
 
 const DESKTOP_GRID =
-  "lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1.4fr)_minmax(0,1.1fr)_minmax(6rem,0.7fr)_minmax(6rem,0.7fr)_minmax(9rem,1fr)] lg:items-start";
+  "lg:grid lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1.3fr)_minmax(0,1fr)_minmax(7.5rem,0.7fr)_minmax(6rem,0.65fr)_minmax(6rem,0.65fr)_minmax(9rem,0.9fr)] lg:items-start";
 
 function MobileField({
   label,
@@ -53,6 +57,7 @@ export function UserRowGridHeader() {
       <div className={headerCellClass}>Nome</div>
       <div className={headerCellClass}>E-mail</div>
       <div className={headerCellClass}>Organização</div>
+      <div className={headerCellClass}>Cargo</div>
       <div className={headerCellClass}>Perfil</div>
       <div className={headerCellClass}>Criado em</div>
       <div className={`${headerCellClass} text-right`}>Ações</div>
@@ -90,6 +95,9 @@ export function ReadonlyAdminRow({
           {orgName ?? "—"}
         </div>
       </MobileField>
+      <MobileField label="Cargo">
+        <div className={`${cellClass} text-slate-700 lg:px-4 lg:py-4`}>—</div>
+      </MobileField>
       <MobileField label="Perfil">
         <div className={`${cellClass} text-slate-700 lg:px-4 lg:py-4`}>
           {roleLabels[user.role]}
@@ -124,6 +132,9 @@ export function EditableUserRow({
   const [fullName, setFullName] = useState(user.fullName ?? "");
   const [email, setEmail] = useState(user.email ?? "");
   const [organizationId, setOrganizationId] = useState(user.organizationId ?? "");
+  const [appointment, setAppointment] = useState<RespondentAppointment | "">(
+    user.appointment ?? "",
+  );
   const [isSaving, startSave] = useTransition();
   const [isResetting, startReset] = useTransition();
   const [isRemoving, startRemove] = useTransition();
@@ -148,11 +159,16 @@ export function EditableUserRow({
       notify.warning("Selecione uma organização antes de salvar.");
       return;
     }
+    if (!appointment) {
+      notify.warning("Informe se o cargo é titular ou suplente.");
+      return;
+    }
     const fd = buildBaseFormData();
     fd.set("fullName", fullName.trim());
     fd.set("email", email.trim());
     fd.set("role", user.role);
     fd.set("organizationId", organizationId);
+    fd.set("appointment", appointment);
 
     startSave(async () => {
       try {
@@ -270,6 +286,26 @@ export function EditableUserRow({
                 {o.name}
               </option>
             ))}
+          </select>
+        </div>
+      </MobileField>
+
+      <MobileField label="Cargo">
+        <div className={`${cellClass} lg:px-4 lg:py-4`}>
+          <select
+            name="appointment"
+            value={appointment}
+            onChange={(e) => setAppointment(e.target.value as RespondentAppointment | "")}
+            className={fieldClass}
+            disabled={anyPending}
+            required
+            aria-label="Cargo"
+          >
+            <option value="" disabled>
+              Selecione…
+            </option>
+            <option value="titular">{respondentAppointmentLabels.titular}</option>
+            <option value="suplente">{respondentAppointmentLabels.suplente}</option>
           </select>
         </div>
       </MobileField>

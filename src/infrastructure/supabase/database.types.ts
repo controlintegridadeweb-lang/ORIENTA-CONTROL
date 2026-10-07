@@ -3066,6 +3066,7 @@ export type Database = {
       }
       respondent_profile_details: {
         Row: {
+          appointment: Database["public"]["Enums"]["respondent_appointment"] | null
           declaration_text: string | null
           id: string
           organizational_unit: string | null
@@ -3082,6 +3083,7 @@ export type Database = {
           id?: string
           organizational_unit?: string | null
           position_title?: string | null
+          appointment?: Database["public"]["Enums"]["respondent_appointment"] | null
           registration_number?: string | null
           source_name?: string
           source_submitted_at?: string | null
@@ -3094,6 +3096,7 @@ export type Database = {
           id?: string
           organizational_unit?: string | null
           position_title?: string | null
+          appointment?: Database["public"]["Enums"]["respondent_appointment"] | null
           registration_number?: string | null
           source_name?: string
           source_submitted_at?: string | null
@@ -4389,6 +4392,7 @@ export type Database = {
       create_respondent_profile: {
         Args: {
           p_actor_user_id: string
+          p_appointment: Database["public"]["Enums"]["respondent_appointment"]
           p_email: string
           p_full_name: string
           p_organization_id: string
@@ -4803,6 +4807,7 @@ export type Database = {
           p_search?: string
         }
         Returns: {
+          appointment: Database["public"]["Enums"]["respondent_appointment"] | null
           created_at: string
           email: string
           full_name: string
@@ -5472,6 +5477,7 @@ export type Database = {
       update_respondent_profile: {
         Args: {
           p_actor_user_id: string
+          p_appointment?: Database["public"]["Enums"]["respondent_appointment"]
           p_full_name: string
           p_organization_id: string
           p_target_user_id: string
@@ -5645,6 +5651,7 @@ export type Database = {
         | "nao_implementacao"
         | "ausencia_evidencia"
         | "evidencia_insuficiente"
+      respondent_appointment: "titular" | "suplente"
       supervision_note_lifecycle_status:
         | "recorded"
         | "open"
@@ -5815,6 +5822,7 @@ export const Constants = {
         "ausencia_evidencia",
         "evidencia_insuficiente",
       ],
+      respondent_appointment: ["titular", "suplente"],
       supervision_note_lifecycle_status: [
         "recorded",
         "open",

@@ -6,6 +6,7 @@ import { LoadingButton } from "@/shared/ui/components/loading";
 import { notify } from "@/infrastructure/notifications/notify";
 import { formSurface } from "@/shared/layout/form-surface";
 import type { OrganizationOption } from "@/features/organizations/options";
+import { respondentAppointmentLabels } from "@/features/admin/respondent-appointment";
 import { createRespondentAction, type CreateRespondentState } from "./actions";
 
 const initialState: CreateRespondentState = { status: "idle" };
@@ -101,6 +102,26 @@ export function CreateRespondentForm({
                 {org.name}
               </option>
             ))}
+          </select>
+        </div>
+
+        <div className={formSurface.fieldGroup}>
+          <label htmlFor="resp-appointment" className={formSurface.label}>
+            Cargo
+          </label>
+          <select
+            id="resp-appointment"
+            name="appointment"
+            required
+            defaultValue=""
+            className={formSurface.input}
+            disabled={noOrganizations}
+          >
+            <option value="" disabled>
+              Selecione…
+            </option>
+            <option value="titular">{respondentAppointmentLabels.titular}</option>
+            <option value="suplente">{respondentAppointmentLabels.suplente}</option>
           </select>
         </div>
 

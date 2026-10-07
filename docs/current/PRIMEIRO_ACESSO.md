@@ -154,8 +154,9 @@ Para testes automatizados existe `supabase/testing/fixtures/bootstrap_diagnostic
 ## 4. Como criar um respondente
 
 **Pela interface (recomendado):** em **`/admin/usuarios`**, use o cartão *Criar
-respondente*: informe e-mail, nome (opcional), selecione a **organização** e,
-opcionalmente, uma senha provisória. Quando a senha é informada, ela é reconhecida
+respondente*: informe e-mail, nome (opcional), selecione a **organização**,
+informe se o cargo é **titular** ou **suplente** e, opcionalmente, uma senha
+provisória. Quando a senha é informada, ela é reconhecida
 como o meio de primeiro acesso. Se o campo ficar em branco, o sistema solicita ao
 provedor o envio da definição de senha; quando o envio não pode ser solicitado,
 gera um **link alternativo** para envio por canal seguro. A ação cria a conta de
@@ -163,7 +164,9 @@ Auth e o profile vinculado em um passo só, com rollback automático se o profil
 falhar ou se nenhum meio de acesso puder ser produzido.
 
 Pré-requisito: ter ao menos uma organização cadastrada (seção 1) — respondente
-exige organização (constraint do banco).
+exige organização (constraint do banco). A mesma organização pode ter várias
+pessoas cadastradas. Cada pessoa tem a própria conta e permanece vinculada a
+uma única organização.
 
 **Via SQL** (automação), o equivalente manual:
 

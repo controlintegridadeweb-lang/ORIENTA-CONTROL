@@ -113,16 +113,28 @@ function verifyOperationalManifest(manifestPath, accountsPath) {
     }
   }
 
-  const accountByAcronym = new Map(
-    accounts.map((account) => [account.organizationAcronym, account]),
-  );
+  const accountsByAcronym = new Map();
+  for (const account of accounts) {
+    const current = accountsByAcronym.get(account.organizationAcronym) ?? [];
+    current.push(account);
+    accountsByAcronym.set(account.organizationAcronym, current);
+  }
   for (const record of manifest.records) {
-    const account = accountByAcronym.get(record.organization_acronym);
-    if (!account) {
+    const candidates = accountsByAcronym.get(record.organization_acronym) ?? [];
+    if (candidates.length === 0) {
       throw new Error(`${record.organization_acronym}: conta não encontrada no arquivo externo.`);
     }
-    if (account.fullName !== record.respondent.full_name) {
-      throw new Error(`${record.organization_acronym}: nome do arquivo externo diverge do manifesto.`);
+    if (candidates.length === 1) {
+      if (candidates[0].fullName !== record.respondent.full_name) {
+        throw new Error(`${record.organization_acronym}: nome do arquivo externo diverge do manifesto.`);
+      }
+      continue;
+    }
+    const named = candidates.filter((account) => account.fullName === record.respondent.full_name);
+    if (named.length !== 1) {
+      throw new Error(
+        `${record.organization_acronym}: há ${candidates.length} pessoas no arquivo e o nome do manifesto não identifica exatamente uma delas.`,
+      );
     }
   }
 

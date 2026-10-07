@@ -15,7 +15,7 @@ Motivos:
 - compensar a conta Auth se a criação do profile falhar;
 - permitir reexecução idempotente sem duplicar contas.
 
-O arquivo versionado `supabase/seeds/respondent_accounts.csv` é exclusivamente um seed mínimo de desenvolvimento, com duas organizações, dois nomes e dois e-mails fictícios. Ele usa o domínio reservado `@example.invalid`. Relações reais de respondentes, e-mails e nomes pessoais devem permanecer fora do Git e ser informadas por `--file`. **Senhas nunca são versionadas.**
+O arquivo versionado `supabase/seeds/respondent_accounts.csv` é exclusivamente um seed mínimo de desenvolvimento, com duas organizações, dois nomes, dois e-mails fictícios e o cargo de cada pessoa (`titular` ou `suplente`). Ele usa o domínio reservado `@example.invalid`. Relações reais de respondentes, e-mails e nomes pessoais devem permanecer fora do Git e ser informadas por `--file`. **Senhas nunca são versionadas.**
 
 ## Pré-requisitos
 
@@ -105,9 +105,11 @@ vinculada a sigla diferente da fonte de contas.
 **E-mails provisórios em provedores públicos exigem cuidado.** Um endereço como
 `orgao@gmail.com` pode já pertencer a terceiro. Não disponibilize a aplicação em
 produção com um endereço cuja titularidade não foi confirmada. Quando o e-mail
-oficial chegar, altere o mesmo usuário em `/admin/usuarios`; isso preserva o UUID,
-o perfil, o vínculo institucional e todo o histórico. Não crie outra conta para
-o mesmo órgão apenas porque o e-mail mudou.
+oficial de uma pessoa já cadastrada chegar, altere o mesmo usuário em
+`/admin/usuarios`; isso preserva o UUID, o perfil, o vínculo institucional e
+todo o histórico. Uma organização pode ter várias pessoas, cada uma com a
+própria conta e o próprio e-mail. Não crie outra conta só para substituir o
+e-mail de alguém que já existe.
 
 ## Senha fixa para homologação controlada
 

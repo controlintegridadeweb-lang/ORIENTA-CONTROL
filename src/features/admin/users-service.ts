@@ -15,6 +15,10 @@ import {
   passwordRecoveryRedirectUrl,
 } from "@/shared/config/app-url";
 import { MIN_PASSWORD_LENGTH, validatePassword } from "@/infrastructure/auth/password-policy";
+import {
+  RESPONDENT_APPOINTMENTS,
+  type RespondentAppointment,
+} from "@/features/admin/respondent-appointment";
 
 export type ListedUserRow = {
   userId: string;
@@ -22,6 +26,7 @@ export type ListedUserRow = {
   fullName: string | null;
   role: AppRole;
   organizationId: string | null;
+  appointment: RespondentAppointment | null;
   createdAt: string;
 };
 
@@ -61,6 +66,7 @@ export async function listUsersForAdmin(
       fullName: row.full_name,
       role: row.role,
       organizationId: row.organization_id,
+      appointment: row.appointment,
       createdAt: row.created_at,
     })),
     total: Number(rows[0]?.total_count ?? 0),
@@ -144,6 +150,7 @@ export async function updateUserProfileAdmin(input: {
   email: string;
   role: AppRole;
   organizationId: string | null;
+  appointment: RespondentAppointment;
   actorUserId: string;
 }): Promise<void> {
   const client = createSupabaseServiceRoleClient();
@@ -196,6 +203,7 @@ export async function updateUserProfileAdmin(input: {
     p_target_user_id: input.userId,
     p_full_name: input.fullName ?? "",
     p_organization_id: input.organizationId,
+    p_appointment: input.appointment,
     p_actor_user_id: input.actorUserId,
   });
   if (!profileError) return;
@@ -275,6 +283,9 @@ export const createRespondentSchema = z
       z.string().trim().max(160, "Nome muito longo (máx. 160 caracteres).").optional(),
     ),
     organizationId: z.string().trim().uuid("Selecione uma organização válida."),
+    appointment: z.enum(RESPONDENT_APPOINTMENTS, {
+      error: "Informe se o cargo é titular ou suplente.",
+    }),
     password: z.preprocess(
       emptyTextToUndefined,
       z.string().min(
@@ -289,6 +300,7 @@ export type CreateRespondentInput = {
   email: string;
   fullName?: string | null;
   organizationId: string;
+  appointment: RespondentAppointment;
   password?: string | null;
 };
 
@@ -307,6 +319,7 @@ export async function createRespondentUser(
     email: input.email,
     fullName: input.fullName ?? undefined,
     organizationId: input.organizationId,
+    appointment: input.appointment,
     password: input.password ?? undefined,
   });
   if (!parsed.success) {
@@ -315,7 +328,7 @@ export async function createRespondentUser(
       message: issue.message,
     })));
   }
-  const { email, fullName, organizationId, password } = parsed.data;
+  const { email, fullName, organizationId, appointment, password } = parsed.data;
   if (password) {
     const policy = validatePassword(password, "A senha provisória");
     if (!policy.ok) {
@@ -356,6 +369,7 @@ export async function createRespondentUser(
     p_email: email,
     p_full_name: fullName ?? "",
     p_organization_id: organizationId,
+    p_appointment: appointment,
     p_actor_user_id: input.actorUserId,
   });
   if (profileError) {

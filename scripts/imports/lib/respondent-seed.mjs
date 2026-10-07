@@ -5,6 +5,7 @@ export const RESPONDENT_SEED_HEADERS = [
   "organization_acronym",
   "email",
   "full_name",
+  "appointment",
 ];
 
 export const RESPONDENT_CREDENTIAL_HEADERS = [
@@ -76,6 +77,14 @@ function assertHeaders(headers) {
   }
 }
 
+function assertAppointment(appointment, lineNumber) {
+  const normalized = appointment.trim().toLowerCase();
+  if (normalized !== "titular" && normalized !== "suplente") {
+    throw new Error(`Linha ${lineNumber}: informe o cargo como titular ou suplente.`);
+  }
+  return normalized;
+}
+
 function assertEmail(email, lineNumber) {
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
     throw new Error(`Linha ${lineNumber}: e-mail inválido.`);
@@ -96,7 +105,6 @@ export function parseRespondentSeed(csv) {
   assertHeaders(rows[0]);
 
   const emails = new Set();
-  const acronyms = new Set();
   const result = [];
 
   for (let index = 1; index < rows.length; index += 1) {
@@ -112,6 +120,7 @@ export function parseRespondentSeed(csv) {
     const organizationAcronym = row[1].trim().toUpperCase();
     const email = row[2].trim().toLowerCase();
     const fullName = row[3].trim();
+    const appointment = assertAppointment(row[4], lineNumber);
 
     if (!organizationName) {
       throw new Error(`Linha ${lineNumber}: nome da organização é obrigatório.`);
@@ -122,13 +131,9 @@ export function parseRespondentSeed(csv) {
     if (emails.has(email)) {
       throw new Error(`Linha ${lineNumber}: e-mail duplicado no arquivo.`);
     }
-    if (acronyms.has(organizationAcronym)) {
-      throw new Error(`Linha ${lineNumber}: sigla duplicada no arquivo.`);
-    }
 
     emails.add(email);
-    acronyms.add(organizationAcronym);
-    result.push({ organizationName, organizationAcronym, email, fullName });
+    result.push({ organizationName, organizationAcronym, email, fullName, appointment });
   }
 
   return result;
@@ -181,7 +186,6 @@ export function parseRespondentCredentials(csv) {
   }
 
   const emails = new Set();
-  const acronyms = new Set();
   const result = [];
 
   for (let index = 1; index < rows.length; index += 1) {
@@ -207,12 +211,8 @@ export function parseRespondentCredentials(csv) {
     if (emails.has(email)) {
       throw new Error(`Linha ${lineNumber}: e-mail duplicado no arquivo de credenciais.`);
     }
-    if (acronyms.has(organizationAcronym)) {
-      throw new Error(`Linha ${lineNumber}: sigla duplicada no arquivo de credenciais.`);
-    }
 
     emails.add(email);
-    acronyms.add(organizationAcronym);
     result.push({ organizationAcronym, email, temporaryPassword });
   }
 

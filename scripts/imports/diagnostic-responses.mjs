@@ -99,6 +99,27 @@ async function resolveGlobalAdminId(supabase) {
   return data[0].user_id;
 }
 
+function normalizePersonName(value) {
+  return String(value ?? "").trim().toLocaleLowerCase("pt-BR");
+}
+
+function selectOrganizationRespondent(acronym, profiles, preferredName) {
+  if (profiles.length === 0) {
+    throw new Error(`${acronym}: nenhum respondente vinculado à organização.`);
+  }
+  if (profiles.length === 1) return profiles[0];
+
+  const preferred = normalizePersonName(preferredName);
+  const matches = profiles.filter(
+    (profile) => normalizePersonName(profile.full_name) === preferred,
+  );
+  if (matches.length === 1) return matches[0];
+
+  throw new Error(
+    `${acronym}: a organização tem ${profiles.length} pessoas cadastradas; o diagnóstico precisa corresponder ao nome de exatamente uma delas.`,
+  );
+}
+
 async function loadOrganizationsAndRespondents(supabase, manifest, accounts) {
   const { data: organizations, error: organizationError } = await supabase
     .from("organizations")
@@ -120,32 +141,46 @@ async function loadOrganizationsAndRespondents(supabase, manifest, accounts) {
     respondentsByOrganization.set(profile.organization_id, current);
   }
 
-  const seedTargets = new Map();
+  const organizationIds = [];
+  const seenOrganizationIds = new Set();
+  const accountsByAcronym = new Map();
   for (const account of accounts) {
     const organization = organizationByAcronym.get(account.organizationAcronym.toUpperCase());
     if (!organization) throw new Error(`Organização ${account.organizationAcronym} não cadastrada.`);
-    const profilesForOrganization = respondentsByOrganization.get(organization.id) ?? [];
-    if (profilesForOrganization.length !== 1) {
-      throw new Error(
-        `${account.organizationAcronym}: esperado exatamente um respondente; encontrados ${profilesForOrganization.length}.`,
-      );
+    if (!seenOrganizationIds.has(organization.id)) {
+      seenOrganizationIds.add(organization.id);
+      organizationIds.push(organization.id);
     }
-    seedTargets.set(account.organizationAcronym, {
-      organization,
-      profile: profilesForOrganization[0],
-    });
+    const key = account.organizationAcronym.toUpperCase();
+    const current = accountsByAcronym.get(key) ?? [];
+    current.push(account);
+    accountsByAcronym.set(key, current);
   }
 
   const targets = new Map();
   for (const record of manifest.records) {
-    const target = seedTargets.get(record.organization_acronym);
-    if (!target) throw new Error(`${record.organization_acronym}: órgão não consta no seed oficial.`);
-    targets.set(record.organization_acronym, target);
+    const acronym = record.organization_acronym.toUpperCase();
+    if (!accountsByAcronym.has(acronym)) {
+      throw new Error(`${record.organization_acronym}: órgão não consta no seed oficial.`);
+    }
+    const organization = organizationByAcronym.get(acronym);
+    if (!organization) {
+      throw new Error(`${record.organization_acronym}: órgão não consta no seed oficial.`);
+    }
+    const profilesForOrganization = respondentsByOrganization.get(organization.id) ?? [];
+    targets.set(record.organization_acronym, {
+      organization,
+      profile: selectOrganizationRespondent(
+        record.organization_acronym,
+        profilesForOrganization,
+        record.respondent.full_name,
+      ),
+    });
   }
 
   return {
     targets,
-    allOrganizationIds: [...seedTargets.values()].map((target) => target.organization.id),
+    allOrganizationIds: organizationIds,
   };
 }
 

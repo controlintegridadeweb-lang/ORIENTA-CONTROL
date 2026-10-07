@@ -27,6 +27,27 @@ describe("previewCsvImport", () => {
     ).toThrow("sem fechamento");
   });
 
+  it("aceita várias pessoas na mesma organização", () => {
+    const result = previewCsvImport(
+      "respondents",
+      "email;nome;sigla_org;cargo\numa@org.gov.br;Uma Pessoa;SEEX;titular\noutra@org.gov.br;Outra Pessoa;SEEX;suplente",
+    );
+
+    expect(result.validCount).toBe(2);
+    expect(result.results.every((row) => row.status === "valid")).toBe(true);
+    expect(result.rows.map((row) => row.appointment)).toEqual(["titular", "suplente"]);
+  });
+
+  it("exige cargo titular ou suplente", () => {
+    const result = previewCsvImport(
+      "respondents",
+      "email;nome;sigla_org;cargo\numa@org.gov.br;Uma Pessoa;SEEX;",
+    );
+
+    expect(result.results[0]?.status).toBe("failed");
+    expect(result.results[0]?.message).toContain("titular ou suplente");
+  });
+
   it("valida senha provisória antes da gravação", () => {
     const result = previewCsvImport(
       "respondents",

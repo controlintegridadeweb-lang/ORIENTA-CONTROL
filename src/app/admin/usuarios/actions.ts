@@ -13,6 +13,7 @@ import {
 } from "@/features/admin/users-service";
 import type { RespondentAccessMethod } from "@/features/admin/users-service";
 import { userFacingErrorMessage } from "@/infrastructure/api/user-facing-error";
+import { RESPONDENT_APPOINTMENTS } from "@/features/admin/respondent-appointment";
 
 const EDITABLE_ROLES = ["respondent"] as const satisfies readonly AppRole[];
 
@@ -27,6 +28,9 @@ const saveUserProfileFormSchema = z
     email: z.string().trim().pipe(z.email("Informe um e-mail válido.")),
     role: z.enum(EDITABLE_ROLES),
     organizationId: z.string().trim().uuid("Selecione uma organização válida."),
+    appointment: z.enum(RESPONDENT_APPOINTMENTS, {
+      error: "Informe se o cargo é titular ou suplente.",
+    }),
   })
   .strict();
 
@@ -51,6 +55,7 @@ export async function createRespondentAction(
     email: formData.get("email"),
     fullName: formData.get("fullName"),
     organizationId: formData.get("organizationId"),
+    appointment: formData.get("appointment"),
     password: formData.get("password"),
   });
   if (!parsed.success) {
@@ -89,6 +94,7 @@ export async function saveUserProfileAction(formData: FormData) {
     email: formData.get("email"),
     role: formData.get("role"),
     organizationId: formData.get("organizationId"),
+    appointment: formData.get("appointment"),
   });
   if (!parsed.success) throw new Error(firstSchemaMessage(parsed.error));
 
@@ -98,6 +104,7 @@ export async function saveUserProfileAction(formData: FormData) {
     email: parsed.data.email,
     role: parsed.data.role,
     organizationId: parsed.data.organizationId,
+    appointment: parsed.data.appointment,
     actorUserId: actor.userId,
   });
 

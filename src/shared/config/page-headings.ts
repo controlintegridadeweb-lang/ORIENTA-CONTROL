@@ -81,14 +81,14 @@ const ADMIN_HEADINGS: RouteHeading[] = [
     prefix: "/admin/organizacoes",
     title: "Organizações",
     description:
-      "Cadastre e consulte as organizações avaliadas. Cada respondente pertence a exatamente uma organização; administradores têm visão global.",
+      "Cadastre e consulte as organizações avaliadas. Cada pessoa pertence a exatamente uma organização, e a mesma organização pode ter várias pessoas cadastradas. Administradores têm visão global.",
     shellHeaderMode: "controls-only",
   },
   {
     prefix: "/admin/usuarios",
     title: "Usuários",
     description:
-      "Crie e gerencie respondentes: edite nome, e-mail e organização vinculada, solicite a recuperação de senha ou remova contas. O perfil Respondente é fixo nesta área.",
+      "Crie e gerencie respondentes: edite nome, e-mail e organização vinculada, solicite a recuperação de senha ou remova contas. A mesma organização pode ter várias pessoas, cada uma com a própria conta. O perfil Respondente é fixo nesta área.",
     shellHeaderMode: "controls-only",
   },
   {

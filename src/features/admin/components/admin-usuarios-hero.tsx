@@ -9,7 +9,7 @@ export function AdminUsuariosHero() {
       ariaLabel="Usuários"
       overline="Acessos e perfis"
       title="Usuários"
-      description="Crie e gerencie respondentes: edite nome, e-mail e organização vinculada, solicite a recuperação de senha ou remova contas. O perfil Respondente é fixo nesta área."
+      description="Crie e gerencie respondentes: edite nome, e-mail e organização vinculada, solicite a recuperação de senha ou remova contas. A mesma organização pode ter várias pessoas, cada uma com a própria conta. O perfil Respondente é fixo nesta área."
       image={ADMIN_USUARIOS_HERO_IMAGE}
       imageWidth={1024}
       imageHeight={1024}

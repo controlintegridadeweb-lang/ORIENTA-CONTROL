@@ -15,7 +15,7 @@ describe("AdminUsuariosHero", () => {
     expect(screen.getByRole("heading", { name: "Usuários" })).toBeTruthy();
     expect(
       screen.getByText(
-        "Crie e gerencie respondentes: edite nome, e-mail e organização vinculada, solicite a recuperação de senha ou remova contas. O perfil Respondente é fixo nesta área.",
+        "Crie e gerencie respondentes: edite nome, e-mail e organização vinculada, solicite a recuperação de senha ou remova contas. A mesma organização pode ter várias pessoas, cada uma com a própria conta. O perfil Respondente é fixo nesta área.",
       ),
     ).toBeTruthy();
   });

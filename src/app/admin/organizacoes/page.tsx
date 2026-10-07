@@ -49,7 +49,7 @@ export default async function AdminOrganizacoesPage({
       <div className={`${layout.panelStack} pt-1`}>
         <PanelSection
           title="Cadastrar organização"
-          description="O nome e a sigla são únicos. Após cadastrar, vincule respondentes pela tela de Usuários."
+          description="O nome e a sigla são únicos. Depois do cadastro, vincule as pessoas do órgão na tela de Usuários — a mesma organização pode ter mais de uma."
           variant="card"
         >
           <CreateOrganizationForm />

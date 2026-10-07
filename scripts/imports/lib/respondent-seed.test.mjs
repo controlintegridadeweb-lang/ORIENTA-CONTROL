@@ -24,7 +24,7 @@ describe("respondent account seed", () => {
     expect(rows).toHaveLength(2);
     expect(csv.toLowerCase()).not.toContain("temporary_password");
     expect(csv.split("\n")[0]).toBe(
-      "organization_name,organization_acronym,email,full_name",
+      "organization_name,organization_acronym,email,full_name,appointment",
     );
     expect(rows.every((row) => row.email.endsWith("@example.invalid"))).toBe(true);
     expect(rows.every((row) => /^Respondente de Desenvolvimento [A-B]$/.test(row.fullName))).toBe(true);
@@ -43,11 +43,32 @@ describe("respondent account seed", () => {
 
   it("recusa duplicidade de e-mail", () => {
     const csv = [
-      "organization_name,organization_acronym,email,full_name",
-      "Órgão A,OA,a@example.com,",
-      "Órgão B,OB,a@example.com,",
+      "organization_name,organization_acronym,email,full_name,appointment",
+      "Órgão A,OA,a@example.com,,titular",
+      "Órgão B,OB,a@example.com,,suplente",
     ].join("\n");
     expect(() => parseRespondentSeed(csv)).toThrow(/e-mail duplicado/);
+  });
+
+  it("aceita várias pessoas na mesma organização", () => {
+    const rows = parseRespondentSeed([
+      "organization_name,organization_acronym,email,full_name,appointment",
+      "Órgão A,OA,a@example.com,Pessoa A,titular",
+      "Órgão A,OA,b@example.com,Pessoa B,suplente",
+    ].join("\n"));
+
+    expect(rows).toHaveLength(2);
+    expect(rows.map((row) => row.organizationAcronym)).toEqual(["OA", "OA"]);
+    expect(rows.map((row) => row.email)).toEqual(["a@example.com", "b@example.com"]);
+    expect(rows.map((row) => row.appointment)).toEqual(["titular", "suplente"]);
+  });
+
+  it("recusa cargo fora de titular ou suplente", () => {
+    const csv = [
+      "organization_name,organization_acronym,email,full_name,appointment",
+      "Órgão A,OA,a@example.com,Pessoa A,coordenador",
+    ].join("\n");
+    expect(() => parseRespondentSeed(csv)).toThrow(/titular ou suplente/);
   });
 
   it("gera senha temporária forte e não determinística", () => {
@@ -65,14 +86,31 @@ describe("respondent account seed", () => {
 
   it("carrega senhas exatas somente quando todas correspondem à fonte", () => {
     const respondents = parseRespondentSeed([
-      "organization_name,organization_acronym,email,full_name",
-      "Órgão A,OA,a@example.com,Respondente A",
-      "Órgão B,OB,b@example.com,Respondente B",
+      "organization_name,organization_acronym,email,full_name,appointment",
+      "Órgão A,OA,a@example.com,Respondente A,titular",
+      "Órgão B,OB,b@example.com,Respondente B,suplente",
     ].join("\n"));
     const credentials = parseRespondentCredentials([
       "organization_acronym,email,temporary_password",
       "OA,a@example.com,SenhaA!123456",
       "OB,b@example.com,SenhaB!123456",
+    ].join("\n"));
+
+    const resolve = credentialPasswordResolver(credentials, respondents);
+    expect(resolve(respondents[0])).toBe("SenhaA!123456");
+    expect(resolve(respondents[1])).toBe("SenhaB!123456");
+  });
+
+  it("aceita credenciais de várias pessoas da mesma organização", () => {
+    const respondents = parseRespondentSeed([
+      "organization_name,organization_acronym,email,full_name,appointment",
+      "Órgão A,OA,a@example.com,Pessoa A,titular",
+      "Órgão A,OA,b@example.com,Pessoa B,suplente",
+    ].join("\n"));
+    const credentials = parseRespondentCredentials([
+      "organization_acronym,email,temporary_password",
+      "OA,a@example.com,SenhaA!123456",
+      "OA,b@example.com,SenhaB!123456",
     ].join("\n"));
 
     const resolve = credentialPasswordResolver(credentials, respondents);
@@ -87,8 +125,8 @@ describe("respondent account seed", () => {
     ].join("\n"))).toThrow(/maiúscula, minúscula, número e símbolo/i);
 
     const respondents = parseRespondentSeed([
-      "organization_name,organization_acronym,email,full_name",
-      "Órgão A,OA,a@example.com,Respondente A",
+      "organization_name,organization_acronym,email,full_name,appointment",
+      "Órgão A,OA,a@example.com,Respondente A,titular",
     ].join("\n"));
     const credentials = parseRespondentCredentials([
       "organization_acronym,email,temporary_password",
