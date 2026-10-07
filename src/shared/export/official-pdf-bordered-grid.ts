@@ -3,6 +3,7 @@ import { drawRoundedRect, drawVariableRoundedRect } from "@/shared/export/pdf-ro
 import { latinPdfSafe } from "@/shared/export/text";
 import type { Cursor, PdfGridHost, ReportFonts } from "@/shared/export/official-pdf-types";
 import { contentWidth, reportAxisTheme, reportTheme } from "@/shared/export/official-pdf-theme";
+import { planGridPageBatches } from "@/shared/export/official-pdf-grid-pagination";
 
 const GRID_RADIUS = 6;
 const OUTER_BORDER = 0.9;
@@ -29,11 +30,6 @@ export type GridPalette = {
 export type GridDrawOptions = {
   spans?: readonly number[];
   palette?: GridPalette;
-  /**
-   * O título já foi desenhado nesta página. O bloco continua aqui em vez de
-   * ir inteiro para a folha seguinte e deixar o título sozinho.
-   */
-  continueFromHeading?: boolean;
 };
 
 export type GridCell = {
@@ -404,126 +400,6 @@ export function drawGridBlock(
   return { ...cur, y: blockBottom - 12 };
 }
 
-export type GridPageBatch = {
-  start: number;
-  end: number;
-  newPageBefore: boolean;
-};
-
-function resolveGridSpans(rowCount: number, spans?: readonly number[]): number[] {
-  if (rowCount <= 0) return [];
-  if (!spans || spans.length === 0) return [rowCount];
-  const valid =
-    spans.every((span) => span > 0) && spans.reduce((sum, span) => sum + span, 0) === rowCount;
-  return valid ? [...spans] : [rowCount];
-}
-
-/**
- * O título e o conteúdo que o acompanha mudam de página juntos quando o par
- * não cabe no restante, mas cabe numa página nova.
- * Conteúdo maior que a página não abre uma folha só com o título: a grade
- * continua o bloco a partir da posição atual.
- */
-export function shouldStartPageBeforeHeading(
-  remaining: number,
-  pageCapacity: number,
-  headingReserve: number,
-  contentReserve: number,
-  minimumContentReserve: number,
-): boolean {
-  const together = headingReserve + contentReserve;
-  if (together <= remaining) return false;
-
-  const minimum = Math.min(together, headingReserve + minimumContentReserve);
-  const target = together <= pageCapacity ? together : minimum;
-  return target > remaining && target <= pageCapacity;
-}
-
-/**
- * A recomendação só muda de página junto do plano quando ela mesma não cabe
- * e a sequência inteira ainda cabe numa página nova.
- */
-export function shouldStartPageBeforePreface(
-  remaining: number,
-  pageCapacity: number,
-  prefaceReserve: number,
-  followingReserve: number,
-): boolean {
-  if (prefaceReserve <= remaining) return false;
-  return prefaceReserve + followingReserve <= pageCapacity;
-}
-
-/**
- * Agrupa linhas para cada bloco desenhado, sem deixar sobras de uma ação
- * virarem tabelas soltas no rodapé ou na página seguinte.
- * Com `continueFromHeading`, o primeiro grupo segue na página do título
- * e só continua na folha seguinte o que não couber.
- */
-export function planGridPageBatches(
-  heights: readonly number[],
-  spans: readonly number[],
-  firstAvailable: number,
-  pageAvailable: number,
-  options?: { continueFromHeading?: boolean },
-): GridPageBatch[] {
-  const groups: Array<{ start: number; end: number; height: number }> = [];
-  let offset = 0;
-  for (const span of resolveGridSpans(heights.length, spans)) {
-    const end = offset + span;
-    const height = heights.slice(offset, end).reduce((sum, value) => sum + value, 0);
-    groups.push({ start: offset, end, height });
-    offset = end;
-  }
-
-  const batches: GridPageBatch[] = [];
-  let remaining = firstAvailable;
-  let batchStart = -1;
-  let batchEnd = -1;
-  let newPageBefore = false;
-
-  const commit = () => {
-    if (batchStart < 0) return;
-    batches.push({ start: batchStart, end: batchEnd, newPageBefore });
-    batchStart = -1;
-    batchEnd = -1;
-    newPageBefore = false;
-  };
-
-  const append = (start: number, end: number) => {
-    if (batchStart < 0) batchStart = start;
-    batchEnd = end;
-  };
-
-  const startNewPage = () => {
-    commit();
-    newPageBefore = true;
-    remaining = pageAvailable;
-  };
-
-  for (const [groupIndex, group] of groups.entries()) {
-    if (group.height > remaining) {
-      const onFreshPage = batchStart < 0 && remaining >= pageAvailable - 0.5;
-      const continueHere = Boolean(options?.continueFromHeading) && groupIndex === 0;
-      if (!onFreshPage && !continueHere) startNewPage();
-    }
-
-    if (group.height <= remaining) {
-      append(group.start, group.end);
-      remaining -= group.height;
-      continue;
-    }
-
-    for (let row = group.start; row < group.end; row += 1) {
-      const height = heights[row]!;
-      if (batchStart >= 0 && height > remaining) startNewPage();
-      append(row, row + 1);
-      remaining = Math.max(0, remaining - height);
-    }
-  }
-  commit();
-  return batches;
-}
-
 function isGridPageTop(cursor: Cursor): boolean {
   return cursor.y >= reportTheme.page.h - reportTheme.margin - 0.5;
 }
@@ -548,10 +424,9 @@ export function drawGridBlockPaginated(
   const heights = rows.map((cells) => rowHeight(doc, cells));
   const batches = planGridPageBatches(
     heights,
-    resolveGridSpans(rows.length, options?.spans),
+    options?.spans ?? [],
     Math.max(0, gridAvailableHeight(doc, cursor)),
     Math.max(0, gridPageCapacity(doc)),
-    { continueFromHeading: options?.continueFromHeading },
   );
 
   let cur = cursor;

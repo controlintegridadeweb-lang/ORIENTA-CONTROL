@@ -9,12 +9,13 @@ import {
   headerValueRowCells,
   labelValueRowCells,
   noticeRowCells,
-  planGridPageBatches,
   quadRowCells,
-  shouldStartPageBeforeHeading,
-  shouldStartPageBeforePreface,
   subheaderRowCells,
 } from "./official-pdf-bordered-grid";
+import {
+  planGridPageBatches,
+  shouldStartPageBeforePreface,
+} from "./official-pdf-grid-pagination";
 import type { PdfGridHost } from "./official-pdf-types";
 import { contentWidth, reportAxisTheme, reportTheme } from "./official-pdf-theme";
 
@@ -147,21 +148,6 @@ describe("paginação da grade institucional", () => {
     expect(planGridPageBatches(heights, [6], 80, 700)).toEqual([
       { start: 0, end: 6, newPageBefore: true },
     ]);
-  });
-
-  it("continua a ação debaixo do título quando ela não cabe inteira na página", () => {
-    const heights = [40, 30, 30, 30];
-    expect(planGridPageBatches(heights, [4], 50, 700, { continueFromHeading: true })).toEqual([
-      { start: 0, end: 1, newPageBefore: false },
-      { start: 1, end: 4, newPageBefore: true },
-    ]);
-  });
-
-  it("leva o título junto da primeira ação quando o par cabe na página seguinte", () => {
-    expect(shouldStartPageBeforeHeading(80, 700, 48, 180, 40)).toBe(true);
-    expect(shouldStartPageBeforeHeading(400, 700, 48, 180, 40)).toBe(false);
-    expect(shouldStartPageBeforeHeading(80, 700, 48, 900, 40)).toBe(true);
-    expect(shouldStartPageBeforeHeading(200, 700, 48, 900, 40)).toBe(false);
   });
 
   it("só antecipa a recomendação quando ela não cabe e a sequência ainda cabe junta", () => {
