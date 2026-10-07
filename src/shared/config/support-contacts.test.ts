@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SUPPORT_CHANNELS } from "./support-contacts";
+import { SUPPORT_CARTILHA, SUPPORT_CHANNELS } from "./support-contacts";
 
 describe("SUPPORT_CHANNELS", () => {
   it("expõe somente e-mail e WhatsApp da Unidade de Integridade", () => {
@@ -8,5 +8,10 @@ describe("SUPPORT_CHANNELS", () => {
     expect(SUPPORT_CHANNELS.whatsapp.value).toBe("(84) 9 8620-0805");
     expect(SUPPORT_CHANNELS.whatsapp.href).toBeNull();
     expect(Object.keys(SUPPORT_CHANNELS)).toEqual(["email", "whatsapp"]);
+  });
+
+  it("publica a cartilha do Orienta em PDF", () => {
+    expect(SUPPORT_CARTILHA.title).toBe("Cartilha do Orienta");
+    expect(SUPPORT_CARTILHA.href).toBe("/assets/cartilha-orienta.pdf");
   });
 });
