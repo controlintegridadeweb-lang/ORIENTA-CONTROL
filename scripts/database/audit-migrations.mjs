@@ -120,9 +120,9 @@ assert(duplicates(policyOwners).length === 0, `Policies recriadas entre migratio
 assert(duplicates(triggerOwners).length === 0, `Triggers recriados entre migrations: ${duplicates(triggerOwners).join("; ")}`);
 
 assert(tableOwners.size === 61, `Esperadas 61 tabelas públicas finais; encontradas ${tableOwners.size}.`);
-assert(functionOwners.size === 203, `Esperadas 203 funções de aplicação conhecidas após as evoluções atuais; encontradas ${functionOwners.size}.`);
+assert(functionOwners.size === 209, `Esperadas 209 funções de aplicação conhecidas após as evoluções atuais; encontradas ${functionOwners.size}.`);
 assert(viewOwners.size === 6, `Esperadas 6 views públicas finais; encontradas ${viewOwners.size}.`);
-assert(triggerOwners.size === 96, `Esperados 96 triggers finais; encontrados ${triggerOwners.size}.`);
+assert(triggerOwners.size === 97, `Esperados 97 triggers finais; encontrados ${triggerOwners.size}.`);
 
 // Todo RPC/função SQL pública que não retorna trigger deve existir no contrato
 // versionado usado pela aplicação. Assim o job de quality detecta drift de

@@ -15,3 +15,7 @@ export {
   validateQueueBatch,
   validateNotApplicableAction,
 } from "./client";
+export {
+  deleteSuspendedForm,
+  unpublishSuspendedForm,
+} from "./form-management/client";

@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
   deleteSuspendedForm,
   unpublishSuspendedForm,
-} from "@/features/cycles/form-management/client";
+} from "@/features/cycles";
 import { formManagementUi } from "@/features/forms/components/form/form-management-ui";
 import { FormManagementSection } from "@/features/forms/components/form/form-tab-panel";
 import { describeError, notify } from "@/infrastructure/notifications/notify";

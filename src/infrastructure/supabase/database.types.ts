@@ -4754,6 +4754,10 @@ export type Database = {
           total: number
         }[]
       }
+      form_collection_is_fully_suspended: {
+        Args: { p_form_id: string }
+        Returns: boolean
+      }
       get_form_answers_overview: { Args: { p_form_id: string }; Returns: Json }
       get_form_answers_summary: { Args: { p_form_id: string }; Returns: Json }
       get_validation_finalization_readiness: {

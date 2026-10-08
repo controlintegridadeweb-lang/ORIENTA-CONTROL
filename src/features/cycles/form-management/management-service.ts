@@ -1,5 +1,3 @@
-import { EVIDENCE_BUCKET } from "@/features/evidences/pending-evidence-uploads";
-import { REPORTS_BUCKET } from "@/features/reports/pdf/report-file-path";
 import { hasDatabaseErrorCode } from "@/infrastructure/supabase/database-error";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -49,6 +47,8 @@ async function loadScopedCycles(
   );
 }
 
+const EVIDENCE_BUCKET = "evidencias";
+const REPORTS_BUCKET = "relatorios";
 const ACTION_PLAN_DOCUMENT_BUCKET = "planos-acao";
 
 function storagePaths(value: unknown): string[] {
