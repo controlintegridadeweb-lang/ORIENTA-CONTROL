@@ -2,16 +2,16 @@
 
 ## Fonte oficial
 
-A única fonte executável do schema é `supabase/migrations/`, com **25 migrations timestampadas**: 10 migrations imutáveis da baseline greenfield (`20260812000100` a `20260812001000`) e 15 evoluções pós-baseline (`20260812001100` a `20261007120000`). O intervalo completo é `20260812000100` a `20261007120000`. O inventário de cada arquivo está em [`supabase/migrations/README.md`](../../supabase/migrations/README.md).
+A única fonte executável do schema é `supabase/migrations/`, com **27 migrations timestampadas**: 10 migrations imutáveis da baseline greenfield (`20260812000100` a `20260812001000`) e 17 evoluções pós-baseline (`20260812001100` a `20261008120000`). O intervalo completo é `20260812000100` a `20261008120000`. O inventário de cada arquivo está em [`supabase/migrations/README.md`](../../supabase/migrations/README.md).
 
 A sequência evolutiva antiga `0001`–`0054` não participa mais da instalação. Ela foi consolidada antes da primeira implantação para evitar que um banco novo reproduza patches, backfills e correções intermediárias.
 
 ## Contratos estruturais
 
 - 61 tabelas públicas no estado final esperado;
-- 203 funções conhecidas no schema final, incluindo as RPCs públicas não-trigger representadas em `database.types.ts`;
+- 209 funções conhecidas no schema final, incluindo as RPCs públicas não-trigger representadas em `database.types.ts`;
 - 6 views/read models públicos;
-- 96 triggers finais;
+- 97 triggers finais;
 - FAMI oficial `v7`; a carga inicial de 2026 não transporta séries técnicas de políticas anteriores;
 - FAMI preliminar quadrimestral em estruturas separadas do oficial;
 - RLS habilitado conforme modelo de autorização;
@@ -22,7 +22,7 @@ A sequência evolutiva antiga `0001`–`0054` não participa mais da instalaçã
 
 ## Instalação limpa
 
-1. Aplicar as 25 migrations em banco vazio.
+1. Aplicar as 27 migrations em banco vazio.
 2. Regenerar `database.types.ts` a partir desse banco.
 3. Executar verificadores SQL, RLS, Storage e advisors.
 4. Não executar seeds de desenvolvimento na implantação real.

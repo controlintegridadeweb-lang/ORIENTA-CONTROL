@@ -108,7 +108,7 @@ COTIC (`orienta.control.rn.gov.br`) está descrito em
 
 ## Banco de dados
 
-Há **25 migrations timestampadas** em `supabase/migrations/`: 10 da baseline greenfield imutável e 15 evoluções posteriores. O inventário e a ordem canônica estão em [`supabase/migrations/README.md`](supabase/migrations/README.md); a decisão de consolidação está em [`docs/current/BANCO.md`](docs/current/BANCO.md). A validação da baseline em PostgreSQL real está documentada em [`docs/current/VALIDACAO_BASELINE_POSTGRESQL.md`](docs/current/VALIDACAO_BASELINE_POSTGRESQL.md).
+Há **27 migrations timestampadas** em `supabase/migrations/`: 10 da baseline greenfield imutável e 17 evoluções posteriores. O inventário e a ordem canônica estão em [`supabase/migrations/README.md`](supabase/migrations/README.md); a decisão de consolidação está em [`docs/current/BANCO.md`](docs/current/BANCO.md). A validação da baseline em PostgreSQL real está documentada em [`docs/current/VALIDACAO_BASELINE_POSTGRESQL.md`](docs/current/VALIDACAO_BASELINE_POSTGRESQL.md).
 A sequência antiga `0001`–`0054` foi aposentada como fonte executável antes da primeira implantação. A baseline atual nasce diretamente no estado final, em ordem de dependências, sem patches, backfills históricos ou migrations corretivas intermediárias.
 
 Para subir e validar a stack local:

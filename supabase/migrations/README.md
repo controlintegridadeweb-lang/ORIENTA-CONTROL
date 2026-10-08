@@ -1,8 +1,8 @@
 # Migrations do ORIENTA
 
-Este diretório contém **25 migrations SQL timestampadas**: as 10 primeiras formam a baseline canônica validada da primeira implantação e permanecem imutáveis; as seguintes são evoluções pós-baseline.
+Este diretório contém **27 migrations SQL timestampadas**: as 10 primeiras formam a baseline canônica validada da primeira implantação e permanecem imutáveis; as seguintes são evoluções pós-baseline.
 
-Não há migrations corretivas, backfills históricos ou dados reais neste diretório. A sequência atual vai de `20260812000100` a `20261007120000`.
+Não há migrations corretivas, backfills históricos ou dados reais neste diretório. A sequência atual vai de `20260812000100` a `20261008120000`.
 
 ## Ordem canônica
 
@@ -33,6 +33,8 @@ Não há migrations corretivas, backfills históricos ou dados reais neste diret
 | `20260902120000_report_history_latest_catalog.sql` | Consolida o histórico visível na emissão mais recente de cada grupo do catálogo (formulário/ano/bimestre ou anual). |
 | `20260913200000_action_plan_created_at_in_read_model.sql` | Inclui `created_at` no JSON das ações do read model da recomendação, para numeração estável A1/A2. |
 | `20261007120000_respondent_appointment.sql` | Registra se a pessoa vinculada ao órgão é titular ou suplente. |
+| `20261007150000_suspended_form_unpublish_delete.sql` | Permite despublicar ou excluir um formulário cuja coleta está totalmente suspensa. |
+| `20261008120000_action_plan_start_date_change.sql` | Solicitação e decisão administrativa para alteração do prazo inicial da ação. |
 
 ## Regras
 

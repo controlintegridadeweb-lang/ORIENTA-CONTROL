@@ -99,6 +99,8 @@ const expectedMigrations = [
   "20260902120000_report_history_latest_catalog.sql",
   "20260913200000_action_plan_created_at_in_read_model.sql",
   "20261007120000_respondent_appointment.sql",
+  "20261007150000_suspended_form_unpublish_delete.sql",
+  "20261008120000_action_plan_start_date_change.sql",
 ];
 if (JSON.stringify(files) !== JSON.stringify(expectedMigrations)) {
   throw new Error(`Baseline oficial divergente: ${files.join(", ")}`);
