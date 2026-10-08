@@ -168,6 +168,31 @@ describe("deadline change schemas", () => {
     ).toBe(true);
   });
 
+  it("aceita solicitação de alteração do início", () => {
+    expect(
+      requestActionPlanDeadlineChangeSchema.safeParse({
+        planId: "22222222-2222-4222-8222-222222222222",
+        recommendationId: createPayload.recommendationId,
+        expectedRevision: 1,
+        target: "start_date",
+        requestedStartDate: "2026-07-01",
+        reason: "O planejamento da ação começou antes da data cadastrada.",
+      }).success,
+    ).toBe(true);
+  });
+
+  it("exige a nova data correspondente ao alvo da solicitação", () => {
+    expect(
+      requestActionPlanDeadlineChangeSchema.safeParse({
+        planId: "22222222-2222-4222-8222-222222222222",
+        recommendationId: createPayload.recommendationId,
+        expectedRevision: 1,
+        target: "start_date",
+        reason: "O planejamento da ação começou antes da data cadastrada.",
+      }).success,
+    ).toBe(false);
+  });
+
   it("exige justificativa suficiente na solicitação", () => {
     expect(
       requestActionPlanDeadlineChangeSchema.safeParse({

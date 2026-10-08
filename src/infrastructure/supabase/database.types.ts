@@ -23,47 +23,56 @@ export type Database = {
           decided_by: string | null
           decision_reason: string | null
           id: string
+          change_target: Database["public"]["Enums"]["action_plan_deadline_change_target"]
           organization_id: string
-          previous_due_date: string
+          previous_due_date: string | null
+          previous_start_date: string | null
           reason: string
           recommendation_id: string
           requested_at: string
           requested_by: string
-          requested_due_date: string
+          requested_due_date: string | null
+          requested_start_date: string | null
           status: Database["public"]["Enums"]["action_plan_deadline_change_status"]
         }
         Insert: {
           action_plan_id: string
           action_revision: number
           applied_action_revision?: number | null
+          change_target?: Database["public"]["Enums"]["action_plan_deadline_change_target"]
           decided_at?: string | null
           decided_by?: string | null
           decision_reason?: string | null
           id?: string
           organization_id: string
-          previous_due_date: string
+          previous_due_date?: string | null
+          previous_start_date?: string | null
           reason: string
           recommendation_id: string
           requested_at?: string
           requested_by: string
-          requested_due_date: string
+          requested_due_date?: string | null
+          requested_start_date?: string | null
           status?: Database["public"]["Enums"]["action_plan_deadline_change_status"]
         }
         Update: {
           action_plan_id?: string
           action_revision?: number
           applied_action_revision?: number | null
+          change_target?: Database["public"]["Enums"]["action_plan_deadline_change_target"]
           decided_at?: string | null
           decided_by?: string | null
           decision_reason?: string | null
           id?: string
           organization_id?: string
-          previous_due_date?: string
+          previous_due_date?: string | null
+          previous_start_date?: string | null
           reason?: string
           recommendation_id?: string
           requested_at?: string
           requested_by?: string
-          requested_due_date?: string
+          requested_due_date?: string | null
+          requested_start_date?: string | null
           status?: Database["public"]["Enums"]["action_plan_deadline_change_status"]
         }
         Relationships: [
@@ -5416,6 +5425,19 @@ export type Database = {
         }
         Returns: undefined
       }
+      request_action_plan_date_change: {
+        Args: {
+          p_actor_user_id: string
+          p_change_target: Database["public"]["Enums"]["action_plan_deadline_change_target"]
+          p_expected_revision: number
+          p_organization_id: string
+          p_plan_id: string
+          p_reason: string
+          p_recommendation_id: string
+          p_requested_date: string
+        }
+        Returns: Database["public"]["Tables"]["action_plan_deadline_change_requests"]["Row"]
+      }
       request_action_plan_deadline_change: {
         Args: {
           p_actor_user_id: string
@@ -5425,6 +5447,18 @@ export type Database = {
           p_reason: string
           p_recommendation_id: string
           p_requested_due_date: string
+        }
+        Returns: Database["public"]["Tables"]["action_plan_deadline_change_requests"]["Row"]
+      }
+      request_action_plan_start_date_change: {
+        Args: {
+          p_actor_user_id: string
+          p_expected_revision: number
+          p_organization_id: string
+          p_plan_id: string
+          p_reason: string
+          p_recommendation_id: string
+          p_requested_start_date: string
         }
         Returns: Database["public"]["Tables"]["action_plan_deadline_change_requests"]["Row"]
       }
@@ -5640,6 +5674,7 @@ export type Database = {
     }
     Enums: {
       action_plan_deadline_change_status: "pending" | "approved" | "rejected"
+      action_plan_deadline_change_target: "due_date" | "start_date"
       action_plan_status: "todo" | "doing" | "done" | "cancelled"
       answer_value: "yes" | "no" | "not_applicable"
       app_user_role: "admin" | "respondent"
@@ -5807,6 +5842,7 @@ export const Constants = {
   public: {
     Enums: {
       action_plan_deadline_change_status: ["pending", "approved", "rejected"],
+      action_plan_deadline_change_target: ["due_date", "start_date"],
       action_plan_status: ["todo", "doing", "done", "cancelled"],
       answer_value: ["yes", "no", "not_applicable"],
       app_user_role: ["admin", "respondent"],

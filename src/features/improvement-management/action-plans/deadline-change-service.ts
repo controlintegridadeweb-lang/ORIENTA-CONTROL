@@ -21,7 +21,7 @@ import type {
 } from "./types";
 
 const SELECT =
-  "id, action_plan_id, recommendation_id, organization_id, action_revision, previous_due_date, requested_due_date, reason, status, requested_by, requested_at, decided_by, decided_at, decision_reason, applied_action_revision";
+  "id, action_plan_id, recommendation_id, organization_id, action_revision, change_target, previous_due_date, requested_due_date, previous_start_date, requested_start_date, reason, status, requested_by, requested_at, decided_by, decided_at, decision_reason, applied_action_revision";
 
 type DeadlineChangeRow = {
   id: string;
@@ -29,8 +29,11 @@ type DeadlineChangeRow = {
   recommendation_id: string;
   organization_id: string;
   action_revision: number;
-  previous_due_date: string;
-  requested_due_date: string;
+  change_target?: "due_date" | "start_date" | null;
+  previous_due_date?: string | null;
+  requested_due_date?: string | null;
+  previous_start_date?: string | null;
+  requested_start_date?: string | null;
   reason: string;
   status: DeadlineChangeStatus;
   requested_by: string;
@@ -53,11 +56,13 @@ function mapDeadlineChangeError(error: unknown): never {
   const message = errorMessage(error);
   const conflicts: Array<[string, string]> = [
     ["action_plan_deadline_change_pending_exists", "Já existe uma solicitação de alteração do final aguardando decisão para esta ação."],
-    ["action_plan_deadline_change_revision_conflict", "A ação foi alterada em outra aba. Atualize a página antes de solicitar o novo final."],
+    ["action_plan_start_date_change_pending_exists", "Já existe uma solicitação de alteração do início aguardando decisão para esta ação."],
+    ["action_plan_deadline_change_revision_conflict", "A ação foi alterada em outra aba. Atualize a página antes de solicitar a alteração."],
     ["action_plan_deadline_change_already_decided", "Esta solicitação já recebeu uma decisão administrativa."],
     ["action_plan_deadline_change_stale_request", "O final vigente da ação mudou depois desta solicitação. Ela não pode mais ser aprovada."],
+    ["action_plan_start_date_change_stale_request", "O início vigente da ação mudou depois desta solicitação. Ela não pode mais ser aprovada."],
     ["action_plan_deadline_change_cycle_not_editable", "O diagnóstico não está em um estado que permita alterar o plano de integridade e compliance."],
-    ["action_plan_deadline_change_action_closed", "Ações concluídas ou canceladas não podem ter o final alterado."],
+    ["action_plan_deadline_change_action_closed", "Ações concluídas ou canceladas não podem ter o prazo alterado."],
   ];
   for (const [needle, userMessage] of conflicts) {
     if (message.includes(needle)) throw new DomainConflictError(userMessage);
@@ -68,6 +73,8 @@ function mapDeadlineChangeError(error: unknown): never {
     ["action_plan_deadline_change_decision_reason_required", "decisionReason", "Informe a justificativa da decisão administrativa."],
     ["action_plan_deadline_change_same_date", "requestedDueDate", "O novo final deve ser diferente do final vigente."],
     ["action_plan_deadline_change_before_start", "requestedDueDate", "O novo final não pode ser anterior ao início da ação."],
+    ["action_plan_start_date_change_same_date", "requestedStartDate", "O novo início deve ser diferente do início vigente."],
+    ["action_plan_start_date_change_after_due", "requestedStartDate", "O novo início não pode ser posterior ao final da ação."],
     ["action_plan_deadline_change_invalid_decision", "decision", "Decisão inválida para a solicitação de alteração do final."],
     ["action_plan_deadline_change_invalid_request", "_", "Dados inválidos para a solicitação de alteração do final."],
   ];
@@ -114,6 +121,11 @@ async function loadNames(
   );
 }
 
+function localDate(value: string | null | undefined): string | null {
+  if (!value) return null;
+  return String(value).slice(0, 10);
+}
+
 function mapRow(
   row: DeadlineChangeRow,
   names: Map<string, string>,
@@ -124,8 +136,11 @@ function mapRow(
     recommendationId: row.recommendation_id,
     organizationId: row.organization_id,
     actionRevision: Number(row.action_revision),
-    previousDueDate: String(row.previous_due_date).slice(0, 10),
-    requestedDueDate: String(row.requested_due_date).slice(0, 10),
+    changeTarget: row.change_target === "start_date" ? "start_date" : "due_date",
+    previousDueDate: localDate(row.previous_due_date),
+    requestedDueDate: localDate(row.requested_due_date),
+    previousStartDate: localDate(row.previous_start_date),
+    requestedStartDate: localDate(row.requested_start_date),
     reason: row.reason,
     status: row.status,
     requestedBy: row.requested_by,
@@ -169,6 +184,7 @@ export async function listActionPlanDeadlineChangeRequests(
   if (query.recommendationId) request = request.eq("recommendation_id", query.recommendationId);
   if (query.planId) request = request.eq("action_plan_id", query.planId);
   if (query.status) request = request.eq("status", query.status);
+  if (query.target) request = request.eq("change_target", query.target);
 
   const { data, error, count } = await request;
   if (error) throw error;
@@ -190,25 +206,52 @@ export async function requestActionPlanDeadlineChange(
   caller: { userId: string; organizationId: string },
 ): Promise<ActionPlanDeadlineChangeRequest> {
   const payload = parseOrThrow(requestActionPlanDeadlineChangeSchema, rawPayload);
-  const { data, error } = await client.rpc("request_action_plan_deadline_change", {
-    p_actor_user_id: caller.userId,
-    p_organization_id: caller.organizationId,
-    p_plan_id: payload.planId,
-    p_recommendation_id: payload.recommendationId,
-    p_requested_due_date: payload.requestedDueDate,
-    p_reason: payload.reason,
-    p_expected_revision: payload.expectedRevision,
-  });
+  const isStart = payload.target === "start_date";
+  const requestedDate = isStart ? payload.requestedStartDate : payload.requestedDueDate;
+  if (!requestedDate) {
+    throw new ActionPlansValidationError([
+      {
+        path: isStart ? "requestedStartDate" : "requestedDueDate",
+        message: isStart ? "Informe o novo início." : "Informe o novo final.",
+      },
+    ]);
+  }
+  const { data, error } = isStart
+    ? await client.rpc("request_action_plan_start_date_change", {
+        p_actor_user_id: caller.userId,
+        p_organization_id: caller.organizationId,
+        p_plan_id: payload.planId,
+        p_recommendation_id: payload.recommendationId,
+        p_requested_start_date: requestedDate,
+        p_reason: payload.reason,
+        p_expected_revision: payload.expectedRevision,
+      })
+    : await client.rpc("request_action_plan_deadline_change", {
+        p_actor_user_id: caller.userId,
+        p_organization_id: caller.organizationId,
+        p_plan_id: payload.planId,
+        p_recommendation_id: payload.recommendationId,
+        p_requested_due_date: requestedDate,
+        p_reason: payload.reason,
+        p_expected_revision: payload.expectedRevision,
+      });
   if (error) mapDeadlineChangeError(error);
   const row = normalizeRpcRow(data);
-  if (!row) throw new Error("A solicitação de alteração do final não foi retornada pelo banco.");
+  if (!row) {
+    throw new Error(
+      isStart
+        ? "A solicitação de alteração do início não foi retornada pelo banco."
+        : "A solicitação de alteração do final não foi retornada pelo banco.",
+    );
+  }
   const names = await loadNames(client, [row]);
 
   logInfo("action_plans.deadline_change.requested", {
     actorUserId: caller.userId,
     actionPlanId: payload.planId,
     recommendationId: payload.recommendationId,
-    requestedDueDate: payload.requestedDueDate,
+    target: payload.target,
+    requestedDate,
   });
   return mapRow(row, names);
 }

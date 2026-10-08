@@ -202,22 +202,13 @@ export class RespondentActionPlanCommandService {
 
     if (command.intent === "edit_details") {
       const currentDueDate = String(existing.due_date).slice(0, 10);
-      if (command.startDate > currentDueDate) {
-        throw new ActionPlansValidationError([
-          {
-            path: "startDate",
-            message: "O início não pode ser posterior ao final vigente.",
-          },
-        ]);
-      }
       return {
         recommendationId: command.recommendationId,
         planId: command.planId,
         expectedRevision: command.expectedRevision,
         actionText: command.actionText,
-        startDate: command.startDate,
-        // O final vigente não é editável por este comando. Alterações passam
-        // pelo fluxo formal de solicitação e decisão administrativa.
+        // Início e final vigentes só mudam pelo fluxo formal de solicitação.
+        startDate: String(existing.start_date).slice(0, 10),
         dueDate: currentDueDate,
         responsibleSector: command.responsibleSector,
         responsibleUserId: command.responsibleUserId,
@@ -381,6 +372,14 @@ export class RespondentActionPlanCommandService {
     if (isForeignKeyViolation(error)) {
       throw new DomainConflictError(
         "Esta ação possui histórico relacionado e não pode ser excluída. Cancele a ação para preservar a rastreabilidade.",
+      );
+    }
+    if (
+      hasDatabaseErrorCode(message, "action_plan_start_date_change_requires_approval") ||
+      hasDatabaseErrorCode(message, "action_plan_start_date_change_request_mismatch")
+    ) {
+      throw new DomainConflictError(
+        "O início vigente só muda depois que a supervisão aprovar a solicitação. Use a opção Solicitar início.",
       );
     }
     if (hasDatabaseErrorCode(message, "action_plan_start_after_due")) {

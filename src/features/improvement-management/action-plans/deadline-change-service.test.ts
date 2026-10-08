@@ -82,6 +82,49 @@ describe("deadline-change-service", () => {
     });
   });
 
+  it("registra solicitação de alteração do início", async () => {
+    const { client, rpc } = clientWithRpc({
+      data: requestRow({
+        change_target: "start_date",
+        previous_due_date: null,
+        requested_due_date: null,
+        previous_start_date: "2026-08-01",
+        requested_start_date: "2026-07-15",
+      }),
+      error: null,
+    });
+
+    const result = await requestActionPlanDeadlineChange(
+      client,
+      {
+        planId,
+        recommendationId,
+        expectedRevision: 3,
+        target: "start_date",
+        requestedStartDate: "2026-07-15",
+        reason: "O planejamento da ação começou antes da data cadastrada.",
+      },
+      { userId: respondentId, organizationId },
+    );
+
+    expect(rpc).toHaveBeenCalledWith("request_action_plan_start_date_change", {
+      p_actor_user_id: respondentId,
+      p_organization_id: organizationId,
+      p_plan_id: planId,
+      p_recommendation_id: recommendationId,
+      p_requested_start_date: "2026-07-15",
+      p_reason: "O planejamento da ação começou antes da data cadastrada.",
+      p_expected_revision: 3,
+    });
+    expect(result).toMatchObject({
+      changeTarget: "start_date",
+      previousStartDate: "2026-08-01",
+      requestedStartDate: "2026-07-15",
+      previousDueDate: null,
+      requestedDueDate: null,
+    });
+  });
+
   it("mapeia segunda solicitação pendente para conflito de domínio", async () => {
     const { client } = clientWithRpc({
       data: null,

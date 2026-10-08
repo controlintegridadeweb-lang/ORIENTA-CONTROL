@@ -18,6 +18,7 @@ export const GET = withRoute(
         recommendationId: url.searchParams.get("recommendationId") ?? undefined,
         planId: url.searchParams.get("planId") ?? undefined,
         status: url.searchParams.get("status") ?? undefined,
+        target: url.searchParams.get("target") ?? undefined,
         limit: url.searchParams.get("limit") ?? undefined,
         offset: url.searchParams.get("offset") ?? undefined,
       },

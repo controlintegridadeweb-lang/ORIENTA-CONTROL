@@ -48,7 +48,14 @@ function DeadlinePendingCard({
       notify.error("Informe a justificativa da decisão.");
       return;
     }
-    const title = decision === "approved" ? "Aprovar alteração de prazo?" : "Recusar alteração de prazo?";
+    const isStart = request.changeTarget === "start_date";
+    const title = decision === "approved"
+      ? isStart
+        ? "Aprovar alteração do início?"
+        : "Aprovar alteração de prazo?"
+      : isStart
+        ? "Recusar alteração do início?"
+        : "Recusar alteração de prazo?";
     const confirmLabel = decision === "approved" ? "Aprovar alteração" : "Recusar";
     if (!(await confirm({ title, confirmLabel }))) return;
 
@@ -62,8 +69,12 @@ function DeadlinePendingCard({
       onUpdated(updated);
       notify.success(
         decision === "approved"
-          ? "Novo prazo aprovado e aplicado à ação."
-          : "Solicitação de alteração de prazo recusada.",
+          ? isStart
+            ? "Novo início aprovado e aplicado à ação."
+            : "Novo prazo aprovado e aplicado à ação."
+          : isStart
+            ? "Solicitação de alteração do início recusada."
+            : "Solicitação de alteração de prazo recusada.",
       );
     } catch (caught) {
       notify.error(caught instanceof Error ? caught.message : "Falha ao registrar a decisão.");
@@ -72,22 +83,30 @@ function DeadlinePendingCard({
     }
   }
 
+  const isStart = request.changeTarget === "start_date";
+  const currentDate = isStart ? request.previousStartDate : request.previousDueDate;
+  const requestedDate = isStart ? request.requestedStartDate : request.requestedDueDate;
+
   return (
     <article className={`${formSurface.nestedCard} space-y-3`}>
       <div>
-        <h3 className={typography.cardTitle}>Solicitação de alteração de prazo</h3>
+        <h3 className={typography.cardTitle}>
+          {isStart ? "Solicitação de alteração do início" : "Solicitação de alteração de prazo"}
+        </h3>
       </div>
       <dl className="grid gap-3 sm:grid-cols-2">
         <div>
-          <dt className="text-xs font-medium text-slate-500">Prazo atual</dt>
+          <dt className="text-xs font-medium text-slate-500">{isStart ? "Início atual" : "Prazo atual"}</dt>
           <dd className="mt-0.5 text-sm font-semibold text-slate-900">
-            {formatLocalDate(request.previousDueDate)}
+            {currentDate ? formatLocalDate(currentDate) : "—"}
           </dd>
         </div>
         <div>
-          <dt className="text-xs font-medium text-slate-500">Novo prazo solicitado</dt>
+          <dt className="text-xs font-medium text-slate-500">
+            {isStart ? "Novo início solicitado" : "Novo prazo solicitado"}
+          </dt>
           <dd className="mt-0.5 text-sm font-semibold text-slate-900">
-            {formatLocalDate(request.requestedDueDate)}
+            {requestedDate ? formatLocalDate(requestedDate) : "—"}
           </dd>
         </div>
       </dl>

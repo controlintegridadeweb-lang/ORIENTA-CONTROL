@@ -82,6 +82,23 @@ describe("ActionPlanActionList", () => {
     },
   );
 
+  it("oferece solicitação de alteração do início para o respondente", () => {
+    const onPanelChange = vi.fn();
+    render(
+      <ActionPlanActionList
+        {...listProps}
+        plans={[plan()]}
+        role="respondent"
+        panel={{ kind: "none" }}
+        onPanelChange={onPanelChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Opções da ação/ }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Solicitar início" }));
+    expect(onPanelChange).toHaveBeenCalledWith({ kind: "start", planId: "plan-1" });
+  });
+
   it("abre a leitura completa da ação", () => {
     const onPanelChange = vi.fn();
     const { rerender } = render(

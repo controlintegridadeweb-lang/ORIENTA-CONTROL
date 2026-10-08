@@ -135,6 +135,7 @@ export async function listRespondentDeadlineChangeRequests(params: {
   recommendationId?: string;
   planId?: string;
   status?: "pending" | "approved" | "rejected";
+  target?: "due_date" | "start_date";
   limit?: number;
   offset?: number;
 } = {}): Promise<PaginatedHistory<ActionPlanDeadlineChangeRequest>> {
@@ -145,7 +146,9 @@ export async function requestRespondentDeadlineChange(payload: {
   planId: string;
   recommendationId: string;
   expectedRevision: number;
-  requestedDueDate: string;
+  target?: "due_date" | "start_date";
+  requestedDueDate?: string;
+  requestedStartDate?: string;
   reason: string;
 }): Promise<ActionPlanDeadlineChangeRequest> {
   const res = await fetch("/api/respondent/action-plans/deadline-change-requests", {
@@ -162,6 +165,7 @@ export async function listAdminDeadlineChangeRequests(params: {
   recommendationId?: string;
   planId?: string;
   status?: "pending" | "approved" | "rejected";
+  target?: "due_date" | "start_date";
   limit?: number;
   offset?: number;
 } = {}): Promise<PaginatedHistory<ActionPlanDeadlineChangeRequest>> {
@@ -174,6 +178,7 @@ async function listDeadlineChangeRequests(
     recommendationId?: string;
     planId?: string;
     status?: "pending" | "approved" | "rejected";
+    target?: "due_date" | "start_date";
     limit?: number;
     offset?: number;
   },
@@ -182,6 +187,7 @@ async function listDeadlineChangeRequests(
   if (params.recommendationId) search.set("recommendationId", params.recommendationId);
   if (params.planId) search.set("planId", params.planId);
   if (params.status) search.set("status", params.status);
+  if (params.target) search.set("target", params.target);
   if (typeof params.limit === "number") search.set("limit", String(params.limit));
   if (typeof params.offset === "number") search.set("offset", String(params.offset));
   const res = await fetch(`${endpoint}?${search.toString()}`, { headers: buildHeaders() });

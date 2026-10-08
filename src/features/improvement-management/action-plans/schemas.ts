@@ -135,19 +135,45 @@ export { progressPercentageSchema };
 export const deadlineChangeStatusSchema = z.enum(["pending", "approved", "rejected"]);
 export type DeadlineChangeStatus = z.infer<typeof deadlineChangeStatusSchema>;
 
+export const deadlineChangeTargetSchema = z.enum(["due_date", "start_date"]);
+export type DeadlineChangeTarget = z.infer<typeof deadlineChangeTargetSchema>;
+
 export const requestActionPlanDeadlineChangeSchema = z
   .object({
     planId: z.string().uuid(),
     recommendationId: z.string().uuid(),
     expectedRevision: z.number().int().positive(),
-    requestedDueDate: localDateSchema,
+    target: deadlineChangeTargetSchema.optional(),
+    requestedDueDate: localDateSchema.optional(),
+    requestedStartDate: localDateSchema.optional(),
     reason: z
       .string()
       .trim()
-      .min(10, "Explique o motivo da alteração do final com pelo menos 10 caracteres.")
+      .min(10, "Explique o motivo da alteração do prazo com pelo menos 10 caracteres.")
       .max(4000),
   })
-  .strict();
+  .strict()
+  .superRefine((value, ctx) => {
+    const target = value.target ?? "due_date";
+    if (target === "start_date" && !value.requestedStartDate) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["requestedStartDate"],
+        message: "Informe o novo início.",
+      });
+    }
+    if (target === "due_date" && !value.requestedDueDate) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["requestedDueDate"],
+        message: "Informe o novo final.",
+      });
+    }
+  })
+  .transform((value) => ({
+    ...value,
+    target: value.target ?? "due_date",
+  }));
 
 export const decideActionPlanDeadlineChangeSchema = z
   .object({
@@ -166,6 +192,7 @@ export const listActionPlanDeadlineChangesQuerySchema = z
     recommendationId: z.string().uuid().optional(),
     planId: z.string().uuid().optional(),
     status: deadlineChangeStatusSchema.optional(),
+    target: deadlineChangeTargetSchema.optional(),
     limit: z.coerce.number().int().min(1).max(100).default(25),
     offset: z.coerce.number().int().min(0).default(0),
   })

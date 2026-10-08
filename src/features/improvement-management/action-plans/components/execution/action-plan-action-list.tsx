@@ -3,7 +3,7 @@
 import { typography } from "@/shared/layout/design-system";
 
 import { Fragment } from "react";
-import { Ban, CalendarClock, Eye, FileText, Pencil, Trash2, TrendingUp, X } from "lucide-react";
+import { Ban, CalendarClock, CalendarPlus, Eye, FileText, Pencil, Trash2, TrendingUp, X } from "lucide-react";
 import type { ActionPlanAction } from "@/features/improvement-management/action-plans/domain-model";
 import { computeActionSla } from "@/features/improvement-management/action-plans/domain-model";
 import { PLAN_STATUS_LABELS } from "@/features/improvement-management/action-plans/components/shared/plan-status-badge";
@@ -31,6 +31,7 @@ export type ActionPanelMode =
   | { kind: "progress"; planId: string }
   | { kind: "edit"; planId: string }
   | { kind: "deadline"; planId: string }
+  | { kind: "start"; planId: string }
   | { kind: "evidence"; planId: string };
 
 function isRowPanelOpen(panel: ActionPanelMode, planId: string): boolean {
@@ -39,6 +40,7 @@ function isRowPanelOpen(panel: ActionPanelMode, planId: string): boolean {
       panel.kind === "progress" ||
       panel.kind === "edit" ||
       panel.kind === "deadline" ||
+      panel.kind === "start" ||
       panel.kind === "evidence") &&
     panel.planId === planId
   );
@@ -119,6 +121,13 @@ function rowMenuItems(args: {
       icon: Pencil,
       onSelect: () =>
         onPanelChange(togglePanel(panel, { kind: "edit", planId: plan.id })),
+    },
+    {
+      key: "start",
+      label: "Solicitar início",
+      icon: CalendarPlus,
+      onSelect: () =>
+        onPanelChange(togglePanel(panel, { kind: "start", planId: plan.id })),
     },
     {
       key: "deadline",
@@ -272,10 +281,11 @@ export function ActionPlanActionList({
                             onSaved={onSaved}
                           />
                         ) : null}
-                        {panel.kind === "deadline" ? (
+                        {panel.kind === "deadline" || panel.kind === "start" ? (
                           <RequestDeadlineChangeForm
                             plan={plan}
                             recommendationId={recommendationId}
+                            target={panel.kind === "start" ? "start_date" : "due_date"}
                             onCancel={() => onPanelChange({ kind: "none" })}
                             onSaved={onSaved}
                           />

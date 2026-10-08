@@ -43,3 +43,24 @@ describe("contrato de alteração formal do prazo da ação", () => {
     expect(migration).toContain("'/monitoramento?action=' || v_request.action_plan_id::text");
   });
 });
+
+const startDateMigration = readFileSync(
+  join(process.cwd(), "supabase/migrations/20261008120000_action_plan_start_date_change.sql"),
+  "utf8",
+).replace(/\s+/g, " ").toLowerCase();
+
+describe("contrato de alteração formal do início da ação", () => {
+  it("reaproveita a solicitação de prazo e separa um pedido pendente por alvo", () => {
+    expect(startDateMigration).toContain("action_plan_deadline_change_target");
+    expect(startDateMigration).toContain("previous_start_date");
+    expect(startDateMigration).toContain("requested_start_date");
+    expect(startDateMigration).toContain("(action_plan_id, change_target)");
+  });
+
+  it("bloqueia update direto do início e só a decisão aprovada aplica a nova data", () => {
+    expect(startDateMigration).toContain("action_plan_start_date_change_requires_approval");
+    expect(startDateMigration).toContain("before update of start_date on public.action_plans");
+    expect(startDateMigration).toContain("set start_date = v_request.requested_start_date");
+    expect(startDateMigration).toContain("function public.request_action_plan_start_date_change");
+  });
+});

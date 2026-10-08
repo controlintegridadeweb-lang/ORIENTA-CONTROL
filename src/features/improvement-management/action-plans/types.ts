@@ -53,14 +53,19 @@ export type ActionPlansListResult = {
 
 
 
+export type ActionPlanDeadlineChangeTarget = "due_date" | "start_date";
+
 export type ActionPlanDeadlineChangeRequest = {
   id: string;
   actionPlanId: string;
   recommendationId: string;
   organizationId: string;
   actionRevision: number;
-  previousDueDate: string;
-  requestedDueDate: string;
+  changeTarget: ActionPlanDeadlineChangeTarget;
+  previousDueDate: string | null;
+  requestedDueDate: string | null;
+  previousStartDate: string | null;
+  requestedStartDate: string | null;
   reason: string;
   status: "pending" | "approved" | "rejected";
   requestedBy: string;

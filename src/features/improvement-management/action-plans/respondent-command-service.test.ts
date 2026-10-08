@@ -291,7 +291,7 @@ describe("RespondentActionPlanCommandService — criação e andamento", () => {
 });
 
 describe("RespondentActionPlanCommandService — edição, exclusão e acesso", () => {
-  it("edita dados cadastrais preservando o prazo vigente no banco", async () => {
+  it("edita dados cadastrais preservando início e final vigentes no banco", async () => {
     loadRecommendationScopeMock.mockResolvedValue(scope());
     const from = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
@@ -330,7 +330,7 @@ describe("RespondentActionPlanCommandService — edição, exclusão e acesso", 
       expect.objectContaining({
         p_plan_id: planId,
         p_due_date: "2026-10-15",
-        p_start_date: "2026-08-15",
+        p_start_date: "2026-08-01",
       }),
     );
   });

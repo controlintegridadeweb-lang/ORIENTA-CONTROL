@@ -45,7 +45,6 @@ export function EditActionDetailsForm({
       ? plan.responsibleUserId
       : "";
   const [pending, setPending] = useState(false);
-  const [startDate, setStartDate] = useState(plan.startDate);
   const [responsibleUserId, setResponsibleUserId] = useState(initialResponsible);
   const [error, setError] = useState<string | null>(null);
 
@@ -122,18 +121,16 @@ export function EditActionDetailsForm({
         </label>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <label className={`${formSurface.fieldGroup} block`}>
-            <span className={formSurface.label}>Início</span>
-            <input
-              name="startDate"
-              type="date"
-              className={formSurface.input}
-              value={startDate}
-              onChange={(event) => setStartDate(event.target.value)}
-              max={plan.dueDate}
-              required
-            />
-          </label>
+          <div className={formSurface.fieldGroup}>
+            <span className={formSurface.label}>Início vigente</span>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-800">
+              {formatLocalDate(plan.startDate)}
+            </div>
+            <input type="hidden" name="startDate" value={plan.startDate} />
+            <p className="text-xs leading-relaxed text-slate-500">
+              Para modificar este início, use a opção <strong>Solicitar início</strong>. A mudança só entra em vigor após decisão da supervisão.
+            </p>
+          </div>
           <div className={formSurface.fieldGroup}>
             <span className={formSurface.label}>Final vigente</span>
             <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-800">
