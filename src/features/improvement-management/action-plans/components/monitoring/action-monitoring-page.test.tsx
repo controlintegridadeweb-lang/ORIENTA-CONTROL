@@ -161,6 +161,24 @@ describe("PendingDecisionsSection", () => {
     expect(screen.getByText("Nenhuma pendência para esta ação.")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Aprovar alteração" })).toBeNull();
   });
+
+  it("explica ao respondente que a supervisão escreve e ele responde no mesmo espaço", () => {
+    render(
+      <ConfirmProvider>
+        <PendingDecisionsSection
+          items={[]}
+          role="respondent"
+          loading={false}
+          onDeadlineUpdated={vi.fn()}
+          onNoteUpdated={vi.fn()}
+        />
+      </ConfirmProvider>,
+    );
+    expect(screen.getByRole("heading", { name: "Conversa com a supervisão" })).toBeTruthy();
+    expect(screen.getByText(/Você responde neste mesmo espaço/)).toBeTruthy();
+    expect(screen.getByText("Exemplo de como a conversa aparece")).toBeTruthy();
+    expect(screen.queryByText("Nenhuma pendência para esta ação.")).toBeNull();
+  });
 });
 
 describe("MonitoringComposer", () => {

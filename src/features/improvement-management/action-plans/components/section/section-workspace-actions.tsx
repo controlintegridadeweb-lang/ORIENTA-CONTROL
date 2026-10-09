@@ -91,6 +91,11 @@ export function SectionWorkspaceActions({ role, section, parentReturnTo }: Props
             <RecommendationStatusBadge status={recommendation.recommendationStatus} />
           </div>
           <OverviewSoftPanel className="space-y-4">
+            <RecommendationCardField label={originQuestionsHeading(1)}>
+              <RecommendationCardText preWrap>
+                {recommendation.questionPrompt || "—"}
+              </RecommendationCardText>
+            </RecommendationCardField>
             <RecommendationCardField label={RECOMMENDATION_CARD_LABELS.recommendation}>
               <div
                 className="rounded-lg px-3.5 py-3 sm:px-4 sm:py-3.5"
@@ -100,11 +105,6 @@ export function SectionWorkspaceActions({ role, section, parentReturnTo }: Props
                   {recommendation.recommendationText}
                 </p>
               </div>
-            </RecommendationCardField>
-            <RecommendationCardField label={originQuestionsHeading(1)}>
-              <RecommendationCardText preWrap>
-                {recommendation.questionPrompt || "—"}
-              </RecommendationCardText>
             </RecommendationCardField>
 
             {recommendation.actions.length === 0 ? (

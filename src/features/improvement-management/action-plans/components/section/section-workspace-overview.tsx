@@ -94,6 +94,11 @@ export function SectionWorkspaceOverview({ section }: Props) {
               <div className="flex justify-end">
                 <RecommendationStatusBadge status={recommendation.recommendationStatus} />
               </div>
+              <RecommendationCardField label={originQuestionsHeading(1)}>
+                <RecommendationCardText preWrap>
+                  {recommendation.questionPrompt || "—"}
+                </RecommendationCardText>
+              </RecommendationCardField>
               <RecommendationCardField
                 label={`Recomendação ${section.sectionDisplayNumber}.${index + 1}`}
               >
@@ -105,11 +110,6 @@ export function SectionWorkspaceOverview({ section }: Props) {
                     {recommendation.recommendationText}
                   </p>
                 </div>
-              </RecommendationCardField>
-              <RecommendationCardField label={originQuestionsHeading(1)}>
-                <RecommendationCardText preWrap>
-                  {recommendation.questionPrompt || "—"}
-                </RecommendationCardText>
               </RecommendationCardField>
               <RecommendationCardText variant="meta">
                 {countLabel(recommendation.actions.length, "ação vinculada", "ações vinculadas")}

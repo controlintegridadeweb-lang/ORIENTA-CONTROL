@@ -232,6 +232,15 @@ describe("SectionWorkspaceOverview", () => {
     expect(screen.getAllByText("As informações relativas ao CIC estão devidamente divulgadas?").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Promover a divulgação das informações relativas à UCI.")).toBeTruthy();
     expect(screen.getByText("Promover a divulgação das informações relativas ao CIC.")).toBeTruthy();
+    const firstCard = screen.getByRole("heading", { name: "Recomendação 1.1" }).parentElement
+      ?.parentElement;
+    const firstCardText = firstCard?.textContent ?? "";
+    expect(firstCardText.indexOf("Pergunta de origem")).toBeLessThan(
+      firstCardText.indexOf("Recomendação 1.1"),
+    );
+    expect(firstCardText.indexOf("As informações relativas à UCI estão devidamente divulgadas?")).toBeLessThan(
+      firstCardText.indexOf("Promover a divulgação das informações relativas à UCI."),
+    );
     expect(screen.getByText(/2 recomendações · 2 ações · 1 concluída/)).toBeTruthy();
   });
 });
@@ -303,6 +312,14 @@ describe("SectionWorkspaceMonitoring", () => {
     expect(screen.getByRole("img", { name: "Situação das ações" })).toBeTruthy();
     expect(screen.getByText("Criar página institucional da UCI")).toBeTruthy();
     expect(screen.getByText("Publicar competências do CIC")).toBeTruthy();
+    const supervisionCard = screen.getByRole("heading", { name: "Ação A1" }).parentElement?.parentElement
+      ?.parentElement;
+    const supervisionText = supervisionCard?.textContent ?? "";
+    expect(supervisionText.indexOf("Origem")).toBeLessThan(supervisionText.indexOf("Área responsável"));
+    expect(supervisionText.indexOf("Área responsável")).toBeLessThan(supervisionText.indexOf("Ação A1"));
+    expect(supervisionText.indexOf("Ação A1")).toBeLessThan(
+      supervisionText.indexOf("Criar página institucional da UCI"),
+    );
     expect(screen.queryByText("Ação de outra seção")).toBeNull();
     expect(screen.getAllByText("UCI").length).toBeGreaterThan(0);
     expect(screen.queryByText("Unidade X")).toBeNull();

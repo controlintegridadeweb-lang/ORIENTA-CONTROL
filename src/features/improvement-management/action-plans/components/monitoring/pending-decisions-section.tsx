@@ -234,6 +234,53 @@ function SupervisionPendingCard({
     }
   }
 
+  if (role === "respondent") {
+    return (
+      <div className="space-y-3">
+        <article className="max-w-[92%] rounded-2xl rounded-tl-md border border-slate-200 bg-white px-3.5 py-3">
+          <p className="text-xs font-semibold text-slate-500">
+            Supervisão · {note.authorName} · {formatMonitoringDateTime(note.createdAt)}
+          </p>
+          <p className="mt-1 text-xs font-medium text-slate-500">{type.label}</p>
+          <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-slate-800">{note.body}</p>
+        </article>
+        {note.responseBody ? (
+          <article className="ml-auto max-w-[92%] rounded-2xl rounded-tr-md bg-slate-900 px-3.5 py-3 text-white">
+            <p className="text-xs font-semibold text-slate-300">Você · {lifecycle.label}</p>
+            <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed">{note.responseBody}</p>
+          </article>
+        ) : (
+          <p className={`${typography.meta} pl-1`}>A supervisão aguarda a sua mensagem.</p>
+        )}
+        {canRespond ? (
+          <label className={`${formSurface.fieldGroup} block`}>
+            <span className={formSurface.label}>Sua mensagem para a supervisão</span>
+            <textarea
+              value={responseBody}
+              onChange={(event) => setResponseBody(event.target.value)}
+              rows={3}
+              maxLength={4000}
+              className={formSurface.inputTextarea}
+              placeholder="Conte o que foi feito ou o que precisa esclarecer."
+            />
+            <span className="mt-2 flex justify-end">
+              <LoadingButton
+                type="button"
+                pending={busy}
+                pendingLabel="Enviando…"
+                disabled={!responseBody.trim() || busy}
+                className={formSurface.primaryButtonSm}
+                onClick={() => void respond()}
+              >
+                Enviar mensagem
+              </LoadingButton>
+            </span>
+          </label>
+        ) : null}
+      </div>
+    );
+  }
+
   return (
     <article className={`${formSurface.nestedCard} space-y-3`}>
       <div className="flex flex-wrap items-center gap-2">
@@ -333,6 +380,35 @@ type Props = {
   onNoteUpdated: (updated: SupervisionNoteEntry) => Promise<void> | void;
 };
 
+function RespondentConversationEmpty() {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+      <p className="px-4 pt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+        Exemplo de como a conversa aparece
+      </p>
+      <div className="space-y-3 px-4 py-4">
+        <article className="max-w-[92%] rounded-2xl rounded-tl-md border border-slate-200 bg-white px-3.5 py-3">
+          <p className="text-xs font-semibold text-slate-500">Supervisão</p>
+          <p className="mt-1.5 text-sm leading-relaxed text-slate-700">
+            A equipe pode deixar orientações, pedidos e informações sobre esta ação. As mensagens aparecem neste espaço.
+          </p>
+        </article>
+        <article className="ml-auto max-w-[92%] rounded-2xl rounded-tr-md bg-slate-900 px-3.5 py-3 text-white">
+          <p className="text-xs font-semibold text-slate-300">Você</p>
+          <p className="mt-1.5 text-sm leading-relaxed">
+            Quando chegar um pedido, responda aqui. É neste bate-papo que você fala com a supervisão.
+          </p>
+        </article>
+      </div>
+      <div className="border-t border-slate-200 bg-white px-4 py-3">
+        <p className="text-sm text-slate-500">
+          A caixa de resposta abre quando a supervisão enviar uma mensagem que peça a sua providência.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function PendingDecisionsSection({
   items,
   role,
@@ -340,14 +416,29 @@ export function PendingDecisionsSection({
   onDeadlineUpdated,
   onNoteUpdated,
 }: Props) {
+  const conversation = role === "respondent";
   return (
-    <PanelSection title="Pendências e decisões" size="compact">
+    <PanelSection
+      title={conversation ? "Conversa com a supervisão" : "Pendências e decisões"}
+      description={
+        conversation
+          ? "A supervisão adiciona orientações e pedidos. Você responde neste mesmo espaço para falar com a equipe."
+          : undefined
+      }
+      size="compact"
+    >
       {loading && items.length === 0 ? (
-        <p className={typography.auxiliary}>Carregando pendências…</p>
+        <p className={typography.auxiliary}>
+          {conversation ? "Carregando a conversa…" : "Carregando pendências…"}
+        </p>
       ) : items.length === 0 ? (
-        <p className="text-sm text-slate-600">Nenhuma pendência para esta ação.</p>
+        conversation ? (
+          <RespondentConversationEmpty />
+        ) : (
+          <p className="text-sm text-slate-600">Nenhuma pendência para esta ação.</p>
+        )
       ) : (
-        <ul className="space-y-3">
+        <ul className={conversation ? "space-y-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4" : "space-y-3"}>
           {items.map((item) => (
             <li key={item.kind === "deadline" ? item.request.id : item.note.id}>
               {item.kind === "deadline" ? (

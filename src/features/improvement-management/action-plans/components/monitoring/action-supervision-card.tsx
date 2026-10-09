@@ -41,12 +41,9 @@ export function ActionSupervisionCard({
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 flex-1">
-          <RecommendationCardField label={actionLabel}>
-            <RecommendationCardText variant="highlight">{action.actionText}</RecommendationCardText>
+          <RecommendationCardField label="Origem">
+            <RecommendationCardText preWrap>{originText || "—"}</RecommendationCardText>
           </RecommendationCardField>
-          <RecommendationCardText variant="metaSecondary" className="mt-2">
-            Origem: {originText}
-          </RecommendationCardText>
         </div>
         <PlanStatusBadge status={action.status} />
       </div>
@@ -61,6 +58,11 @@ export function ActionSupervisionCard({
           <RecommendationCardText>{documents.line ?? "Nenhuma comprovação"}</RecommendationCardText>
         </RecommendationCardField>
       </dl>
+      <div className="mt-4">
+        <RecommendationCardField label={actionLabel}>
+          <RecommendationCardText variant="highlight">{action.actionText}</RecommendationCardText>
+        </RecommendationCardField>
+      </div>
       <div className="mt-5 grid gap-4 border-t border-slate-100 pt-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
         <AdminActionPlanProgress
           value={action.progressPercentage}
