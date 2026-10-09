@@ -64,6 +64,7 @@ describe("buildRecommendationPortfolioExportRows", () => {
 
     expect(rows).toHaveLength(1);
     expect(rows[0]?.actionTitle).toBeNull();
+    expect(rows[0]?.responsibleSector).toBeNull();
     expect(rows[0]?.responsibleName).toBeNull();
     expect(rows[0]?.startDate).toBeNull();
     expect(rows[0]?.endDate).toBeNull();
@@ -104,6 +105,7 @@ describe("buildRecommendationPortfolioExportRows", () => {
 
     expect(rows).toHaveLength(2);
     expect(rows.map((row) => row.actionTitle)).toEqual(["Ação A", "Ação B"]);
+    expect(rows.map((row) => row.responsibleSector)).toEqual(["Integridade", "Integridade"]);
     expect(rows.map((row) => row.responsibleName)).toEqual([
       "Responsável A",
       "Responsável B",
@@ -174,6 +176,7 @@ describe("buildRecommendationPortfolioExportRows", () => {
     ]);
 
     const withoutAction = rows.find((row) => row.sort.recommendationId === "rec-2");
+    expect(withoutAction?.responsibleSector).toBeNull();
     expect(withoutAction?.responsibleName).toBeNull();
     expect(withoutAction?.startDate).toBeNull();
     expect(withoutAction?.endDate).toBeNull();
@@ -221,6 +224,7 @@ describe("portfolio CSV/XLSX contract", () => {
     expect(cells).toHaveLength(2);
     expect(cells[0]?.[9]).toBe("Ação 1");
     expect(cells[1]?.[9]).toBe("Ação 2");
+    expect(cells[0]?.[10]).toBe("Integridade");
     expect(cells[0]?.[13]).toBe("Em andamento");
     expect(cells[0]?.[14]).toBe(40);
     expect(String(cells[0]?.[11])).toMatch(/01/);

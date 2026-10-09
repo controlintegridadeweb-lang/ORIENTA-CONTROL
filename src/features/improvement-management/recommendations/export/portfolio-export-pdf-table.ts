@@ -20,7 +20,7 @@ const ROW_LINE = 11;
 
 export type ActionTableColumnKey =
   | "title"
-  | "responsible"
+  | "responsibleSector"
   | "startDate"
   | "endDate"
   | "status"
@@ -35,7 +35,7 @@ export type ActionTableColumnSpec = {
 
 export const PORTFOLIO_ACTION_COLUMN_SPECS: readonly ActionTableColumnSpec[] = [
   { key: "title", header: "Ação", weight: 2.5 },
-  { key: "responsible", header: "Responsável", weight: 1.3 },
+  { key: "responsibleSector", header: "Área responsável", weight: 1.4 },
   { key: "startDate", header: "Início", weight: 0.8 },
   { key: "endDate", header: "Final", weight: 0.8 },
   { key: "status", header: "Situação", weight: 1.15 },
@@ -45,7 +45,7 @@ export const PORTFOLIO_ACTION_COLUMN_SPECS: readonly ActionTableColumnSpec[] = [
 
 export const ACTION_PLAN_ACTION_COLUMN_SPECS: readonly ActionTableColumnSpec[] = [
   { key: "title", header: "Ação", weight: 2.8 },
-  { key: "responsible", header: "Responsável", weight: 1.4 },
+  { key: "responsibleSector", header: "Área responsável", weight: 1.5 },
   { key: "startDate", header: "Início", weight: 0.9 },
   { key: "endDate", header: "Final", weight: 0.9 },
   { key: "status", header: "Situação", weight: 1.2 },

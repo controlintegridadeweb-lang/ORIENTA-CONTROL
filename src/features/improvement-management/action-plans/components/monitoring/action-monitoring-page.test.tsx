@@ -88,7 +88,7 @@ describe("ActionMonitoringSummary", () => {
     );
     expect(screen.getByRole("heading", { name: "Ação monitorada" })).toBeTruthy();
     expect(screen.getByLabelText("Ação monitorada")).toBeTruthy();
-    expect(screen.getByText("Responsável")).toBeTruthy();
+    expect(screen.getByText("Área responsável")).toBeTruthy();
     expect(screen.getByText("Situação")).toBeTruthy();
     expect(screen.getByText("Progresso")).toBeTruthy();
     expect(screen.getByText("Início")).toBeTruthy();

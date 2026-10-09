@@ -13,7 +13,7 @@ export const RECOMMENDATION_PORTFOLIO_EXPORT_HEADERS = [
   "Recomendação",
   "Situação da recomendação",
   "Ação",
-  "Responsável",
+  "Área responsável",
   "Início",
   "Final",
   "Situação da ação",
@@ -62,6 +62,7 @@ export type RecommendationPortfolioExportRow = {
   recommendationText: string;
   recommendationStatus: string;
   actionTitle: string | null;
+  responsibleSector: string | null;
   responsibleName: string | null;
   startDate: Date | null;
   endDate: Date | null;
@@ -88,6 +89,7 @@ export const PORTFOLIO_EXPORT_MISSING_VALUE = "—";
 
 export type RecommendationPortfolioExportActionView = {
   title: string;
+  responsibleSector: string;
   responsible: string;
   startDate: string;
   endDate: string;

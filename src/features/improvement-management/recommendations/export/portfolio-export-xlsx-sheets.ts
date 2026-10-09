@@ -50,7 +50,7 @@ export function buildRecommendationPortfolioXlsxSheets<FileContent>(
           xlsxWrapText(row.recommendationText),
           row.recommendationStatus,
           row.actionTitle ? xlsxWrapText(row.actionTitle) : null,
-          row.responsibleName,
+          row.responsibleSector,
           xlsxDateCell(row.startDate),
           xlsxDateCell(row.endDate),
           row.actionStatus,

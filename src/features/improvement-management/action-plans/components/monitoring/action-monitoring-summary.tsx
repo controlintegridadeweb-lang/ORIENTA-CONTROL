@@ -10,9 +10,7 @@ import { OverviewSoftPanel } from "@/features/improvement-management/recommendat
 import { formSurface } from "@/shared/layout/form-surface";
 import { typography } from "@/shared/layout/design-system";
 
-function responsibleLabel(plan: ActionPlanAction): string {
-  const name = plan.responsibleName.trim();
-  if (name) return name;
+function responsibleAreaLabel(plan: ActionPlanAction): string {
   const sector = plan.responsibleSector.trim();
   return sector || "—";
 }
@@ -70,7 +68,7 @@ export function ActionMonitoringSummary({
             <>
               <OverviewSoftPanel padded={false} className="px-5 py-5 sm:px-6 sm:py-6">
                 <dl className="grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
-                  <Field label="Responsável" value={responsibleLabel(selectedPlan)} />
+                  <Field label="Área responsável" value={responsibleAreaLabel(selectedPlan)} />
                   <Field label="Situação" value={PLAN_STATUS_LABELS[selectedPlan.status]} />
                   <Field label="Progresso" value={`${selectedPlan.progressPercentage}%`} />
                   <Field label="Início" value={formatLocalDate(selectedPlan.startDate)} />

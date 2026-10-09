@@ -115,12 +115,7 @@ describe("grade institucional do PDF", () => {
       ),
       quadRowCells("Prazo inicial", "01/10/2026", "Prazo final", "31/12/2027"),
       quadRowCells("Situação atual", "Não iniciada", "Progresso", "0%"),
-      quadRowCells(
-        "Área responsável",
-        "UIAG",
-        "Respondente responsável",
-        "Maurício Gomes",
-      ),
+      labelValueRowCells("Área responsável", "UIAG"),
       labelValueRowCells("Documentos", "Nenhum comprovante registrado."),
       labelValueRowCells(
         "Última atualização",
@@ -163,7 +158,7 @@ describe("paginação da grade institucional", () => {
       labelValueRowCells("Ação 1", "Criar uma rotina de comunicação com as empresas contratadas."),
       quadRowCells("Prazo inicial", "01/10/2026", "Prazo final", "31/12/2027"),
       quadRowCells("Situação atual", "Não iniciada", "Progresso", "0%"),
-      quadRowCells("Área responsável", "UIAG", "Respondente responsável", "Maurício Gomes"),
+      labelValueRowCells("Área responsável", "UIAG"),
       labelValueRowCells("Documentos", "Nenhum comprovante registrado."),
       labelValueRowCells("Última atualização", "14/09/2026, 14:00\nAtualização de progresso registrada."),
     ];

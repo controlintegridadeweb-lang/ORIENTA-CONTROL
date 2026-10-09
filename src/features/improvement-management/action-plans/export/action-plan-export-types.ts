@@ -9,7 +9,7 @@ export const ACTION_PLAN_EXPORT_HEADERS = [
   "Eixo",
   "Seção",
   "Ação",
-  "Responsável",
+  "Área responsável",
   "Início",
   "Final",
   "Situação da ação",

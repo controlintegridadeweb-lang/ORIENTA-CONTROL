@@ -248,6 +248,9 @@ describe("SectionWorkspaceActions", () => {
 
     expect(screen.getByText("Criar página institucional da UCI")).toBeTruthy();
     expect(screen.getByText("Publicar competências do CIC")).toBeTruthy();
+    expect(screen.getAllByText("Área responsável")).toHaveLength(2);
+    expect(screen.getAllByText("UCI")).toHaveLength(2);
+    expect(screen.queryByText("Unidade X")).toBeNull();
     const manageLinks = screen.getAllByRole("link", { name: "Gerenciar ação" });
     expect(manageLinks[0]?.getAttribute("href")).toContain(`/plano-acao/${REC_1}/acoes`);
     expect(manageLinks[0]?.getAttribute("href")).toContain("action=plan-1");
@@ -301,7 +304,8 @@ describe("SectionWorkspaceMonitoring", () => {
     expect(screen.getByText("Criar página institucional da UCI")).toBeTruthy();
     expect(screen.getByText("Publicar competências do CIC")).toBeTruthy();
     expect(screen.queryByText("Ação de outra seção")).toBeNull();
-    expect(screen.getAllByText("Unidade X").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("UCI").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Unidade X")).toBeNull();
     expect(screen.getAllByText("Nenhuma comprovação").length).toBe(2);
     const monitorLinks = screen.getAllByRole("link", { name: "Abrir monitoramento" });
     expect(monitorLinks[0]?.getAttribute("href")).toContain(`/plano-acao/${REC_1}/monitoramento`);

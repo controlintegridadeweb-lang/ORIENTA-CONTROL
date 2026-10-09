@@ -190,11 +190,13 @@ describe("buildRecommendationPortfolioExportDocument", () => {
     expect(actions[0]?.progress).toBe("0%");
     expect(actions[0]?.startDate).toMatch(/15\/01\/2026/);
     expect(actions[0]?.endDate).toBe(PORTFOLIO_EXPORT_MISSING_VALUE);
+    expect(actions[0]?.responsibleSector).toBe(PORTFOLIO_EXPORT_MISSING_VALUE);
     expect(actions[0]?.responsible).toBe(PORTFOLIO_EXPORT_MISSING_VALUE);
     expect(actions[0]?.updatedAt).toBe(PORTFOLIO_EXPORT_MISSING_VALUE);
     expect(actions[0]?.status).toBe("Não iniciado");
     expect(actions[1]?.progress).toBe("100%");
     expect(actions[1]?.endDate).toMatch(/20\/03\/2026/);
+    expect(actions[1]?.responsibleSector).toBe("Integridade");
     expect(actions[1]?.status).toBe("Concluída");
   });
 

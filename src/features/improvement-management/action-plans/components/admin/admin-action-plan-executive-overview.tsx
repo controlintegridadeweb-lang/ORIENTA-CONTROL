@@ -194,8 +194,8 @@ export function AdminActionPlanExecutiveOverview() {
               value={<span className="tabular-nums">{formatLocalDate(adminItem.dueDate)}</span>}
             />
             <OverviewField
-              label="Responsável"
-              value={adminItem.responsibleName || "Não definido"}
+              label="Área responsável"
+              value={adminItem.responsibleSector || "Não definido"}
             />
           </dl>
         </div>

@@ -34,9 +34,7 @@ const CIVIL_DATE_FORMAT = {
 
 const leftCellClass = `${overviewNestedTable.bodyCell} text-left`;
 
-function responsibleLabel(plan: ActionPlanAction): string {
-  const name = plan.responsibleName.trim();
-  if (name) return name;
+function responsibleAreaLabel(plan: ActionPlanAction): string {
   const sector = plan.responsibleSector.trim();
   return sector || "—";
 }
@@ -196,7 +194,7 @@ function ActionSummaryTable({ plan }: { plan: ActionPlanAction }) {
 
   return (
     <InstitutionalTable
-      columns={["Ação", "Responsável", "Início", "Final", "Situação", "Progresso"]}
+      columns={["Ação", "Área responsável", "Início", "Final", "Situação", "Progresso"]}
     >
       <tr className={overviewNestedTable.bodyRow}>
         <td className={leftCellClass}>
@@ -204,7 +202,7 @@ function ActionSummaryTable({ plan }: { plan: ActionPlanAction }) {
             {plan.actionText}
           </p>
         </td>
-        <td className={overviewNestedTable.bodyCell}>{responsibleLabel(plan)}</td>
+        <td className={overviewNestedTable.bodyCell}>{responsibleAreaLabel(plan)}</td>
         <td className={overviewNestedTable.bodyCell}>{formatLocalDate(plan.startDate)}</td>
         <td className={overviewNestedTable.bodyCell}>
           <p className={isOverdue ? "font-medium text-rose-700" : undefined}>

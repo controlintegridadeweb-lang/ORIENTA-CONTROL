@@ -250,7 +250,9 @@ describe("getActionPlanExportData", () => {
 
     expect(data.rows[0]?.progressPercent).toBe(0);
     expect(data.rows[0]?.progress).toBe(0);
+    expect(data.rows[0]?.responsibleSector).toBeNull();
     expect(data.rows[0]?.responsibleName).toBeNull();
+    expect(data.rows[1]?.responsibleSector).toBe("Integridade");
     expect(data.rows[0]?.startDate).toBeNull();
     expect(data.rows[0]?.endDate).toBeNull();
     expect(data.rows[0]?.actionStatus).toBe("Não iniciado");
@@ -387,7 +389,7 @@ describe("Excel analítico do plano de integridade e compliance", () => {
       "Eixo",
       "Seção",
       "Ação",
-      "Responsável",
+      "Área responsável",
       "Início",
       "Final",
       "Situação da ação",

@@ -51,8 +51,8 @@ export function ActionSupervisionCard({
         <PlanStatusBadge status={action.status} />
       </div>
       <dl className="mt-4 grid gap-3 sm:grid-cols-3">
-        <RecommendationCardField label="Responsável">
-          <RecommendationCardText>{action.responsibleName || "Não informado"}</RecommendationCardText>
+        <RecommendationCardField label="Área responsável">
+          <RecommendationCardText>{action.responsibleSector || "Não informado"}</RecommendationCardText>
         </RecommendationCardField>
         <RecommendationCardField label="Prazo">
           <RecommendationCardText>{formatLocalDate(action.dueDate)}</RecommendationCardText>

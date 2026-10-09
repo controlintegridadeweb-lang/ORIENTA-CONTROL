@@ -133,9 +133,9 @@ export function SectionWorkspaceActions({ role, section, parentReturnTo }: Props
                           </RecommendationCardText>
                         </RecommendationCardField>
                         <dl className="mt-4 grid gap-3 sm:grid-cols-2">
-                          <RecommendationCardField label="Responsável">
+                          <RecommendationCardField label="Área responsável">
                             <RecommendationCardText>
-                              {action.responsibleName || "Não informado"}
+                              {action.responsibleSector || "Não informado"}
                             </RecommendationCardText>
                           </RecommendationCardField>
                           <RecommendationCardField label="Prazo">

@@ -53,7 +53,7 @@ function actionRows(
       departure ? "Progresso na partida" : "Progresso",
       action.progress,
     ),
-    labelValueRowCells("Responsável", action.responsible),
+    labelValueRowCells("Área responsável", action.responsibleSector),
     labelValueRowCells(departure ? "Cadastro da ação" : "Última atualização", action.updatedAt),
   ];
 }

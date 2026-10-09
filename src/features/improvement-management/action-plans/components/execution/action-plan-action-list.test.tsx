@@ -127,6 +127,7 @@ describe("ActionPlanActionList", () => {
 
     expect(screen.getByRole("heading", { name: "Visualizar ação" })).toBeTruthy();
     expect(screen.getByText("Capacitação iniciada.")).toBeTruthy();
-    expect(screen.getByText("Alice")).toBeTruthy();
+    expect(screen.getByText("TI")).toBeTruthy();
+    expect(screen.queryByText("Alice")).toBeNull();
   });
 });

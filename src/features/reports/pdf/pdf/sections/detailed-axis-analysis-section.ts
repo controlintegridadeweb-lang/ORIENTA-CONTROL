@@ -220,12 +220,7 @@ function actionGridRows(action: ReportActionView, index: number): GridCell[][] {
     labelValueRowCells(`Ação ${index + 1}`, action.title),
     quadRowCells("Prazo inicial", action.startLabel, "Prazo final", action.endLabel),
     quadRowCells("Situação atual", status, "Progresso", `${action.progressPercentage}%`),
-    quadRowCells(
-      "Área responsável",
-      action.responsibleSectorLabel,
-      "Respondente responsável",
-      action.responsibleNameLabel,
-    ),
+    labelValueRowCells("Área responsável", action.responsibleSectorLabel),
     labelValueRowCells("Documentos", documentsLabel(action)),
     labelValueRowCells("Última atualização", latestUpdate(action)),
   ];

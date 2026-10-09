@@ -37,9 +37,12 @@ function formVersionLabel(formVersion: number): string | null {
   return formVersion > 0 ? String(formVersion) : null;
 }
 
-function actionResponsible(action: ActionPlanAction): string | null {
+function actionResponsibleName(action: ActionPlanAction): string | null {
   const name = action.responsibleName.trim();
-  if (name) return name;
+  return name || null;
+}
+
+function actionResponsibleSector(action: ActionPlanAction): string | null {
   const sector = action.responsibleSector.trim();
   return sector || null;
 }
@@ -94,7 +97,8 @@ function rowFromSource(
       source.recommendationStatus,
     ),
     actionTitle: action?.actionText.trim() ? action.actionText : null,
-    responsibleName: action ? actionResponsible(action) : null,
+    responsibleSector: action ? actionResponsibleSector(action) : null,
+    responsibleName: action ? actionResponsibleName(action) : null,
     startDate: action ? civilDateFromIso(action.startDate) : null,
     endDate: action ? civilDateFromIso(action.dueDate) : null,
     actionStatus: action

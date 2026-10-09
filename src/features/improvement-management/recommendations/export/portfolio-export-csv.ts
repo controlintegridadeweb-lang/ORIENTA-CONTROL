@@ -33,7 +33,7 @@ export function portfolioExportRowToCsvCells(
     row.recommendationText,
     row.recommendationStatus,
     row.actionTitle ?? "",
-    row.responsibleName ?? "",
+    row.responsibleSector ?? "",
     formatDeadline(row.startDate),
     formatDeadline(row.endDate),
     row.actionStatus ?? "",

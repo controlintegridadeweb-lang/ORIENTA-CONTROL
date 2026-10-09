@@ -63,6 +63,7 @@ function actionViewFromRow(
 ): RecommendationPortfolioExportActionView {
   return {
     title: displayText(row.actionTitle),
+    responsibleSector: displayText(row.responsibleSector),
     responsible: displayText(row.responsibleName),
     startDate: formatExportDate(row.startDate),
     endDate: formatExportDate(row.endDate),

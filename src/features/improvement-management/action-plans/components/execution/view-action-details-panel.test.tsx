@@ -97,7 +97,7 @@ describe("ViewActionDetailsPanel", () => {
 
     expect(screen.getByRole("heading", { name: "Visualizar ação" })).toBeTruthy();
     expect(screen.getByRole("columnheader", { name: "Ação" })).toBeTruthy();
-    expect(screen.getByRole("columnheader", { name: "Responsável" })).toBeTruthy();
+    expect(screen.getByRole("columnheader", { name: "Área responsável" })).toBeTruthy();
     expect(screen.getByRole("columnheader", { name: "Início" })).toBeTruthy();
     expect(screen.getByRole("columnheader", { name: "Final" })).toBeTruthy();
     expect(screen.getByRole("columnheader", { name: "Situação" })).toBeTruthy();
@@ -105,9 +105,9 @@ describe("ViewActionDetailsPanel", () => {
     expect(screen.getByText("Publicar o calendário de capacitação")).toBeTruthy();
     expect(screen.getByText("Em andamento")).toBeTruthy();
     expect(screen.getByText("40%")).toBeTruthy();
-    expect(screen.getByText("Alice")).toBeTruthy();
+    expect(screen.getByText("TI")).toBeTruthy();
+    expect(screen.queryByText("Alice")).toBeNull();
     expect(screen.queryByText("Ação ou compromisso")).toBeNull();
-    expect(screen.queryByText("Área responsável")).toBeNull();
     expect(screen.queryByText("Respondente responsável")).toBeNull();
     expect(screen.getByText(/Última atualização:/)).toBeTruthy();
     expect(
