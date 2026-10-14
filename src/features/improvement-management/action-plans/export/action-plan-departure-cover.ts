@@ -1,4 +1,5 @@
 import { PDFDocument, type PDFPage } from "pdf-lib";
+import { latinPdfSafe } from "@/shared/export/text";
 
 import {
   COVER_LAYOUT,
@@ -9,6 +10,57 @@ import {
 } from "@/shared/export/official-pdf-cover";
 import { reportTheme } from "@/shared/export/official-pdf-theme";
 import type { ReportFonts } from "@/shared/export/official-pdf-types";
+
+/** Nome da capa: “Compliance” é desenhado à parte, em itálico. */
+export const INTEGRITY_PLAN_COVER_TITLE = {
+  lead: "Plano de Integridade e ",
+  emphasis: "Compliance",
+} as const;
+
+export function integrityPlanCoverTitle(): string {
+  return `${INTEGRITY_PLAN_COVER_TITLE.lead}${INTEGRITY_PLAN_COVER_TITLE.emphasis}`;
+}
+
+/** Título do miolo: “Compliance” fica em negrito e itálico. */
+export function drawIntegrityPlanDocumentTitle(
+  page: PDFPage,
+  fonts: ReportFonts,
+  x: number,
+  y: number,
+  size: number,
+  title: string,
+): void {
+  const styled =
+    title.startsWith(INTEGRITY_PLAN_COVER_TITLE.lead) &&
+    title.endsWith(INTEGRITY_PLAN_COVER_TITLE.emphasis);
+  if (!styled) {
+    page.drawText(latinPdfSafe(title), {
+      x,
+      y,
+      size,
+      font: fonts.bold,
+      color: reportTheme.slate900,
+    });
+    return;
+  }
+  const lead = latinPdfSafe(INTEGRITY_PLAN_COVER_TITLE.lead);
+  const tail = latinPdfSafe(INTEGRITY_PLAN_COVER_TITLE.emphasis);
+  const emphasis = fonts.boldItalic ?? fonts.bold;
+  page.drawText(lead, {
+    x,
+    y,
+    size,
+    font: fonts.bold,
+    color: reportTheme.slate900,
+  });
+  page.drawText(tail, {
+    x: x + fonts.bold.widthOfTextAtSize(lead, size),
+    y,
+    size,
+    font: emphasis,
+    color: reportTheme.slate900,
+  });
+}
 
 /** Mesmos rótulos da capa do relatório de acompanhamento, sem Resultado FAMI. */
 export const INTEGRITY_PLAN_COVER_FIELDS = [
@@ -75,7 +127,6 @@ export async function drawIntegrityPlanDepartureCover(
   fonts: ReportFonts,
   page: PDFPage,
   input: {
-    title: string;
     disclaimer: string;
     meta: IntegrityPlanCoverMeta | null;
   },
@@ -107,7 +158,8 @@ export async function drawIntegrityPlanDepartureCover(
   });
 
   const brandBottom = drawCoverBrand(page, fonts, undefined, {
-    title: input.title,
+    title: INTEGRITY_PLAN_COVER_TITLE.lead,
+    italicSuffix: INTEGRITY_PLAN_COVER_TITLE.emphasis,
     logo,
   });
 

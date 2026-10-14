@@ -482,6 +482,9 @@ describe("PDF institucional do plano de integridade e compliance", () => {
     expect(Buffer.from(departure.content).subarray(0, 4).toString()).toBe("%PDF");
     expect(departurePdf.getPageCount()).toBe(pdf.getPageCount() + 2);
     const summary = pdfText(departure.content);
+    expect(summary).toContain("Plano de Integridade e ");
+    expect(summary).toContain("Compliance");
+    expect(summary).not.toContain("Relatório (plano de integridade e compliance)");
     expect(summary).toContain("Sumário");
     expect(summary).toContain("Eixo - Governança");
     expect(summary).toContain("Seção 1 - Governança e Estrutura de Integridade");

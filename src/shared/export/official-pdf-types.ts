@@ -4,6 +4,8 @@ export type ReportFonts = {
   regular: Awaited<ReturnType<PDFDocument["embedFont"]>>;
   bold: Awaited<ReturnType<PDFDocument["embedFont"]>>;
   italic: Awaited<ReturnType<PDFDocument["embedFont"]>>;
+  /** Negrito itálico, usado no nome “Compliance” do plano. */
+  boldItalic?: Awaited<ReturnType<PDFDocument["embedFont"]>>;
 };
 
 export type Cursor = { page: PDFPage; y: number };

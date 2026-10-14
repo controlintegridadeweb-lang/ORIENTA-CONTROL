@@ -31,7 +31,11 @@ import {
 } from "@/shared/export/official-pdf-toc";
 import type { Cursor, PdfGridHost, ReportFonts } from "@/shared/export/official-pdf-types";
 import { drawRoundedRectFill } from "@/shared/export/pdf-rounded-rect";
-import { drawIntegrityPlanDepartureCover } from "./action-plan-departure-cover";
+import {
+  drawIntegrityPlanDepartureCover,
+  drawIntegrityPlanDocumentTitle,
+  integrityPlanCoverTitle,
+} from "./action-plan-departure-cover";
 import { integrityPlanTocOutline } from "./action-plan-departure-toc";
 import type { ActionPlanExportData } from "./action-plan-export-types";
 
@@ -65,6 +69,7 @@ class ActionPlanPdfDocument implements PdfGridHost {
       regular: await pdf.embedFont(StandardFonts.Helvetica),
       bold: await pdf.embedFont(StandardFonts.HelveticaBold),
       italic: await pdf.embedFont(StandardFonts.HelveticaOblique),
+      boldItalic: await pdf.embedFont(StandardFonts.HelveticaBoldOblique),
     };
     return new ActionPlanPdfDocument(pdf, fonts);
   }
@@ -181,13 +186,14 @@ class ActionPlanPdfDocument implements PdfGridHost {
       height: barH,
       color: reportTheme.brand,
     });
-    cur.page.drawText(latinPdfSafe(title), {
-      x: reportTheme.margin + 14,
-      y: titleBaseline,
-      size: titleSize,
-      font: this.fonts.bold,
-      color: reportTheme.slate900,
-    });
+    drawIntegrityPlanDocumentTitle(
+      cur.page,
+      this.fonts,
+      reportTheme.margin + 14,
+      titleBaseline,
+      titleSize,
+      title,
+    );
 
     let y = titleBaseline - 20;
     if (subtitle) {
@@ -512,14 +518,8 @@ function drawSection(
   return { ...cur, y: cur.y - 8 };
 }
 
-/**
- * PDF do plano de integridade e compliance com a identidade visual do relatório oficial:
- * título com barra institucional, contexto em grade, eixo colorido,
- * card de resumo da seção e, em cada seção, a recomendação de origem
- * imediatamente seguida das ações do plano.
- */
 const LIVE_TITLE = "Plano de integridade e compliance";
-const DEPARTURE_TITLE = "Relatório (plano de integridade e compliance)";
+const DEPARTURE_TITLE = integrityPlanCoverTitle();
 const LIVE_INTRO =
   "Leitura por encadeamento: as ações formam o plano de cada seção; as seções compõem os eixos. As recomendações identificam a origem de cada ação.";
 const DEPARTURE_INTRO =
@@ -542,7 +542,6 @@ export async function generateActionPlanPdf(
     const cover = doc.newPage();
     const context = data.document.contexts[0];
     await drawIntegrityPlanDepartureCover(doc.pdf, doc.fonts, cover.page, {
-      title,
       disclaimer: intro,
       meta: context
         ? {

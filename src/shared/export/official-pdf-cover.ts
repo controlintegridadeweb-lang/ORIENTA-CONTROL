@@ -273,12 +273,20 @@ export function drawCoverBrand(
   tracking?: {
     title: string;
     logo: PDFImage;
+    /** Trecho final da mesma linha, em itálico. Ex.: "Compliance". */
+    italicSuffix?: string;
   },
 ): number {
   const { w: pageWidth, h: pageHeight } = reportTheme.page;
 
   if (tracking) {
-    return drawTrackingBrand(page, fonts, tracking.title, tracking.logo);
+    return drawTrackingBrand(
+      page,
+      fonts,
+      tracking.title,
+      tracking.logo,
+      tracking.italicSuffix,
+    );
   }
 
   if (!brandMark) {
@@ -337,11 +345,15 @@ function drawTrackingBrand(
   fonts: ReportFonts,
   title: string,
   logo: PDFImage,
+  italicSuffix?: string,
 ): number {
   const { w: pageWidth, h: pageHeight } = reportTheme.page;
-  const titleSize = title.length > 48 ? 16 : 20;
+  const fullTitle = italicSuffix ? `${title}${italicSuffix}` : title;
+  const titleSize = fullTitle.length > 48 ? 16 : 20;
   const usableWidth = pageWidth - COVER_LAYOUT.margin * 2;
-  const titleLines = wrapCoverLines(fonts, latinPdfSafe(title), titleSize, usableWidth, true);
+  const titleLines = italicSuffix
+    ? [latinPdfSafe(fullTitle)]
+    : wrapCoverLines(fonts, latinPdfSafe(title), titleSize, usableWidth, true);
   const titleBlockH =
     titleLines.length * (titleSize + COVER_LAYOUT.valueLineGap) - COVER_LAYOUT.valueLineGap;
   const logoMax = COVER_LAYOUT.trackingLogoMax;
@@ -359,17 +371,42 @@ function drawTrackingBrand(
   });
   y -= logoGap;
 
-  for (const line of titleLines) {
-    const lineWidth = fonts.bold.widthOfTextAtSize(line, titleSize);
+  if (italicSuffix) {
+    const lead = latinPdfSafe(title);
+    const tail = latinPdfSafe(italicSuffix);
+    const leadWidth = fonts.bold.widthOfTextAtSize(lead, titleSize);
+    const emphasis = fonts.boldItalic ?? fonts.italic;
+    const lineWidth = leadWidth + emphasis.widthOfTextAtSize(tail, titleSize);
     y -= titleSize;
-    page.drawText(line, {
-      x: (pageWidth - lineWidth) / 2,
+    const lineX = (pageWidth - lineWidth) / 2;
+    page.drawText(lead, {
+      x: lineX,
       y,
       size: titleSize,
       font: fonts.bold,
       color: reportTheme.coverInk,
     });
+    page.drawText(tail, {
+      x: lineX + leadWidth,
+      y,
+      size: titleSize,
+      font: emphasis,
+      color: reportTheme.coverInk,
+    });
     y -= COVER_LAYOUT.valueLineGap;
+  } else {
+    for (const line of titleLines) {
+      const lineWidth = fonts.bold.widthOfTextAtSize(line, titleSize);
+      y -= titleSize;
+      page.drawText(line, {
+        x: (pageWidth - lineWidth) / 2,
+        y,
+        size: titleSize,
+        font: fonts.bold,
+        color: reportTheme.coverInk,
+      });
+      y -= COVER_LAYOUT.valueLineGap;
+    }
   }
 
   return y + COVER_LAYOUT.valueLineGap - 8;
