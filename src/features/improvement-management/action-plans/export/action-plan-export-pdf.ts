@@ -24,9 +24,15 @@ import {
   reportAxisTheme,
   reportTheme,
 } from "@/shared/export/official-pdf-theme";
+import {
+  drawOfficialTableOfContents,
+  paginateOfficialToc,
+  type OfficialTocEntry,
+} from "@/shared/export/official-pdf-toc";
 import type { Cursor, PdfGridHost, ReportFonts } from "@/shared/export/official-pdf-types";
 import { drawRoundedRectFill } from "@/shared/export/pdf-rounded-rect";
 import { drawIntegrityPlanDepartureCover } from "./action-plan-departure-cover";
+import { integrityPlanTocOutline } from "./action-plan-departure-toc";
 import type { ActionPlanExportData } from "./action-plan-export-types";
 
 const CIVIL_DATE_FORMAT = {
@@ -43,6 +49,10 @@ class ActionPlanPdfDocument implements PdfGridHost {
   readonly pdf: PDFDocument;
   readonly fonts: ReportFonts;
   private pageIndex = -1;
+  private tocPageStart = -1;
+  private tocPageCount = 0;
+  private readonly tocEntries: OfficialTocEntry[] = [];
+  private pendingToc: { title: string; level: number }[] = [];
 
   private constructor(pdf: PDFDocument, fonts: ReportFonts) {
     this.pdf = pdf;
@@ -65,6 +75,28 @@ class ActionPlanPdfDocument implements PdfGridHost {
 
   get contentTop(): number {
     return reportTheme.page.h - reportTheme.margin;
+  }
+
+  reserveTocPages(entries: readonly { title: string; level: number }[]): void {
+    this.pendingToc = entries.map((entry) => ({ ...entry }));
+    this.tocPageStart = this.pageIndex + 1;
+    this.tocPageCount = Math.max(1, paginateOfficialToc(entries).length);
+    for (let index = 0; index < this.tocPageCount; index += 1) this.newPage();
+  }
+
+  markTocHere(): void {
+    const next = this.pendingToc.shift();
+    if (!next) return;
+    this.tocEntries.push({ ...next, page: this.pageIndex + 1 });
+  }
+
+  fillToc(): void {
+    if (this.tocPageCount === 0) return;
+    drawOfficialTableOfContents(
+      this.pdf.getPages().slice(this.tocPageStart, this.tocPageStart + this.tocPageCount),
+      this.fonts,
+      this.tocEntries,
+    );
   }
 
   newPage(): Cursor {
@@ -222,8 +254,10 @@ class ActionPlanPdfDocument implements PdfGridHost {
   applyFooters(skipCover = false): void {
     const pages = this.pdf.getPages();
     const total = pages.length;
+    const tocEnd = this.tocPageStart + this.tocPageCount;
     pages.forEach((page, i) => {
       if (skipCover && i === 0) return;
+      if (i >= this.tocPageStart && i < tocEnd) return;
       drawContentFooter(this.fonts, page, i + 1, total);
     });
   }
@@ -285,8 +319,10 @@ function drawContextBlock(
   context: RecommendationPortfolioExportContextView,
   issuedOnLabel: string,
   departure: boolean,
+  onHeading?: () => void,
 ): Cursor {
   const titled = doc.drawSubsectionTitle(cursor, "Contexto");
+  onHeading?.();
   const cur = drawGridBlock(doc, titled, [
     quadRowCells(
       "Formulário",
@@ -299,7 +335,12 @@ function drawContextBlock(
   return { ...cur, y: cur.y - 16 };
 }
 
-function drawAxisBar(doc: ActionPlanPdfDocument, cursor: Cursor, axisName: string): Cursor {
+function drawAxisBar(
+  doc: ActionPlanPdfDocument,
+  cursor: Cursor,
+  axisName: string,
+  onHeading?: () => void,
+): Cursor {
   const width = contentWidth();
   const size = 11;
   const label = latinPdfSafe(`Eixo - ${axisName}`);
@@ -323,6 +364,7 @@ function drawAxisBar(doc: ActionPlanPdfDocument, cursor: Cursor, axisName: strin
     font: doc.fonts.bold,
     color: reportTheme.white,
   });
+  onHeading?.();
   return { ...cur, y: bottom - 16 };
 }
 
@@ -436,11 +478,13 @@ function drawSection(
   section: RecommendationPortfolioExportSectionView,
   palette: GridPalette,
   departure: boolean,
+  onHeading?: () => void,
 ): Cursor {
   let cur = doc.drawPlainHeading(
     cursor,
     `Seção ${section.sectionDisplayNumber} - ${section.sectionName}`,
   );
+  onHeading?.();
   const summary = sectionActionSummary(section);
   cur = drawSummaryCard(doc, cur, summary, palette, departure);
 
@@ -509,8 +553,10 @@ export async function generateActionPlanPdf(
           }
         : null,
     });
+    doc.reserveTocPages(integrityPlanTocOutline(data.document.contexts));
   }
 
+  const markToc = departure ? () => doc.markTocHere() : undefined;
   let cur = doc.newPage();
   cur = doc.drawSectionTitle(cur, title, intro);
 
@@ -523,18 +569,26 @@ export async function generateActionPlanPdf(
       cur = doc.newPage();
       cur = doc.drawSectionTitle(cur, title);
     }
-    cur = drawContextBlock(doc, cur, context, issuedOnLabel, departure);
+    cur = drawContextBlock(
+      doc,
+      cur,
+      context,
+      issuedOnLabel,
+      departure,
+      data.document.contexts.length > 1 ? markToc : undefined,
+    );
 
     for (const axis of context.axes) {
       const palette = gridPaletteForAxis(axis.axisName);
-      cur = drawAxisBar(doc, cur, axis.axisName);
+      cur = drawAxisBar(doc, cur, axis.axisName, markToc);
       for (const section of axis.sections) {
-        cur = drawSection(doc, cur, section, palette, departure);
+        cur = drawSection(doc, cur, section, palette, departure, markToc);
       }
       cur = { ...cur, y: cur.y - 10 };
     }
   }
 
+  doc.fillToc();
   doc.applyFooters(departure);
   const prefix = departure
     ? "relatorio-plano-de-integridade-e-compliance"

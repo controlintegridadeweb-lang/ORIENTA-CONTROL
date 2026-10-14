@@ -20,7 +20,29 @@ import {
 } from "./action-plan-export-xlsx-sheets";
 import { generateActionPlanPdf } from "./action-plan-export-pdf";
 import { generateActionPlanExcel } from "./action-plan-export-xlsx";
+import { inflateSync } from "node:zlib";
 import { PDFDocument } from "pdf-lib";
+
+function pdfText(bytes: Uint8Array): string {
+  const raw = Buffer.from(bytes).toString("latin1");
+  const parts: string[] = [];
+  const streams = /stream\r?\n([\s\S]*?)endstream/g;
+  for (let match = streams.exec(raw); match; match = streams.exec(raw)) {
+    const body = Buffer.from(match[1] ?? "", "latin1");
+    let inflated = body;
+    try {
+      inflated = inflateSync(body);
+    } catch {
+      inflated = body;
+    }
+    const source = inflated.toString("latin1");
+    const hex = /<([0-9A-Fa-f]+)>/g;
+    for (let token = hex.exec(source); token; token = hex.exec(source)) {
+      parts.push(Buffer.from(token[1] ?? "", "hex").toString("latin1"));
+    }
+  }
+  return parts.join("\n");
+}
 
 function makeAction(
   over: Partial<Omit<ActionPlanAction, "slaLabel">> & Pick<ActionPlanAction, "id">,
@@ -458,7 +480,11 @@ describe("PDF institucional do plano de integridade e compliance", () => {
       /^relatorio-plano-de-integridade-e-compliance-\d{4}-\d{2}-\d{2}\.pdf$/,
     );
     expect(Buffer.from(departure.content).subarray(0, 4).toString()).toBe("%PDF");
-    expect(departurePdf.getPageCount()).toBe(pdf.getPageCount() + 1);
+    expect(departurePdf.getPageCount()).toBe(pdf.getPageCount() + 2);
+    const summary = pdfText(departure.content);
+    expect(summary).toContain("Sumário");
+    expect(summary).toContain("Eixo - Governança");
+    expect(summary).toContain("Seção 1 - Governança e Estrutura de Integridade");
     expect(departure.content.byteLength).toBeGreaterThan(populated.content.byteLength + 40_000);
     // Hierarquia institucional: contexto → eixo → seção → origem → ações.
     expect(data.document.contexts[0]?.axes[0]?.sections[0]?.recommendations).toHaveLength(1);
