@@ -26,6 +26,7 @@ import {
 } from "@/shared/export/official-pdf-theme";
 import type { Cursor, PdfGridHost, ReportFonts } from "@/shared/export/official-pdf-types";
 import { drawRoundedRectFill } from "@/shared/export/pdf-rounded-rect";
+import { drawIntegrityPlanDepartureCover } from "./action-plan-departure-cover";
 import type { ActionPlanExportData } from "./action-plan-export-types";
 
 const CIVIL_DATE_FORMAT = {
@@ -218,10 +219,11 @@ class ActionPlanPdfDocument implements PdfGridHost {
     return { ...cur, y: cur.y - 18 };
   }
 
-  applyFooters(): void {
+  applyFooters(skipCover = false): void {
     const pages = this.pdf.getPages();
     const total = pages.length;
     pages.forEach((page, i) => {
+      if (skipCover && i === 0) return;
       drawContentFooter(this.fonts, page, i + 1, total);
     });
   }
@@ -492,6 +494,23 @@ export async function generateActionPlanPdf(
     data.issuedOn,
   );
 
+  if (departure) {
+    const cover = doc.newPage();
+    const context = data.document.contexts[0];
+    await drawIntegrityPlanDepartureCover(doc.pdf, doc.fonts, cover.page, {
+      title,
+      disclaimer: intro,
+      meta: context
+        ? {
+            period: context.period,
+            formName: context.formName,
+            organizationName: context.organizationName,
+            issuedOnLabel,
+          }
+        : null,
+    });
+  }
+
   let cur = doc.newPage();
   cur = doc.drawSectionTitle(cur, title, intro);
 
@@ -516,7 +535,7 @@ export async function generateActionPlanPdf(
     }
   }
 
-  doc.applyFooters();
+  doc.applyFooters(departure);
   const prefix = departure
     ? "relatorio-plano-de-integridade-e-compliance"
     : "plano-de-integridade-e-compliance";

@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown, Filter, Search, X } from "lucide-react";
-import { useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { formSurface } from "@/shared/layout/form-surface";
 
 type ResultLabels = { singular: string; plural: string };
@@ -10,6 +10,8 @@ type Props = {
   ariaLabel: string;
   searchValue: string;
   onSearchChange: (value: string) => void;
+  onSearchFocus?: () => void;
+  onSearchBlur?: () => void;
   searchPlaceholder: string;
   active: boolean;
   onClear: () => void;
@@ -27,6 +29,8 @@ export function ResponsiveFilterPanel({
   ariaLabel,
   searchValue,
   onSearchChange,
+  onSearchFocus,
+  onSearchBlur,
   searchPlaceholder,
   active,
   onClear,
@@ -40,7 +44,13 @@ export function ResponsiveFilterPanel({
   footer,
 }: Props) {
   const [expandedMobile, setExpandedMobile] = useState(false);
+  const [draft, setDraft] = useState(searchValue);
+  const focusedRef = useRef(false);
   const gridId = useId();
+
+  useEffect(() => {
+    if (!focusedRef.current) setDraft(searchValue);
+  }, [searchValue]);
 
   return (
     <section aria-label={ariaLabel} className={surfaceClassName}>
@@ -53,9 +63,26 @@ export function ResponsiveFilterPanel({
               aria-hidden
             />
             <input
-              type="search"
-              value={searchValue}
-              onChange={(event) => onSearchChange(event.target.value)}
+              type="text"
+              role="searchbox"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              value={draft}
+              onFocus={() => {
+                focusedRef.current = true;
+                onSearchFocus?.();
+              }}
+              onBlur={() => {
+                focusedRef.current = false;
+                setDraft(searchValue);
+                onSearchBlur?.();
+              }}
+              onChange={(event) => {
+                const next = event.target.value;
+                setDraft(next);
+                onSearchChange(next);
+              }}
               placeholder={searchPlaceholder}
               className={`${formSurface.input} pl-9`}
             />

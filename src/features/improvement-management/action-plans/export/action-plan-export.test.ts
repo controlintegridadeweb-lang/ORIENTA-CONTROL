@@ -453,10 +453,13 @@ describe("PDF institucional do plano de integridade e compliance", () => {
     expect(populated.filename).toMatch(/^plano-de-integridade-e-compliance-\d{4}-\d{2}-\d{2}\.pdf$/);
 
     const departure = await generateActionPlanPdf({ ...data, variant: "departure" });
+    const departurePdf = await PDFDocument.load(departure.content);
     expect(departure.filename).toMatch(
       /^relatorio-plano-de-integridade-e-compliance-\d{4}-\d{2}-\d{2}\.pdf$/,
     );
     expect(Buffer.from(departure.content).subarray(0, 4).toString()).toBe("%PDF");
+    expect(departurePdf.getPageCount()).toBe(pdf.getPageCount() + 1);
+    expect(departure.content.byteLength).toBeGreaterThan(populated.content.byteLength + 40_000);
     // Hierarquia institucional: contexto → eixo → seção → origem → ações.
     expect(data.document.contexts[0]?.axes[0]?.sections[0]?.recommendations).toHaveLength(1);
   });

@@ -21,6 +21,8 @@ type AxisOption = { value: string; label: string };
 type Props = {
   value: RespondentRecommendationFilterValue;
   onChange: (next: RespondentRecommendationFilterValue) => void;
+  onSearchFocus?: () => void;
+  onSearchBlur?: () => void;
   onClear: () => void;
   forms: FormOption[];
   axes: AxisOption[];
@@ -59,6 +61,8 @@ function hasActive(
 export function RespondentRecommendationFilters({
   value,
   onChange,
+  onSearchFocus,
+  onSearchBlur,
   onClear,
   forms,
   axes,
@@ -91,7 +95,9 @@ export function RespondentRecommendationFilters({
       ariaLabel="Filtros de recomendações"
       searchValue={value.search}
       onSearchChange={(search) => patch({ search })}
-      searchPlaceholder="Buscar por texto, eixo, seção ou formulário…"
+      onSearchFocus={onSearchFocus}
+      onSearchBlur={onSearchBlur}
+      searchPlaceholder="Buscar por texto, ação, eixo, seção ou formulário…"
       active={hasActive(value, lockedPlanScope)}
       onClear={onClear}
       resultCount={resultCount}

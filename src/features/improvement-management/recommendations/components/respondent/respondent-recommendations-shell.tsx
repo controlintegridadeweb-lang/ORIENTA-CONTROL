@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { PanelSection } from "@/shared/ui/components/panel-section";
 import { layout, typography } from "@/shared/layout/design-system";
@@ -44,11 +44,16 @@ import {
 
 import { RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL } from "@/shared/navigation/respondent-portfolio-paths";
 import { isInvalidUuidParam, parseUuidParam, uuidParamOrEmpty } from "@/shared/validation/uuid";
+import { actionSearchHintsByRecommendation } from "@/features/improvement-management/action-plans/section-action-plan-copy";
 import {
   buildSectionActionPlanHierarchy,
   filterSectionHierarchyByMatchingRecommendations,
   sectionActionPlanSourcesFromListItems,
 } from "@/features/improvement-management/action-plans/section-action-plan-model";
+import {
+  keepTypingSearch,
+  matchesRecommendationSearch,
+} from "./respondent-recommendation-search";
 
 const ANALYSIS_INITIAL_FILTER: RespondentRecommendationFilterValue = {
   search: "",
@@ -136,19 +141,23 @@ function toNavigationFilter(
   return { ...filter, page };
 }
 
-function matchesText(item: RespondentRecommendationItem, query: string): boolean {
-  if (!query) return true;
-  const haystack = `${item.recommendationText} ${item.axisName} ${item.sectionName} ${item.formName} ${item.questionPrompt}`.toLowerCase();
-  return haystack.includes(query.toLowerCase());
-}
-
 function applyFilters(
   rows: RespondentRecommendationItem[],
   filter: RespondentRecommendationFilterValue,
   debouncedSearch: string,
+  actionHints: ReadonlyMap<string, string>,
 ): RespondentRecommendationItem[] {
   return rows.filter((item) => {
-    if (debouncedSearch && !matchesText(item, debouncedSearch.trim())) return false;
+    if (
+      debouncedSearch &&
+      !matchesRecommendationSearch(
+        item,
+        debouncedSearch,
+        actionHints.get(item.recommendationId) ?? "",
+      )
+    ) {
+      return false;
+    }
     if (filter.status && item.status !== filter.status) return false;
     if (filter.cycleId && item.cycleId !== filter.cycleId) return false;
     if (filter.formId && item.formId !== filter.formId) return false;
@@ -208,11 +217,21 @@ export function RespondentRecommendationsShell() {
   const [filter, setFilter] = useState<RespondentRecommendationFilterValue>(() =>
     filterFromSearchParams(view, searchParams),
   );
+  const committedSearchRef = useRef(filter.search.trim());
+  const searchFocusedRef = useRef(false);
   const debouncedSearch = useDebounce(filter.search, 250);
+  const planHierarchy = useMemo(
+    () => buildSectionActionPlanHierarchy(sectionActionPlanSourcesFromListItems(rows)),
+    [rows],
+  );
+  const actionSearchHints = useMemo(
+    () => actionSearchHintsByRecommendation(planHierarchy),
+    [planHierarchy],
+  );
 
   const filteredRows = useMemo(
-    () => applyFilters(rows, filter, debouncedSearch),
-    [rows, filter, debouncedSearch],
+    () => applyFilters(rows, filter, debouncedSearch, actionSearchHints),
+    [rows, filter, debouncedSearch, actionSearchHints],
   );
   const paginationResetKey = useMemo(
     () =>
@@ -242,16 +261,19 @@ export function RespondentRecommendationsShell() {
   const actionPlanSectionCount = useMemo(
     () =>
       filterSectionHierarchyByMatchingRecommendations(
-        buildSectionActionPlanHierarchy(sectionActionPlanSourcesFromListItems(rows)),
+        planHierarchy,
         new Set(filteredRows.map((item) => item.recommendationId)),
       ).reduce((total, axis) => total + axis.sections.length, 0),
-    [filteredRows, rows],
+    [filteredRows, planHierarchy],
   );
   const actionPlanTotalSectionCount = useMemo(
-    () => buildSectionActionPlanHierarchy(
-      sectionActionPlanSourcesFromListItems(rows.filter((item) => item.hasPlan)),
-    ).reduce((total, axis) => total + axis.sections.length, 0),
-    [rows],
+    () =>
+      planHierarchy.reduce(
+        (total, axis) =>
+          total + axis.sections.filter((section) => section.metrics.totalActions > 0).length,
+        0,
+      ),
+    [planHierarchy],
   );
   const totalForView = actionPlanView ? actionPlanTotalSectionCount : summary.total;
   const selectedCycleLabel = useMemo(() => {
@@ -295,17 +317,35 @@ export function RespondentRecommendationsShell() {
     }
 
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Sincroniza o filtro local com os parâmetros de busca externos da rota.
-    setFilter((previous) => (sameFilter(previous, nextFilter) ? previous : nextFilter));
+    setFilter((previous) => {
+      const search = searchFocusedRef.current
+        ? previous.search
+        : keepTypingSearch(
+            previous.search,
+            nextFilter.search,
+            committedSearchRef.current,
+          );
+      if (search === nextFilter.search) committedSearchRef.current = nextFilter.search;
+      const merged = { ...nextFilter, search };
+      return sameFilter(previous, merged) ? previous : merged;
+    });
   }, [router, searchParams, view]);
 
-  // URL ← estado só em handlers (updateFilter / clear / summary). Um efeito
-  // contínuo state→URL reescrevia filtros antigos ao trocar de visão e fazia a
-  // tela alternar sozinha.
+  // Situação, eixo e formulário vão para a URL na hora. A busca espera o
+  // debounce: gravar cada tecla fazia a URL antiga voltar e apagar letras.
+  // O efeito abaixo só publica a busca quando o restante do filtro já coincide
+  // com a rota, para não reescrever a visão ao trocar de tela.
 
   const updateFilter = useCallback(
     (next: RespondentRecommendationFilterValue) => {
       const normalized = normalizeFilterForView(view, next);
       setFilter(normalized);
+      const searchOnly =
+        normalized.search !== filter.search &&
+        sameFilter({ ...normalized, search: filter.search }, filter);
+      if (searchOnly) return;
+
+      committedSearchRef.current = normalized.search.trim();
       const nextPath = respondentRecommendationListPath(view, toNavigationFilter(normalized));
       const currentPath = searchParams.size > 0
         ? `${pathname}?${searchParams.toString()}`
@@ -314,8 +354,27 @@ export function RespondentRecommendationsShell() {
         router.replace(nextPath, { scroll: false });
       }
     },
-    [pathname, router, searchParams, view],
+    [filter, pathname, router, searchParams, view],
   );
+
+  useEffect(() => {
+    if (filter.search !== debouncedSearch) return;
+    const routeFilter = filterFromSearchParams(view, searchParams);
+    const settled = { ...filter, search: filter.search.trim() };
+    if (!sameFilter({ ...routeFilter, search: settled.search }, settled)) return;
+    if (routeFilter.search === settled.search) {
+      committedSearchRef.current = settled.search;
+      return;
+    }
+    committedSearchRef.current = settled.search;
+    const nextPath = respondentRecommendationListPath(view, toNavigationFilter(settled));
+    const currentPath = searchParams.size > 0
+      ? `${pathname}?${searchParams.toString()}`
+      : pathname;
+    if (nextPath !== currentPath) {
+      router.replace(nextPath, { scroll: false });
+    }
+  }, [debouncedSearch, filter, pathname, router, searchParams, view]);
 
   const handleFilterChange = useCallback(
     (next: RespondentRecommendationFilterValue) => {
@@ -399,7 +458,7 @@ export function RespondentRecommendationsShell() {
       }
       return "no-plan-linked";
     }
-    if (hasActiveFilters) return "no-results";
+    if (hasActiveFilters) return actionPlanView ? "no-section-results" : "no-results";
     return "no-recommendations";
   })();
 
@@ -463,6 +522,12 @@ export function RespondentRecommendationsShell() {
           <RespondentRecommendationFilters
             value={filter}
             onChange={handleFilterChange}
+            onSearchFocus={() => {
+              searchFocusedRef.current = true;
+            }}
+            onSearchBlur={() => {
+              searchFocusedRef.current = false;
+            }}
             onClear={handleClear}
             forms={formOptions}
             axes={axisOptions}

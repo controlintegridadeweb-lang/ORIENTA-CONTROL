@@ -14,7 +14,7 @@ import {
   drawCoverCornerImage,
   drawCoverDisclaimer,
   drawCoverLabelValue,
-} from "./cover-page-draw";
+} from "@/shared/export/official-pdf-cover";
 
 /**
  * Capa institucional do Relatório Oficial ORIENTA.

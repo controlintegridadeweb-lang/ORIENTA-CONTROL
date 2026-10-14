@@ -8,6 +8,7 @@ import { formSurface } from "@/shared/layout/form-surface";
 export type EmptyVariant =
   | "no-recommendations"
   | "no-results"
+  | "no-section-results"
   | "no-plan-linked"
   | "awaiting-consolidation";
 
@@ -37,6 +38,15 @@ export function RespondentRecommendationEmptyState({ variant, onClearFilters }: 
       title: "Nenhuma recomendação corresponde aos filtros atuais",
       description:
         "Há recomendações no portfólio, mas nenhuma combina com a busca ou os filtros selecionados. Ajuste ou limpe os filtros para continuar.",
+      cta: onClearFilters
+        ? { label: "Limpar filtros", onClick: onClearFilters }
+        : undefined,
+    },
+    "no-section-results": {
+      icon: Filter,
+      title: "Nenhuma seção corresponde à busca",
+      description:
+        "Há seções com plano, mas nenhuma ação, eixo ou seção combina com o texto digitado. Confira a grafia ou limpe os filtros para ver o plano completo.",
       cta: onClearFilters
         ? { label: "Limpar filtros", onClick: onClearFilters }
         : undefined,

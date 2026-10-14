@@ -1,6 +1,7 @@
 import { countLabel } from "@/shared/format/count-label";
 import type { RecommendationStatus } from "@/shared/domain/recommendation-status";
 import type {
+  SectionActionPlanAxisGroup,
   SectionActionPlanGroup,
   SectionActionPlanRecommendation,
 } from "./section-action-plan-model";
@@ -46,6 +47,25 @@ export function sectionExecutionSituationSummary(section: SectionActionPlanGroup
     countLabel(section.metrics.totalActions, "ação", "ações"),
     countLabel(section.metrics.completedActions, "concluída", "concluídas"),
   ].join(" · ");
+}
+
+/** Rótulos A1, A2… usados na seção, para a busca achar a ação pelo número exibido. */
+export function actionSearchHintsByRecommendation(
+  hierarchy: readonly SectionActionPlanAxisGroup[],
+): Map<string, string> {
+  const hints = new Map<string, string>();
+  for (const axis of hierarchy) {
+    for (const section of axis.sections) {
+      section.recommendations.forEach((recommendation, recommendationIndex) => {
+        const labels = recommendation.actions.map((_, actionIndex) => {
+          const number = actionNumberInSection(section, recommendationIndex, actionIndex);
+          return `ação a${number} a${number}`;
+        });
+        if (labels.length > 0) hints.set(recommendation.recommendationId, labels.join(" "));
+      });
+    }
+  }
+  return hints;
 }
 
 export function actionNumberInSection(

@@ -2,8 +2,8 @@ import type { PDFImage, PDFPage } from "pdf-lib";
 
 import { latinPdfSafe } from "@/shared/export/text";
 
-import type { ReportFonts } from "../document";
-import { reportTheme } from "../theme";
+import type { ReportFonts } from "./official-pdf-types";
+import { reportTheme } from "./official-pdf-theme";
 
 export const COVER_LAYOUT = {
   margin: 56,
