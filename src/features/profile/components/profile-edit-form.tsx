@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { z } from "zod";
 import { Building2, CheckCircle2, Mail } from "lucide-react";
 import { LoadingButton } from "@/shared/ui/components/loading";
@@ -74,7 +74,13 @@ function ReadOnlyFact({
   );
 }
 
-export function ProfileEditForm({ user }: { user: CurrentUser }) {
+export function ProfileEditForm({
+  user,
+  accessSection = null,
+}: {
+  user: CurrentUser;
+  accessSection?: ReactNode;
+}) {
   const router = useRouter();
   const [fullName, setFullName] = useState(user.fullName ?? "");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -258,6 +264,8 @@ export function ProfileEditForm({ user }: { user: CurrentUser }) {
           </form>
         </div>
       </PanelSection>
+
+      {accessSection}
 
       {user.email ? (
         <PanelSection
