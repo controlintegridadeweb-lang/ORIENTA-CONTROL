@@ -5,7 +5,8 @@
  * 1. encerra stack residual sem backup de volume;
  * 2. inicia de novo, com até 3 tentativas e diagnóstico na última falha.
  *    SUPABASE_START_EXCLUDE (CSV) omite containers que o CI não usa
- *    (Studio, imgproxy, mailpit, postgres-meta, logflare, vector).
+ *    (Studio, imgproxy, mailpit, logflare, vector). O job de banco mantém
+ *    postgres-meta, porque a geração de tipos precisa dessa imagem.
  *
  * Não mascara erro de configuração: esgota as tentativas e encerra com o
  * status do CLI.

@@ -68,7 +68,9 @@ jobs:
         run: npm run db:audit:migrations
       - name: Start isolated Supabase stack
         env:
-          SUPABASE_START_EXCLUDE: studio,imgproxy,mailpit,postgres-meta,logflare,vector
+          # postgres-meta fica de pé: a geração de tipos usa essa imagem.
+          # Excluí-la aqui estoura o limite anônimo do registry num pull tardio.
+          SUPABASE_START_EXCLUDE: studio,imgproxy,mailpit,logflare,vector
         run: npm run supabase:start:clean
       - name: Reset local schema from migrations
         run: npm run db:reset:local

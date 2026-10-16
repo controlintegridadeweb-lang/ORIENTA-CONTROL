@@ -19,7 +19,10 @@ describe("contrato de coesão da linguagem visível", () => {
       .map((file) => fs.readFileSync(file, "utf8"))
       .join("\n");
 
-    const normalized = source.replaceAll(RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL, "");
+    const normalized = source
+      .replaceAll(RESPONDENT_RECOMMENDATIONS_PORTFOLIO_LABEL, "")
+      // A capa do relatório desenha “Compliance” à parte, em itálico.
+      .replaceAll("Plano de Integridade e ", "");
 
     expect(source).toContain("Plano de integridade e compliance");
     expect(normalized).not.toMatch(/Planos de integridade(?! e compliance)/);
