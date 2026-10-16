@@ -38,7 +38,7 @@ export function adminSectionActionWorkspaceHref(
   return `${ADMIN_BASE_PATH}/plano-acao/secao/${safeSectionId}/${tab}?${params.toString()}`;
 }
 
-/** Entrada canônica do plano da seção — nunca usa recomendação como substituto. */
+/** Entrada canônica do plano da seção — abre em Ações, onde estão as recomendações. */
 export function adminSectionPlanEntryHref(
   sectionId: string,
   cycleId: string,
@@ -47,5 +47,5 @@ export function adminSectionPlanEntryHref(
   if (!parseUuidParam(sectionId) || !parseUuidParam(cycleId)) {
     return fallbackPath;
   }
-  return adminSectionActionWorkspaceHref(sectionId, cycleId, "visao-geral");
+  return adminSectionActionWorkspaceHref(sectionId, cycleId, "acoes");
 }

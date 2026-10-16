@@ -112,7 +112,7 @@ describe("AdminActionPlanList", () => {
     expect(screen.getByText("2 recomendações · 2 em execução")).toBeTruthy();
 
     const open = screen.getByRole("link", { name: /Abrir plano da seção/i });
-    expect(open.getAttribute("href")).toContain(`/admin/plano-acao/secao/${SECTION_ID}/visao-geral`);
+    expect(open.getAttribute("href")).toContain(`/admin/plano-acao/secao/${SECTION_ID}/acoes`);
     expect(open.getAttribute("href")).toContain(`cycleId=${CYCLE_ID}`);
     expect(open.getAttribute("href")).toContain("returnTo=");
     expect(open.getAttribute("href")).not.toContain(REC_1);
@@ -144,8 +144,8 @@ describe("AdminActionPlanList", () => {
     expect(screen.queryByText("Órgão Demo · Diagnóstico de Integridade · 2026")).toBeNull();
     const links = screen.getAllByRole("link", { name: /Abrir plano da seção/i });
     expect(links).toHaveLength(2);
-    expect(links[0]?.getAttribute("href")).toContain(`/secao/${SECTION_ID}/visao-geral`);
-    expect(links[1]?.getAttribute("href")).toContain(`/secao/${OTHER_SECTION_ID}/visao-geral`);
+    expect(links[0]?.getAttribute("href")).toContain(`/secao/${SECTION_ID}/acoes`);
+    expect(links[1]?.getAttribute("href")).toContain(`/secao/${OTHER_SECTION_ID}/acoes`);
     expect(screen.getByText("Pergunta de outra seção")).toBeTruthy();
     expect(screen.getByText("As informações relativas à UCI estão devidamente divulgadas?")).toBeTruthy();
   });

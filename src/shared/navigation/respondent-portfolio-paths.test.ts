@@ -107,7 +107,7 @@ describe("respondentSectionPlanEntryPath", () => {
 
   it("usa sectionId e cycleId como entrada do plano da seção", () => {
     const path = respondentSectionPlanEntryPath(sectionId, cycleId, returnTo);
-    expect(path).toContain(`/secao/${sectionId}/visao-geral`);
+    expect(path).toContain(`/secao/${sectionId}/acoes`);
     expect(path).toContain(`cycleId=${cycleId}`);
     expect(path).toContain("returnTo=");
     expect(path).not.toMatch(/recommendations\[0\]/);

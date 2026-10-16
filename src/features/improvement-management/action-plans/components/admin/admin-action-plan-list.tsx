@@ -10,6 +10,7 @@ import {
   buildSectionActionPlanHierarchy,
   sectionActionPlanSourcesFromListItems,
 } from "@/features/improvement-management/action-plans/section-action-plan-model";
+import { recommendationWorkspacePath } from "@/features/improvement-management/action-plans/components/section/section-workspace-navigation";
 import { SectionActionPlanHierarchyList } from "@/features/improvement-management/action-plans/components/section/section-action-plan-hierarchy-list";
 import { adminSectionPlanEntryHref } from "@/shared/navigation/admin-paths";
 import { currentAdminListPath, withAdminReturnPath } from "@/shared/navigation/admin-navigation-context";
@@ -62,6 +63,10 @@ export function AdminActionPlanList({ items, hideOrganization = false }: Props) 
           adminSectionPlanEntryHref(section.sectionId, section.cycleId, "/admin/plano-acao"),
           returnTo,
         )
+      }
+      actionLinkLabel="Ver ação"
+      actionHref={(_section, recommendationId, actionId) =>
+        recommendationWorkspacePath("admin", recommendationId, "acoes", returnTo, { actionId })
       }
     />
   );

@@ -49,7 +49,7 @@ export function recommendationWorkspacePath(
   recommendationId: string,
   tab: "acoes" | "monitoramento" | "visao-geral",
   returnPath: string,
-  options?: { actionId?: string },
+  options?: { actionId?: string; panel?: "evidence" | "progress" },
 ): string {
   const href =
     role === "respondent"
@@ -58,5 +58,5 @@ export function recommendationWorkspacePath(
           returnPath,
         )
       : withAdminReturnPath(adminPlanoAcaoDetailHref(recommendationId, tab), returnPath);
-  return options?.actionId ? withWorkspaceAction(href, options.actionId) : href;
+  return options?.actionId ? withWorkspaceAction(href, options.actionId, options.panel) : href;
 }

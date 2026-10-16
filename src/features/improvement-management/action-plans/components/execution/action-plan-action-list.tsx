@@ -236,19 +236,34 @@ export function ActionPlanActionList({
                       ) : null}
                     </td>
                     <td className={overviewActionsTable.bodyCell}>
-                      <ActionPlanRowOptionsMenu
-                        actionLabel={plan.actionText}
-                        disabled={isDeleting}
-                        items={rowMenuItems({
-                          plan,
-                          role,
-                          panel,
-                          isDeleting,
-                          onPanelChange,
-                          onCancelAction,
-                          onDelete,
-                        })}
-                      />
+                      <div className="flex flex-wrap items-center justify-end gap-2">
+                        {role === "respondent" && !isCancelled ? (
+                          <button
+                            type="button"
+                            className={`${formSurface.secondaryButtonSm} bg-white`}
+                            onClick={() =>
+                              onPanelChange(togglePanel(panel, { kind: "progress", planId: plan.id }))
+                            }
+                          >
+                            {panel.kind === "progress" && panel.planId === plan.id
+                              ? "Fechar andamento"
+                              : "Andamento"}
+                          </button>
+                        ) : null}
+                        <ActionPlanRowOptionsMenu
+                          actionLabel={plan.actionText}
+                          disabled={isDeleting}
+                          items={rowMenuItems({
+                            plan,
+                            role,
+                            panel,
+                            isDeleting,
+                            onPanelChange,
+                            onCancelAction,
+                            onDelete,
+                          })}
+                        />
+                      </div>
                     </td>
                   </tr>
                   {isOpen ? (

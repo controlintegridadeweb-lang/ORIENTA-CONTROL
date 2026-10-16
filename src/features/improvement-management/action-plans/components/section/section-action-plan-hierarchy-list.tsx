@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { SectionActionPlanAllActions } from "@/features/improvement-management/action-plans/components/section/section-action-plan-all-actions";
 import {
   sectionOriginQuestions,
   type SectionActionPlanAxisGroup,
@@ -29,10 +31,16 @@ import {
   RECOMMENDATION_CARD_LABELS,
 } from "@/features/improvement-management/recommendations/components/respondent/recommendation-card-view-model";
 import { RespondentRecommendationProgress } from "@/features/improvement-management/recommendations/components/respondent/respondent-recommendation-progress";
+import { SegmentedTabs } from "@/shared/ui/components/segmented-tabs";
+
+type PlanOrganization = "sections" | "actions";
 
 type Props = {
   hierarchy: SectionActionPlanAxisGroup[];
   planHref: (section: SectionActionPlanGroup) => string;
+  actionHref?: (section: SectionActionPlanGroup, recommendationId: string, actionId: string) => string;
+  actionLinkLabel?: string;
+  progressHref?: (section: SectionActionPlanGroup, recommendationId: string, actionId: string) => string;
   showOrganization?: boolean;
   listLabel?: string;
 };
@@ -40,12 +48,37 @@ type Props = {
 export function SectionActionPlanHierarchyList({
   hierarchy,
   planHref,
+  actionHref,
+  actionLinkLabel,
+  progressHref,
   showOrganization = false,
   listLabel = "Planos de integridade e compliance por eixo e seção",
 }: Props) {
+  const [organization, setOrganization] = useState<PlanOrganization>("sections");
+
   if (hierarchy.length === 0) return null;
 
   return (
+    <div className="space-y-6">
+      <SegmentedTabs
+        aria-label="Organização do plano"
+        value={organization}
+        onChange={setOrganization}
+        items={[
+          { id: "sections", label: "Por seção" },
+          { id: "actions", label: "Todas as ações" },
+        ]}
+      />
+      {organization === "actions" ? (
+        <SectionActionPlanAllActions
+          hierarchy={hierarchy}
+          planHref={planHref}
+          actionHref={actionHref}
+          actionLinkLabel={actionLinkLabel}
+          progressHref={progressHref}
+          showOrganization={showOrganization}
+        />
+      ) : (
     <div className={recommendationHierarchySurface.stack} aria-label={listLabel}>
       {hierarchy.map((axis) => {
         const surface = recommendationAxisSurface(axis.axisName);
@@ -169,6 +202,8 @@ export function SectionActionPlanHierarchyList({
           </section>
         );
       })}
+    </div>
+      )}
     </div>
   );
 }

@@ -66,6 +66,21 @@ describe("navegação da ação monitorada", () => {
       ),
     ).toEqual({ kind: "evidence", planId: "plan-1" });
     expect(
+      actionPanelFromSearchParams(
+        new URLSearchParams("action=plan-1&panel=progress"),
+        new Set(["plan-1"]),
+      ),
+    ).toEqual({ kind: "progress", planId: "plan-1" });
+    expect(
+      withWorkspaceAction(
+        "/respondente/plano-acao/rec-1/acoes?returnTo=%2Frespondente%2Fportfolio-recomendacoes",
+        "plan-1",
+        "progress",
+      ),
+    ).toBe(
+      "/respondente/plano-acao/rec-1/acoes?returnTo=%2Frespondente%2Fportfolio-recomendacoes&action=plan-1&panel=progress",
+    );
+    expect(
       withWorkspaceAction(
         "/respondente/plano-acao/rec-1/acoes?returnTo=%2Frespondente%2Fportfolio-recomendacoes",
         "plan-2",

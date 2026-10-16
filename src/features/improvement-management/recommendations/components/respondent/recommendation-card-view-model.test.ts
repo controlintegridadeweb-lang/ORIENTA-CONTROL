@@ -113,12 +113,12 @@ describe("resolveRecommendationPrimaryAction", () => {
     );
     expect(cta?.label).toBe(RECOMMENDATION_PRIMARY_ACTION_LABELS.continuePlan);
     expect(cta?.label).not.toBe(RECOMMENDATION_PRIMARY_ACTION_LABELS.registerActions);
-    expect(cta?.href).toContain(
-      "/respondente/plano-acao/11111111-1111-4111-8111-111111111111/visao-geral",
-    );
+    expect(cta?.href).toContain("/secao/44444444-4444-4444-8444-444444444444/acoes");
+    expect(cta?.href).toContain("cycleId=33333333-3333-4333-8333-333333333333");
+    expect(cta?.href).not.toContain("11111111-1111-4111-8111-111111111111");
   });
 
-  it("abre o workspace da recomendação ao visualizar ações", () => {
+  it("abre o plano da seção ao visualizar ações", () => {
     const cta = resolveRecommendationPrimaryAction(
       item({
         status: "completed",
@@ -128,9 +128,8 @@ describe("resolveRecommendationPrimaryAction", () => {
       RETURN,
     );
     expect(cta?.label).toBe(RECOMMENDATION_PRIMARY_ACTION_LABELS.viewActions);
-    expect(cta?.href).toContain(
-      "/respondente/plano-acao/11111111-1111-4111-8111-111111111111/visao-geral",
-    );
+    expect(cta?.href).toContain("/secao/44444444-4444-4444-8444-444444444444/acoes");
+    expect(cta?.href).not.toContain("11111111-1111-4111-8111-111111111111");
   });
 
   it("não oferece cadastrar ações para recomendação dispensada", () => {

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import type { ReactNode } from "react";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ActionPlanAction } from "@/features/improvement-management/action-plans/domain-model";
 import type { ActionPlanListItem } from "@/features/improvement-management/action-plans/types";
@@ -38,14 +38,27 @@ vi.mock("next/link", () => ({
 vi.mock("next/navigation", () => ({
   usePathname: () =>
     "/respondente/plano-acao/secao/44444444-4444-4444-8444-444444444444/visao-geral",
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
   useSearchParams: () =>
     new URLSearchParams(
       "cycleId=33333333-3333-4333-8333-333333333333&returnTo=%2Frespondente%2Fportfolio-recomendacoes%3Fview%3Daction-plan",
     ),
 }));
 
+vi.mock("@/shared/ui/components/confirm-dialog", () => ({
+  useConfirm: () => async () => false,
+}));
+
 vi.mock("@/features/improvement-management/action-plans/client", () => ({
   listAllActionPlansForCycle: (...args: unknown[]) => listAllActionPlansForCycle(...args),
+  listSupervisionNotes: async () => ({ items: [], hasMore: false }),
+  listRespondentSupervisionNotes: async () => ({ items: [], hasMore: false }),
+  listAdminDeadlineChangeRequests: async () => ({ items: [], hasMore: false }),
+  listRespondentDeadlineChangeRequests: async () => ({ items: [], hasMore: false }),
+  listActionPlanProgressUpdates: async () => [],
+  listRespondentActionPlanProgressUpdates: async () => [],
+  listActionPlanAudit: async () => ({ items: [], total: 0, hasMore: false }),
+  listRespondentActionPlanAudit: async () => ({ items: [], total: 0, hasMore: false }),
 }));
 
 afterEach(() => {
@@ -224,24 +237,19 @@ describe("SectionActionPlanWorkspace", () => {
 });
 
 describe("SectionWorkspaceOverview", () => {
-  it("mostra todas as perguntas e recomendações da seção", () => {
+  it("resume a seção e os setores, sem repetir as recomendações", () => {
     render(<SectionWorkspaceOverview section={sectionFrom(twoRecommendations)} />);
 
-    expect(screen.getByText("Perguntas de origem")).toBeTruthy();
-    expect(screen.getAllByText("As informações relativas à UCI estão devidamente divulgadas?").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("As informações relativas ao CIC estão devidamente divulgadas?").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("Promover a divulgação das informações relativas à UCI.")).toBeTruthy();
-    expect(screen.getByText("Promover a divulgação das informações relativas ao CIC.")).toBeTruthy();
-    const firstCard = screen.getByRole("heading", { name: "Recomendação 1.1" }).parentElement
-      ?.parentElement;
-    const firstCardText = firstCard?.textContent ?? "";
-    expect(firstCardText.indexOf("Pergunta de origem")).toBeLessThan(
-      firstCardText.indexOf("Recomendação 1.1"),
-    );
-    expect(firstCardText.indexOf("As informações relativas à UCI estão devidamente divulgadas?")).toBeLessThan(
-      firstCardText.indexOf("Promover a divulgação das informações relativas à UCI."),
-    );
+    expect(screen.queryByRole("heading", { name: "Recomendações da seção" })).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Recomendação 1.1" })).toBeNull();
+    expect(screen.queryByText("Promover a divulgação das informações relativas à UCI.")).toBeNull();
     expect(screen.getByText(/2 recomendações · 2 ações · 1 concluída/)).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Setores responsáveis" })).toBeTruthy();
+    const sectorList = screen.getByRole("list", { name: "Ações de UCI" });
+    expect(sectorList.textContent).toContain("A1 · Criar página institucional da UCI");
+    expect(sectorList.textContent).toContain("A2 · Publicar competências do CIC");
+    expect(sectorList.textContent).toContain("40%");
+    expect(sectorList.textContent).toContain("100%");
   });
 });
 
@@ -260,12 +268,14 @@ describe("SectionWorkspaceActions", () => {
     expect(screen.getAllByText("Área responsável")).toHaveLength(2);
     expect(screen.getAllByText("UCI")).toHaveLength(2);
     expect(screen.queryByText("Unidade X")).toBeNull();
-    const manageLinks = screen.getAllByRole("link", { name: "Gerenciar ação" });
-    expect(manageLinks[0]?.getAttribute("href")).toContain(`/plano-acao/${REC_1}/acoes`);
-    expect(manageLinks[0]?.getAttribute("href")).toContain("action=plan-1");
-    expect(manageLinks[1]?.getAttribute("href")).toContain(`/plano-acao/${REC_2}/acoes`);
-    expect(manageLinks[1]?.getAttribute("href")).toContain("action=plan-2");
-    expect(manageLinks[0]?.getAttribute("href")).toContain("returnTo=");
+    const progressButtons = screen.getAllByRole("button", { name: "Andamento" });
+    expect(progressButtons).toHaveLength(2);
+    fireEvent.click(progressButtons[0]!);
+    expect(screen.getByRole("heading", { name: "Atualizar andamento" })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Andamento" })).toBeNull();
+    fireEvent.click(screen.getAllByRole("button", { name: "Gerenciar ação" })[0]!);
+    expect(screen.getByRole("menuitem", { name: "Dados" })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Gerenciar ação" })).toBeNull();
   });
 
   it("mostra o estado vazio quando a seção não tem ações", () => {
@@ -306,29 +316,25 @@ describe("SectionWorkspaceMonitoring", () => {
     );
 
     expect(screen.getByRole("heading", { name: "Monitoramento" })).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Setores responsáveis" })).toBeNull();
     expect(screen.getByRole("heading", { name: "Situação das ações" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Execução média" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Progresso por ação" })).toBeTruthy();
     expect(screen.getByRole("img", { name: "Situação das ações" })).toBeTruthy();
-    expect(screen.getByText("Criar página institucional da UCI")).toBeTruthy();
-    expect(screen.getByText("Publicar competências do CIC")).toBeTruthy();
-    const supervisionCard = screen.getByRole("heading", { name: "Ação A1" }).parentElement?.parentElement
-      ?.parentElement;
-    const supervisionText = supervisionCard?.textContent ?? "";
-    expect(supervisionText.indexOf("Origem")).toBeLessThan(supervisionText.indexOf("Área responsável"));
-    expect(supervisionText.indexOf("Área responsável")).toBeLessThan(supervisionText.indexOf("Ação A1"));
-    expect(supervisionText.indexOf("Ação A1")).toBeLessThan(
-      supervisionText.indexOf("Criar página institucional da UCI"),
-    );
+    expect(screen.getByRole("heading", { name: "Ação monitorada" })).toBeTruthy();
+    expect(screen.getByLabelText("Ação monitorada")).toBeTruthy();
+    expect(screen.getByRole("option", { name: "Criar página institucional da UCI" })).toBeTruthy();
+    expect(screen.getByRole("option", { name: "Publicar competências do CIC" })).toBeTruthy();
+    expect(screen.getByText("Área responsável")).toBeTruthy();
+    expect(screen.getByText("Situação")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Pendências e decisões" })).toBeTruthy();
     expect(screen.queryByText("Ação de outra seção")).toBeNull();
     expect(screen.getAllByText("UCI").length).toBeGreaterThan(0);
     expect(screen.queryByText("Unidade X")).toBeNull();
-    expect(screen.getAllByText("Nenhuma comprovação").length).toBe(2);
-    const monitorLinks = screen.getAllByRole("link", { name: "Abrir monitoramento" });
-    expect(monitorLinks[0]?.getAttribute("href")).toContain(`/plano-acao/${REC_1}/monitoramento`);
-    expect(monitorLinks[0]?.getAttribute("href")).toContain("action=plan-1");
-    expect(monitorLinks[1]?.getAttribute("href")).toContain(`/plano-acao/${REC_2}/monitoramento`);
-    expect(monitorLinks[1]?.getAttribute("href")).toContain("action=plan-2");
+    expect(screen.queryByRole("link", { name: "Abrir monitoramento" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Ver detalhes da ação" })).toBeNull();
+    expect(document.body.textContent).not.toContain(`/plano-acao/${REC_1}/monitoramento`);
+    expect(document.body.textContent).not.toContain(`/plano-acao/${REC_2}/monitoramento`);
   });
 
   it("mostra o estado vazio quando não há ações para monitorar", () => {

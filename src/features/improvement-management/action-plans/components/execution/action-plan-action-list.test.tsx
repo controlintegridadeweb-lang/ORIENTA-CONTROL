@@ -99,6 +99,37 @@ describe("ActionPlanActionList", () => {
     expect(onPanelChange).toHaveBeenCalledWith({ kind: "start", planId: "plan-1" });
   });
 
+  it("abre o andamento do respondente sem passar pelo menu", () => {
+    const onPanelChange = vi.fn();
+    render(
+      <ActionPlanActionList
+        {...listProps}
+        plans={[plan()]}
+        role="respondent"
+        panel={{ kind: "none" }}
+        onPanelChange={onPanelChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Andamento" }));
+    expect(onPanelChange).toHaveBeenCalledWith({ kind: "progress", planId: "plan-1" });
+    expect(screen.queryByRole("menuitem", { name: "Andamento" })).toBeNull();
+  });
+
+  it("não oferece o atalho de andamento para o administrador", () => {
+    render(
+      <ActionPlanActionList
+        {...listProps}
+        plans={[plan()]}
+        role="admin"
+        panel={{ kind: "none" }}
+        onPanelChange={() => undefined}
+      />,
+    );
+
+    expect(screen.queryByRole("button", { name: "Andamento" })).toBeNull();
+  });
+
   it("abre a leitura completa da ação", () => {
     const onPanelChange = vi.fn();
     const { rerender } = render(

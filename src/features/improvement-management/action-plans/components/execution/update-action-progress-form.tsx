@@ -20,6 +20,8 @@ type Props = {
   recommendationId: string;
   onSaved: () => Promise<void>;
   onCancel: () => void;
+  /** Dentro do card da seção: sem repetir o texto da ação nem uma segunda caixa branca. */
+  embedded?: boolean;
 };
 
 export function UpdateActionProgressForm({
@@ -27,6 +29,7 @@ export function UpdateActionProgressForm({
   recommendationId,
   onSaved,
   onCancel,
+  embedded = false,
 }: Props) {
   const [pending, setPending] = useState(false);
   const [progressPercentage, setProgressPercentage] = useState(plan.progressPercentage);
@@ -67,14 +70,23 @@ export function UpdateActionProgressForm({
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <h3 className={typography.subsectionTitle}>Atualizar andamento</h3>
-        <button type="button" className={formSurface.ghostButton} onClick={onCancel}>
-          cancelar
+        <button type="button" className={formSurface.secondaryButtonSm} onClick={onCancel}>
+          Cancelar
         </button>
       </div>
 
-      <p className="text-sm text-slate-600 line-clamp-2">{plan.actionText}</p>
+      {embedded ? null : (
+        <p className="line-clamp-2 text-sm text-slate-600">{plan.actionText}</p>
+      )}
 
-      <form onSubmit={handleSubmit} className="space-y-5 rounded-xl bg-white p-4 shadow-sm sm:p-5">
+      <form
+        onSubmit={handleSubmit}
+        className={
+          embedded
+            ? "space-y-5"
+            : "space-y-5 rounded-xl bg-white p-4 shadow-sm sm:p-5"
+        }
+      >
         {error ? <p role="alert" className={formSurface.messageError}>{error}</p> : null}
 
         <div className={formSurface.fieldGroup}>

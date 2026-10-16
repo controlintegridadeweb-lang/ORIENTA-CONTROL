@@ -14,5 +14,5 @@ export default async function Page({ params, searchParams }: Props) {
   const rawReturnTo = Array.isArray(sp.returnTo) ? sp.returnTo[0] : sp.returnTo;
   const returnTo = respondentReturnPathOrFallback(rawReturnTo, "");
   if (returnTo) query.set("returnTo", returnTo);
-  redirect(`/respondente/plano-acao/secao/${sectionId}/visao-geral?${query.toString()}`);
+  redirect(`/respondente/plano-acao/secao/${sectionId}/acoes?${query.toString()}`);
 }

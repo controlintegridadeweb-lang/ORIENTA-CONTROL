@@ -2,7 +2,10 @@ import { actionPlanAvailabilityForCycleState } from "@/features/improvement-mana
 import type { RespondentRecommendationItem } from "@/features/improvement-management/recommendations/respondent-presentation";
 import { formatRecommendationDate } from "@/features/improvement-management/recommendations/components/respondent/respondent-recommendation-row-utils";
 import { RECOMMENDATION_REGISTRY, recommendationTypeLabel } from "@/shared/ui/status-registry";
-import { respondentActionWorkspacePath } from "@/shared/navigation/respondent-portfolio-paths";
+import {
+  respondentActionWorkspacePath,
+  respondentSectionPlanEntryPath,
+} from "@/shared/navigation/respondent-portfolio-paths";
 
 export const RECOMMENDATION_CARD_LABELS = {
   form: "Formulário",
@@ -79,6 +82,13 @@ function workspaceHref(
   return respondentActionWorkspacePath(item.recommendationId, tab, { returnTo: returnPath });
 }
 
+/** Plano já existente abre na seção, a mesma entrada de Abrir plano da seção. */
+function sectionPlanHref(item: RespondentRecommendationItem, returnPath: string): string {
+  const sectionHref = respondentSectionPlanEntryPath(item.sectionId, item.cycleId, returnPath);
+  if (sectionHref === returnPath) return workspaceHref(item, "visao-geral", returnPath);
+  return sectionHref;
+}
+
 function actionCountSummary(item: RespondentRecommendationItem): string {
   if (item.actionCount <= 0) return "Sem ações vinculadas";
   return item.actionCount === 1 ? "1 ação vinculada" : `${item.actionCount} ações vinculadas`;
@@ -137,7 +147,7 @@ export function resolveRecommendationPrimaryAction(
   if (item.status === "completed") {
     return {
       label: RECOMMENDATION_PRIMARY_ACTION_LABELS.viewActions,
-      href: workspaceHref(item, "visao-geral", returnPath),
+      href: sectionPlanHref(item, returnPath),
       variant: "secondary",
     };
   }
@@ -163,7 +173,7 @@ export function resolveRecommendationPrimaryAction(
   if (item.status === "in_action_plan" || item.status === "adjustment_requested") {
     return {
       label: RECOMMENDATION_PRIMARY_ACTION_LABELS.continuePlan,
-      href: workspaceHref(item, "visao-geral", returnPath),
+      href: sectionPlanHref(item, returnPath),
       variant: "primary",
     };
   }
@@ -171,7 +181,7 @@ export function resolveRecommendationPrimaryAction(
   if (item.status === "awaiting_approval" || item.status === "exception_requested") {
     return {
       label: RECOMMENDATION_PRIMARY_ACTION_LABELS.followActions,
-      href: workspaceHref(item, "visao-geral", returnPath),
+      href: sectionPlanHref(item, returnPath),
       variant: "secondary",
     };
   }
@@ -179,7 +189,7 @@ export function resolveRecommendationPrimaryAction(
   if (item.hasPlan) {
     return {
       label: RECOMMENDATION_PRIMARY_ACTION_LABELS.viewActions,
-      href: workspaceHref(item, "visao-geral", returnPath),
+      href: sectionPlanHref(item, returnPath),
       variant: "secondary",
     };
   }

@@ -25,7 +25,7 @@ describe("adminSectionActionWorkspaceHref", () => {
 describe("adminSectionPlanEntryHref", () => {
   it("não usa a primeira recomendação como substituto da seção", () => {
     const href = adminSectionPlanEntryHref(SECTION_ID, CYCLE_ID, "/admin/plano-acao");
-    expect(href).toContain(`/secao/${SECTION_ID}/visao-geral`);
+    expect(href).toContain(`/secao/${SECTION_ID}/acoes`);
     expect(href).not.toContain(FIRST_RECOMMENDATION_ID);
   });
 

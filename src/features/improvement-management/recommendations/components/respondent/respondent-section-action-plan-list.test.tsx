@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import type { ReactNode } from "react";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { RespondentRecommendationItem } from "@/features/improvement-management/recommendations/respondent-presentation";
 import type { ActionPlanAction } from "@/features/improvement-management/action-plans/domain-model";
@@ -114,7 +114,7 @@ describe("RespondentSectionActionPlanList", () => {
     );
 
     const open = screen.getByRole("link", { name: /Abrir plano da seção/i });
-    expect(open.getAttribute("href")).toContain(`/secao/${SECTION_ID}/visao-geral`);
+    expect(open.getAttribute("href")).toContain(`/secao/${SECTION_ID}/acoes`);
     expect(open.getAttribute("href")).toContain(`cycleId=${CYCLE_ID}`);
     expect(open.getAttribute("href")).toContain("returnTo=");
     expect(open.getAttribute("href")).not.toContain(REC_1);
@@ -131,7 +131,7 @@ describe("RespondentSectionActionPlanList", () => {
     expect(screen.getByText("Pergunta de origem")).toBeTruthy();
     expect(screen.queryByText("Perguntas de origem")).toBeNull();
     expect(screen.getByRole("link", { name: /Abrir plano da seção/i }).getAttribute("href")).toContain(
-      `/secao/${SECTION_ID}/visao-geral`,
+      `/secao/${SECTION_ID}/acoes`,
     );
   });
 
@@ -154,8 +154,8 @@ describe("RespondentSectionActionPlanList", () => {
     );
 
     const links = screen.getAllByRole("link", { name: /Abrir plano da seção/i });
-    expect(links[0]?.getAttribute("href")).toContain(`/secao/${SECTION_ID}/visao-geral`);
-    expect(links[1]?.getAttribute("href")).toContain(`/secao/${OTHER_SECTION_ID}/visao-geral`);
+    expect(links[0]?.getAttribute("href")).toContain(`/secao/${SECTION_ID}/acoes`);
+    expect(links[1]?.getAttribute("href")).toContain(`/secao/${OTHER_SECTION_ID}/acoes`);
     expect(screen.getByText("Pergunta de outra seção")).toBeTruthy();
     expect(screen.getByText("As informações relativas à UCI estão devidamente divulgadas?")).toBeTruthy();
   });
@@ -194,5 +194,112 @@ describe("RespondentSectionActionPlanList", () => {
     expect(screen.getByText("2 recomendações · 1 em execução · 1 concluída")).toBeTruthy();
     expect(screen.getByText("As informações relativas à UCI estão devidamente divulgadas?")).toBeTruthy();
     expect(screen.getByText("As informações relativas ao CIC estão devidamente divulgadas?")).toBeTruthy();
+  });
+
+  it("lista todas as ações dos eixos e seções com o setor responsável", () => {
+    render(
+      <RespondentSectionActionPlanList
+        returnPath={RETURN_PATH}
+        items={[
+          item({
+            status: "in_action_plan",
+            hasPlan: true,
+            actionCount: 1,
+            plans: [action({ actionText: "Publicar competências da UCI", responsibleSector: "UCI" })],
+          }),
+          item({
+            recommendationId: REC_2,
+            questionId: "66666666-6666-4666-8666-666666666666",
+            sectionId: OTHER_SECTION_ID,
+            sectionName: "Comitê Interno",
+            sectionOrder: 2,
+            questionPrompt: "Pergunta de outra seção",
+            status: "in_action_plan",
+            hasPlan: true,
+            actionCount: 1,
+            plans: [
+              action({
+                id: "plan-2",
+                actionText: "Registrar atas do comitê",
+                responsibleSector: "CIC",
+              }),
+            ],
+          }),
+        ]}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Todas as ações" }));
+
+    expect(screen.getByText("2 ações de todos os eixos e seções.")).toBeTruthy();
+    expect(screen.getByText("Publicar competências da UCI")).toBeTruthy();
+    expect(screen.getByText("Registrar atas do comitê")).toBeTruthy();
+    expect(screen.getByText("UCI")).toBeTruthy();
+    expect(screen.getByText("CIC")).toBeTruthy();
+    expect(screen.getByText("Seção 1. Gestão da Transparência")).toBeTruthy();
+    expect(screen.getByText("Seção 2. Comitê Interno")).toBeTruthy();
+    const links = screen.getAllByRole("link", { name: /Abrir plano da seção/i });
+    expect(links).toHaveLength(2);
+    expect(links[0]?.getAttribute("href")).toContain(`/secao/${SECTION_ID}/acoes`);
+    expect(links[1]?.getAttribute("href")).toContain(`/secao/${OTHER_SECTION_ID}/acoes`);
+    const progressLinks = screen.getAllByRole("link", { name: "Andamento" });
+    expect(progressLinks[0]?.getAttribute("href")).toContain(`/secao/${SECTION_ID}/acoes`);
+    expect(progressLinks[0]?.getAttribute("href")).toContain("action=plan-1");
+    expect(progressLinks[0]?.getAttribute("href")).toContain("panel=progress");
+    expect(progressLinks[1]?.getAttribute("href")).toContain(`/secao/${OTHER_SECTION_ID}/acoes`);
+    expect(progressLinks[1]?.getAttribute("href")).toContain("action=plan-2");
+    const manageLinks = screen.getAllByRole("link", { name: "Gerenciar ação" });
+    expect(manageLinks).toHaveLength(2);
+    expect(manageLinks[0]?.getAttribute("href")).toContain(`/secao/${SECTION_ID}/acoes`);
+    expect(manageLinks[0]?.getAttribute("href")).toContain("action=plan-1");
+    expect(manageLinks[0]?.getAttribute("href")).not.toContain(REC_1);
+    expect(manageLinks[1]?.getAttribute("href")).toContain(`/secao/${OTHER_SECTION_ID}/acoes`);
+    expect(manageLinks[1]?.getAttribute("href")).toContain("action=plan-2");
+  });
+
+  it("pagina todas as ações de dez em dez", () => {
+    const plans = Array.from({ length: 11 }, (_, index) => {
+      const order = String(index + 1).padStart(2, "0");
+      return action({
+        id: `plan-${order}`,
+        actionText: `Ação ${order}`,
+        createdAt: `2026-04-${order}T12:00:00.000Z`,
+      });
+    });
+
+    render(
+      <RespondentSectionActionPlanList
+        returnPath={RETURN_PATH}
+        items={[
+          item({
+            status: "in_action_plan",
+            hasPlan: true,
+            actionCount: plans.length,
+            plans,
+          }),
+        ]}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Todas as ações" }));
+
+    expect(screen.getByText("11 ações de todos os eixos e seções.")).toBeTruthy();
+    const pagination = screen.getByRole("navigation", { name: "Paginação de ações" });
+    expect(pagination.textContent).toContain("Página");
+    expect(pagination.textContent).toContain("1");
+    expect(pagination.textContent).toContain("2");
+    expect(pagination.textContent).toContain("exibindo");
+    expect(pagination.textContent).toContain("10");
+    expect(pagination.textContent).toContain("11");
+    expect(pagination.textContent).toContain("ações");
+    expect(screen.getByText("Ação 01")).toBeTruthy();
+    expect(screen.getByText("Ação 10")).toBeTruthy();
+    expect(screen.queryByText("Ação 11")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
+
+    expect(screen.getByText("Ação 11")).toBeTruthy();
+    expect(screen.queryByText("Ação 01")).toBeNull();
+    expect(screen.queryByText("Ação 10")).toBeNull();
   });
 });

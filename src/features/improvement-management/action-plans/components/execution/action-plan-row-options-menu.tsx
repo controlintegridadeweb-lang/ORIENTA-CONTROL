@@ -25,6 +25,8 @@ type Props = {
   actionLabel: string;
   items: ActionPlanRowMenuItem[];
   disabled?: boolean;
+  /** Texto visível do botão. Sem este valor, o gatilho continua “… Mais”. */
+  triggerLabel?: string;
 };
 
 const MENU_WIDTH = 240;
@@ -75,7 +77,7 @@ export function actionPlanRowMenuFixedStyle(
   };
 }
 
-export function ActionPlanRowOptionsMenu({ actionLabel, items, disabled }: Props) {
+export function ActionPlanRowOptionsMenu({ actionLabel, items, disabled, triggerLabel }: Props) {
   const [open, setOpen] = useState(false);
   const [anchor, setAnchor] = useState<DOMRect | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -160,7 +162,7 @@ export function ActionPlanRowOptionsMenu({ actionLabel, items, disabled }: Props
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
-        aria-label={`Opções da ação ${actionLabel}`}
+        aria-label={triggerLabel ?? `Opções da ação ${actionLabel}`}
         disabled={disabled}
         onClick={() => {
           if (open) {
@@ -172,7 +174,7 @@ export function ActionPlanRowOptionsMenu({ actionLabel, items, disabled }: Props
           setOpen(true);
         }}
       >
-        ... Mais
+        {triggerLabel ?? "... Mais"}
         <ChevronDown className="h-3.5 w-3.5 opacity-70" aria-hidden />
       </button>
       {menu && typeof document !== "undefined" ? createPortal(menu, document.body) : null}

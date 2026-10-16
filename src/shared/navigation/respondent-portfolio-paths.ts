@@ -79,7 +79,7 @@ export function respondentSectionActionWorkspacePath(
   return withRespondentReturnPath(path, options?.returnTo);
 }
 
-/** Entrada canônica do plano da seção — nunca usa recomendação como substituto. */
+/** Entrada canônica do plano da seção — abre em Ações, onde estão as recomendações. */
 export function respondentSectionPlanEntryPath(
   sectionId: string,
   cycleId: string,
@@ -88,7 +88,7 @@ export function respondentSectionPlanEntryPath(
   if (!parseUuidParam(sectionId) || !parseUuidParam(cycleId)) {
     return returnTo;
   }
-  return respondentSectionActionWorkspacePath(sectionId, cycleId, "visao-geral", {
+  return respondentSectionActionWorkspacePath(sectionId, cycleId, "acoes", {
     returnTo,
   });
 }

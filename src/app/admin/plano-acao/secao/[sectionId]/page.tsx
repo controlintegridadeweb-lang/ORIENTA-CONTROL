@@ -13,5 +13,5 @@ export default async function Page({ params, searchParams }: Props) {
   const rawReturnTo = Array.isArray(sp.returnTo) ? sp.returnTo[0] : sp.returnTo;
   const returnTo = adminReturnPathOrFallback(rawReturnTo, "");
   if (returnTo) query.set("returnTo", returnTo);
-  redirect(`/admin/plano-acao/secao/${sectionId}/visao-geral?${query.toString()}`);
+  redirect(`/admin/plano-acao/secao/${sectionId}/acoes?${query.toString()}`);
 }

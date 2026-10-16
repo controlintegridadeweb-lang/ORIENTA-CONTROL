@@ -12,6 +12,7 @@ import {
   sectionPlanStatusFromSection,
 } from "@/features/improvement-management/action-plans/components/section/section-plan-status-badge";
 import { RecommendationStatusBadge } from "@/features/improvement-management/components/shared/recommendation-status-badge";
+import { SectionActionControls } from "@/features/improvement-management/action-plans/components/section/section-action-controls";
 import {
   currentSectionWorkspacePath,
   recommendationWorkspacePath,
@@ -152,18 +153,11 @@ export function SectionWorkspaceActions({ role, section, parentReturnTo }: Props
                         value={action.progressPercentage}
                         overdue={action.slaLabel === "overdue"}
                       />
-                      <Link
-                        className={formSurface.secondaryButtonSm}
-                        href={recommendationWorkspacePath(
-                          role,
-                          recommendation.recommendationId,
-                          "acoes",
-                          returnPath,
-                          { actionId: action.id },
-                        )}
-                      >
-                        {role === "respondent" ? "Gerenciar ação" : "Ver ação"}
-                      </Link>
+                      <SectionActionControls
+                        role={role}
+                        action={action}
+                        recommendationId={recommendation.recommendationId}
+                      />
                     </div>
                   </OverviewCardShell>
                 ))}
