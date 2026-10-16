@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { RespondentEvidenceItem } from "@/features/evidences/respondent-service";
+import { downloadRespondentEvidencesSpreadsheet } from "@/features/evidences/respondent-client";
 import type { ValidationStatus } from "@/features/evidences/respondent-evidence-helpers";
+import type { RespondentEvidenceItem } from "@/features/evidences/respondent-service";
+import { describeError, notify } from "@/infrastructure/notifications/notify";
 import { useDebounce } from "@/shared/hooks/use-debounce";
 import { layout } from "@/shared/layout/design-system";
 import { evidenceLabels } from "@/shared/labels/official-labels";
@@ -98,6 +100,7 @@ export function RespondentEvidencesShell({
     return "ajustes";
   });
   const [drawerItem, setDrawerItem] = useState<RespondentEvidenceItem | null>(null);
+  const [exporting, setExporting] = useState(false);
   const urlFilter = filterFromSearchParams(searchParams);
   const rawOffset = Number(searchParams.get("offset"));
   const urlOffset = Number.isInteger(rawOffset) && rawOffset >= 0 ? rawOffset : 0;
@@ -180,6 +183,30 @@ export function RespondentEvidencesShell({
     ]);
   }, [evidenceList, pendingList, statsResult]);
 
+  const handleExport = useCallback(async () => {
+    setExporting(true);
+    try {
+      await notify.promise(
+        downloadRespondentEvidencesSpreadsheet({
+          cycleId: fetchFilters.cycleId,
+          formId: fetchFilters.formId,
+          search: fetchFilters.search,
+          axisName: fetchFilters.axisName,
+          sectionName: fetchFilters.sectionName,
+          status: fetchFilters.status,
+          pendingOnly: fetchFilters.pendingOnly,
+        }),
+        {
+          loading: "Gerando planilha...",
+          success: "Download iniciado.",
+          error: (error) => describeError(error, "Falha ao exportar."),
+        },
+      );
+    } finally {
+      setExporting(false);
+    }
+  }, [fetchFilters]);
+
   const summaryActiveKey = useMemo(() => {
     if (filter.pendingOnly || filter.status === "adjustment_requested") return "complementacao";
     if (filter.status === "approved") return "aprovadas";
@@ -213,6 +240,8 @@ export function RespondentEvidencesShell({
           <RespondentEvidencesHero
             onRefresh={handleRefresh}
             refreshing={evidenceList.loading || statsResult.loading || pendingList.loading}
+            onExport={() => void handleExport()}
+            exporting={exporting}
           />
         </div>
 

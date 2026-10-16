@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, FileSpreadsheet } from "lucide-react";
 import { IllustratedPageHero } from "@/shared/ui/components/illustrated-page-hero";
 import { RefreshActionButton } from "@/shared/ui/components/refresh-action-button";
 import { formSurface } from "@/shared/layout/form-surface";
@@ -11,9 +11,11 @@ const HERO_IMAGE = "/assets/respondent-evidences-hero.png";
 type Props = {
   onRefresh: () => void;
   refreshing: boolean;
+  onExport: () => void;
+  exporting: boolean;
 };
 
-export function RespondentEvidencesHero({ onRefresh, refreshing }: Props) {
+export function RespondentEvidencesHero({ onRefresh, refreshing, onExport, exporting }: Props) {
   return (
     <IllustratedPageHero
       theme="respondent"
@@ -27,6 +29,15 @@ export function RespondentEvidencesHero({ onRefresh, refreshing }: Props) {
       actions={
         <>
           <RefreshActionButton onRefresh={onRefresh} refreshing={refreshing} />
+          <button
+            type="button"
+            onClick={onExport}
+            disabled={refreshing || exporting}
+            className={formSurface.secondaryButtonSm}
+          >
+            <FileSpreadsheet className="h-3.5 w-3.5" aria-hidden />
+            Exportar planilha
+          </button>
           <Link href="/respondente/formularios" className={formSurface.primaryButtonSm}>
             Ir para diagnósticos
             <ArrowRight className="h-3.5 w-3.5" aria-hidden />

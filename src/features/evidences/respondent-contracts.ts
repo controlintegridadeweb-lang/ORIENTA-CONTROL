@@ -19,6 +19,14 @@ export const respondentEvidenceListQuerySchema = z.object({
 
 export type RespondentEvidenceListQuery = z.infer<typeof respondentEvidenceListQuerySchema>;
 
+/** Mesmos filtros da listagem, sem paginação — a planilha traz o conjunto inteiro. */
+export const respondentEvidenceExportQuerySchema = respondentEvidenceListQuerySchema.omit({
+  limit: true,
+  offset: true,
+});
+
+export type RespondentEvidenceExportQuery = z.infer<typeof respondentEvidenceExportQuerySchema>;
+
 export type RespondentEvidenceItem = EvidenceListItem & {
   respondentStatus: ValidationStatus;
   needsAction: boolean;

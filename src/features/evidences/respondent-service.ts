@@ -8,6 +8,7 @@ import {
   overallStatus,
   respondentStatusNeedsAction,
 } from "./respondent-evidence-helpers";
+import { DomainValidationError } from "@/infrastructure/api/domain-errors";
 import { createSupabaseServiceRoleClient } from "@/infrastructure/supabase/server";
 import { collectPostgrestPages } from "@/infrastructure/supabase/pagination";
 import type { RespondentStatsResult } from "./respondent-stats-types";
@@ -20,12 +21,20 @@ import {
 export type { RespondentStatsResult } from "./respondent-stats-types";
 
 import {
+  type RespondentEvidenceExportQuery,
   type RespondentEvidenceItem,
   type RespondentEvidenceListQuery,
 } from "./respondent-contracts";
 
-export { respondentEvidenceListQuerySchema } from "./respondent-contracts";
-export type { RespondentEvidenceItem, RespondentEvidenceListQuery } from "./respondent-contracts";
+export { respondentEvidenceExportQuerySchema, respondentEvidenceListQuerySchema } from "./respondent-contracts";
+export type {
+  RespondentEvidenceExportQuery,
+  RespondentEvidenceItem,
+  RespondentEvidenceListQuery,
+} from "./respondent-contracts";
+
+const RESPONDENT_EVIDENCE_EXPORT_LIMIT = 5_000;
+const RESPONDENT_EVIDENCE_EXPORT_PAGE_SIZE = 200;
 
 export type RespondentEvidenceListResult = {
   items: RespondentEvidenceItem[];
@@ -69,6 +78,16 @@ const defaultProofRequestDeps: ProofRequestDeps = {
     );
   },
 };
+
+function throwExportLimit(): never {
+  throw new DomainValidationError(
+    [{
+      path: "filters",
+      message: `A exportação excede ${RESPONDENT_EVIDENCE_EXPORT_LIMIT} evidências. Aplique filtros mais específicos.`,
+    }],
+    `A exportação excede ${RESPONDENT_EVIDENCE_EXPORT_LIMIT} evidências.`,
+  );
+}
 
 function enrich(item: EvidenceListItem): RespondentEvidenceItem {
   const respondentStatus = deriveValidationStatus(item);
@@ -221,6 +240,103 @@ export class RespondentEvidencesService {
       ...page,
       items: page.items.map(enrich),
     };
+  }
+
+  /**
+   * Conjunto completo para a planilha, com os mesmos filtros da tela e sem
+   * recortar na página visível. Sem situação selecionada, inclui ajustes e
+   * comprovações solicitadas — na tela eles ficam em abas separadas.
+   */
+  async listForExport(
+    caller: RespondentCaller,
+    query: RespondentEvidenceExportQuery,
+  ): Promise<RespondentEvidenceItem[]> {
+    const wantsAdjustments =
+      query.status === "adjustment_requested" || query.pendingOnly;
+    const includeProof = wantsAdjustments || !query.status;
+    const proofItems = includeProof
+      ? await this.proofRequests.listProofRequests(caller.organizationId, query)
+      : [];
+    if (proofItems.length > RESPONDENT_EVIDENCE_EXPORT_LIMIT) {
+      throwExportLimit();
+    }
+
+    const evidences = await this.collectEvidencePages(
+      caller,
+      wantsAdjustments
+        ? {
+            cycleId: query.cycleId,
+            formId: query.formId,
+            search: query.search,
+            axisName: query.axisName,
+            sectionName: query.sectionName,
+            status: "adjustment_requested",
+            pendingOnly: true,
+          }
+        : {
+            cycleId: query.cycleId,
+            formId: query.formId,
+            search: query.search,
+            axisName: query.axisName,
+            sectionName: query.sectionName,
+            status: query.status,
+            pendingOnly: false,
+          },
+      proofItems.length,
+    );
+
+    return [...proofItems, ...evidences].sort((left, right) =>
+      right.submittedAt.localeCompare(left.submittedAt),
+    );
+  }
+
+  private async collectEvidencePages(
+    caller: RespondentCaller,
+    scope: {
+      cycleId?: string;
+      formId?: string;
+      search?: string;
+      axisName?: string;
+      sectionName?: string;
+      status?: RespondentEvidenceExportQuery["status"];
+      pendingOnly: boolean;
+    },
+    extraCount: number,
+  ): Promise<RespondentEvidenceItem[]> {
+    const callerScope = {
+      organizationId: caller.organizationId,
+      role: "respondent" as const,
+    };
+    const base = {
+      organizationId: caller.organizationId,
+      cycleId: scope.cycleId,
+      formId: scope.formId,
+      search: scope.search,
+      axisName: scope.axisName,
+      sectionName: scope.sectionName,
+      status: scope.status,
+      pendingOnly: scope.pendingOnly,
+    };
+    const first = await this.admin.list(
+      { ...base, limit: RESPONDENT_EVIDENCE_EXPORT_PAGE_SIZE, offset: 0 },
+      callerScope,
+    );
+    if (first.total + extraCount > RESPONDENT_EVIDENCE_EXPORT_LIMIT) {
+      throwExportLimit();
+    }
+
+    const items = first.items.map(enrich);
+    let offset = first.items.length;
+    while (offset < first.total) {
+      const page = await this.admin.list(
+        { ...base, limit: RESPONDENT_EVIDENCE_EXPORT_PAGE_SIZE, offset },
+        callerScope,
+      );
+      if (page.items.length === 0) break;
+      items.push(...page.items.map(enrich));
+      offset += page.items.length;
+    }
+    return items;
   }
 
   async stats(
