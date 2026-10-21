@@ -19,11 +19,9 @@ const CONTACT_ITEMS = [
   { ...SUPPORT_CHANNELS.whatsapp, icon: MessageCircle },
 ] as const;
 
-const RESPONDENT_CARTILHAS = [SUPPORT_CARTILHA, SUPPORT_EVIDENCE_CARTILHA] as const;
+const CARTILHAS = [SUPPORT_CARTILHA, SUPPORT_EVIDENCE_CARTILHA] as const;
 
 export function SupportPageContent({ role }: { role: AppRole }) {
-  const cartilhas = role === "respondent" ? RESPONDENT_CARTILHAS : [SUPPORT_CARTILHA];
-
   return (
     <div className={layout.pageStack}>
       <div className={PAGE_HERO_BLEED}>
@@ -40,9 +38,9 @@ export function SupportPageContent({ role }: { role: AppRole }) {
       </div>
 
       <div className={`mx-auto w-full max-w-4xl ${layout.panelStack}`}>
-        <PanelSection title={cartilhas.length > 1 ? "Cartilhas" : "Cartilha"} variant="plain">
+        <PanelSection title="Cartilhas" variant="plain">
           <div className="grid grid-cols-1 gap-3">
-            {cartilhas.map((cartilha) => (
+            {CARTILHAS.map((cartilha) => (
               <a
                 key={cartilha.href}
                 href={cartilha.href}

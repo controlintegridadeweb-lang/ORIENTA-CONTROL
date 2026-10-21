@@ -24,7 +24,7 @@ export const SUPPORT_CARTILHA = {
   href: "/assets/cartilha-orienta.pdf",
 } as const;
 
-/** Manual de evidências publicado na página de suporte do respondente. */
+/** Manual de evidências publicado na página de suporte. */
 export const SUPPORT_EVIDENCE_CARTILHA = {
   title: "Cartilha de evidências",
   description: "Orientações para o envio e a comprovação de evidências.",
