@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SUPPORT_CARTILHA, SUPPORT_CHANNELS } from "./support-contacts";
+import { SUPPORT_CARTILHA, SUPPORT_CHANNELS, SUPPORT_EVIDENCE_CARTILHA } from "./support-contacts";
 
 describe("SUPPORT_CHANNELS", () => {
   it("expõe somente e-mail e WhatsApp da Unidade de Integridade", () => {
@@ -13,5 +13,10 @@ describe("SUPPORT_CHANNELS", () => {
   it("publica a cartilha do Orienta em PDF", () => {
     expect(SUPPORT_CARTILHA.title).toBe("Cartilha do Orienta");
     expect(SUPPORT_CARTILHA.href).toBe("/assets/cartilha-orienta.pdf");
+  });
+
+  it("publica a cartilha de evidências em PDF", () => {
+    expect(SUPPORT_EVIDENCE_CARTILHA.title).toBe("Cartilha de evidências");
+    expect(SUPPORT_EVIDENCE_CARTILHA.href).toBe("/assets/cartilha-evidencias.pdf");
   });
 });

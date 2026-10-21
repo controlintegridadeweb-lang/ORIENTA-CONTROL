@@ -20,6 +20,7 @@ describe("SupportPageContent", () => {
     const cartilha = screen.getByRole("link", { name: /Cartilha do Orienta/ });
     expect(cartilha.getAttribute("href")).toBe("/assets/cartilha-orienta.pdf");
     expect(cartilha.getAttribute("target")).toBe("_blank");
+    expect(screen.queryByRole("link", { name: /Cartilha de evidências/ })).toBeNull();
   });
 
   it("repete os mesmos canais para o respondente", () => {
@@ -30,5 +31,9 @@ describe("SupportPageContent", () => {
     expect(screen.getByRole("link", { name: /Cartilha do Orienta/ }).getAttribute("href")).toBe(
       "/assets/cartilha-orienta.pdf",
     );
+    const evidencias = screen.getByRole("link", { name: /Cartilha de evidências/ });
+    expect(evidencias.getAttribute("href")).toBe("/assets/cartilha-evidencias.pdf");
+    expect(evidencias.getAttribute("target")).toBe("_blank");
+    expect(screen.getByRole("heading", { name: "Cartilhas" })).toBeTruthy();
   });
 });

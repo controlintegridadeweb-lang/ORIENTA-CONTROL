@@ -23,3 +23,10 @@ export const SUPPORT_CARTILHA = {
   description: "Passo a passo Orienta 2026 para os órgãos.",
   href: "/assets/cartilha-orienta.pdf",
 } as const;
+
+/** Manual de evidências publicado na página de suporte do respondente. */
+export const SUPPORT_EVIDENCE_CARTILHA = {
+  title: "Cartilha de evidências",
+  description: "Orientações para o envio e a comprovação de evidências.",
+  href: "/assets/cartilha-evidencias.pdf",
+} as const;
