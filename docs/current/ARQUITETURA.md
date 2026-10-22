@@ -122,11 +122,11 @@ scripts/
 Dados históricos não fazem parte do pacote. Durante uma importação controlada,
 o manifesto é copiado temporariamente para `var/imports/`, ignorado pelo Git.
 
-## Inventário verificável em 16 de outubro de 2026
+## Inventário verificável em 22 de outubro de 2026
 
 - **57 páginas** do App Router.
-- **114 rotas de API**.
-- Vitest | **351 arquivos** em `src/` e **7** em `scripts/`.
+- **115 rotas de API**.
+- Vitest | **355 arquivos** em `src/` e **7** em `scripts/`.
 - **1 jornada Playwright canônica**.
 
 Os números devem ser atualizados quando a árvore mudar.

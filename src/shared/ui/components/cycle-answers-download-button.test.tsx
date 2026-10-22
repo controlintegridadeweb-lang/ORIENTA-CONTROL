@@ -1,47 +1,37 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CycleAnswersDownloadButton } from "./cycle-answers-download-button";
+
+const downloadHttpAttachment = vi.hoisted(() => vi.fn());
+
+vi.mock("@/shared/export/download-http-attachment", () => ({
+  downloadHttpAttachment,
+}));
 
 describe("CycleAnswersDownloadButton", () => {
   afterEach(() => {
     cleanup();
-    vi.unstubAllGlobals();
-    vi.restoreAllMocks();
+    downloadHttpAttachment.mockReset();
   });
 
   it("baixa a planilha do diagnóstico", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () =>
-        new Response(new Blob(["xlsx"]), {
-          status: 200,
-          headers: { "Content-Disposition": 'attachment; filename="respostas-org.xlsx"' },
-        }),
-      ),
-    );
-    const downloads: string[] = [];
-    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:respostas");
-    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
-    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function mockClick(this: HTMLAnchorElement) {
-      downloads.push(this.download);
-    });
+    downloadHttpAttachment.mockResolvedValue(undefined);
 
     render(<CycleAnswersDownloadButton cycleId="cycle-1" />);
     fireEvent.click(screen.getByRole("button", { name: /baixar respostas/i }));
 
-    await waitFor(() => expect(downloads).toEqual(["respostas-org.xlsx"]));
-    expect(vi.mocked(fetch).mock.calls[0]?.[0]).toBe("/api/cycles/cycle-1/answers/export");
+    expect(await screen.findByRole("button", { name: /baixar respostas/i })).toBeTruthy();
+    expect(downloadHttpAttachment).toHaveBeenCalledWith(
+      "/api/cycles/cycle-1/answers/export",
+      "respostas.xlsx",
+    );
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 
   it("mostra o erro da API na própria tela", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () =>
-        new Response(JSON.stringify({ error: "Diagnóstico não encontrado." }), { status: 404 }),
-      ),
-    );
+    downloadHttpAttachment.mockRejectedValue(new Error("Diagnóstico não encontrado."));
 
     render(<CycleAnswersDownloadButton cycleId="cycle-1" />);
     fireEvent.click(screen.getByRole("button", { name: /baixar respostas/i }));
