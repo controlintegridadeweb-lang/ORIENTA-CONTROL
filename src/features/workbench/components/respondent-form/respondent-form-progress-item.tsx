@@ -4,6 +4,7 @@ import {
   type RespondentProgress,
 } from "@/features/respondent-progress";
 import { formSurface } from "@/shared/layout/form-surface";
+import { CycleAnswersDownloadButton } from "@/shared/ui/components/cycle-answers-download-button";
 import { RespondentFormContext } from "@/features/workbench/components/respondent-form/respondent-form-context";
 
 type Props = {
@@ -104,6 +105,13 @@ export function RespondentFormProgressItem({
               {presentation.primaryAction.label}
             </Link>
           ) : null}
+          {form.answeredQuestions > 0 ? (
+            <CycleAnswersDownloadButton cycleId={form.cycleId} />
+          ) : null}
+        </div>
+      ) : form.answeredQuestions > 0 ? (
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2.5">
+          <CycleAnswersDownloadButton cycleId={form.cycleId} />
         </div>
       ) : null}
     </div>

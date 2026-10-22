@@ -21,6 +21,7 @@ import { evidenceFileUrl } from "@/features/evidences";
 import { formSurface } from "@/shared/layout/form-surface";
 import { CriterionScore } from "@/features/forms/components/criterion-score";
 import type { CriterionEvidenceStatus } from "@/features/forms/components/criterion-score";
+import { CycleAnswersDownloadButton } from "@/shared/ui/components/cycle-answers-download-button";
 import { AnswersStatusBadge } from "./answers-status-badge";
 
 const ANSWER_LABEL: Record<AnswerValue, string> = {
@@ -292,14 +293,20 @@ export function AnswersIndividualView({
 
       <article className={formSurface.nestedCardWithHeader}>
         <header className={`${formSurface.cardHeader} space-y-2`}>
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className={formSurface.cardTitle}>
-              {detail.organizationName || "Organização sem nome"}
-            </h2>
-            <AnswersStatusBadge status={detail.status} />
-            <span className={`${formSurface.badge.base} ${formSurface.badge.neutral}`}>
-              Período {detail.periodLabel}
-            </span>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <h2 className={formSurface.cardTitle}>
+                {detail.organizationName || "Organização sem nome"}
+              </h2>
+              <AnswersStatusBadge status={detail.status} />
+              <span className={`${formSurface.badge.base} ${formSurface.badge.neutral}`}>
+                Período {detail.periodLabel}
+              </span>
+            </div>
+            <CycleAnswersDownloadButton
+              cycleId={detail.cycleId}
+              className={formSurface.secondaryButtonSm}
+            />
           </div>
           <p className={formSurface.cardDescription}>
             {detail.answeredQuestions} de {detail.applicableQuestions} perguntas

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { firstSearchParam } from "@/features/admin/search-params";
 import { getCycleDetail } from "@/features/cycles/cycle-queries";
 import { FormFillWorkspace } from "@/features/forms/components/form/form-fill-workspace";
+import { CycleAnswersDownloadButton } from "@/shared/ui/components/cycle-answers-download-button";
 import { WorkbenchShell } from "@/features/workbench/components/workbench-shell";
 import { getCurrentUser } from "@/infrastructure/auth/current-user";
 import { createSupabaseServiceRoleClient } from "@/infrastructure/supabase/server";
@@ -64,6 +65,7 @@ export default async function RespondenteCicloPage({ params, searchParams }: Pro
       backLabel={respondentCycleReturnLabel(returnTo)}
       title={cycle.formName}
       subtitle={cycle.periodLabel}
+      actions={<CycleAnswersDownloadButton cycleId={cycle.id} />}
     >
       <WorkbenchShell
         mode="respondent"

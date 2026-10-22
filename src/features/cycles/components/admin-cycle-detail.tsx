@@ -13,6 +13,7 @@ import {
 } from "@/shared/navigation/admin-navigation-context";
 import { adminFamiPath } from "@/shared/navigation/fami-paths";
 import { queryPath } from "@/shared/navigation/query-path";
+import { CycleAnswersDownloadButton } from "@/shared/ui/components/cycle-answers-download-button";
 import { PageHeader } from "@/shared/ui/components/page-header";
 import { countLabel } from "@/shared/format/count-label";
 import type { ReportLifecycleStatus } from "@/shared/domain/report-lifecycle";
@@ -96,26 +97,29 @@ export function AdminCycleDetail({
         </p>
       ) : null}
 
-      {showOfficialResult ? (
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href={adminFamiPath({
-              organizationId: cycle.organizationId,
-              formId: cycle.formId,
-              cycleId: cycle.id,
-            })}
-            className={formSurface.primaryButtonSm}
-          >
-            Ver Resultado FAMI
-          </Link>
-          <Link
-            href={queryPath("/admin/recomendacoes", { cycleId: cycle.id })}
-            className={formSurface.secondaryButtonSm}
-          >
-            Ver recomendações
-          </Link>
-        </div>
-      ) : null}
+      <div className="flex flex-wrap items-center gap-2">
+        <CycleAnswersDownloadButton cycleId={cycle.id} />
+        {showOfficialResult ? (
+          <>
+            <Link
+              href={adminFamiPath({
+                organizationId: cycle.organizationId,
+                formId: cycle.formId,
+                cycleId: cycle.id,
+              })}
+              className={formSurface.primaryButtonSm}
+            >
+              Ver Resultado FAMI
+            </Link>
+            <Link
+              href={queryPath("/admin/recomendacoes", { cycleId: cycle.id })}
+              className={formSurface.secondaryButtonSm}
+            >
+              Ver recomendações
+            </Link>
+          </>
+        ) : null}
+      </div>
 
       <div className={formSurface.card}>
         <div className={formSurface.body}>
