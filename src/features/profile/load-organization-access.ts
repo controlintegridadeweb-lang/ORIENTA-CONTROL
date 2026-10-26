@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { OrganizationAccessMember } from "@/features/profile/organization-access";
-import { isRespondentAppointment } from "@/features/admin/respondent-appointment";
+import { isRespondentAppointment } from "@/features/admin";
 import { createSupabaseServiceRoleClient } from "@/infrastructure/supabase/server";
 
 /** Pessoas respondentes do órgão, com o cargo titular ou suplente. */

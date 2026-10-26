@@ -1,4 +1,4 @@
-import { respondentAppointmentLabels } from "@/features/admin/respondent-appointment";
+import { respondentAppointmentLabels } from "@/features/admin";
 import {
   groupOrganizationAccess,
   organizationAccessDisplayName,

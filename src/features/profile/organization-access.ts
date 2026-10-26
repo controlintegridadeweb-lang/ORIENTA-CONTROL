@@ -1,4 +1,4 @@
-import type { RespondentAppointment } from "@/features/admin/respondent-appointment";
+import type { RespondentAppointment } from "@/features/admin";
 
 export type OrganizationAccessMember = {
   userId: string;
