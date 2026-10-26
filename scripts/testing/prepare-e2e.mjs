@@ -8,6 +8,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { createServiceRoleSupabaseClient } from "../shared/create-service-role-supabase-client.mjs";
 import { loadEnv } from "../shared/load-env.mjs";
+import { prepareWritableEnvironment } from "../shared/writable-target.mjs";
 import { installDiagnosticTestFixture } from "./diagnostic-test-fixture.mjs";
 
 const adminEmail = process.env.E2E_ADMIN_EMAIL ?? "admin.e2e@orienta.local";
@@ -20,7 +21,7 @@ const outsiderOrganizationName =
   process.env.E2E_OUTSIDER_ORGANIZATION_NAME ?? "Órgão Externo E2E";
 const outsiderOrganizationAcronym = process.env.E2E_OUTSIDER_ORGANIZATION_ACRONYM ?? "E2X";
 
-const supabase = createServiceRoleSupabaseClient();
+let supabase;
 
 async function applyDiagnosticTestFixture() {
   await installDiagnosticTestFixture();
@@ -146,6 +147,8 @@ async function ensureOrganization(name, acronym) {
 }
 
 async function main() {
+  prepareWritableEnvironment();
+  supabase = createServiceRoleSupabaseClient();
   await applyDiagnosticTestFixture();
 
   const admin = await ensureUser({ email: adminEmail, fullName: "Administração E2E" });

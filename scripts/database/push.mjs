@@ -15,6 +15,11 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadEnv, resolveDbUrl, supabaseProjectRef } from "../shared/load-env.mjs";
 
+if (process.env.ORIENTA_TARGET?.trim() === "homologacao") {
+  console.error("db:push usa o .env.local. Para o projeto de homologação use npm run db:push:homologacao.");
+  process.exit(1);
+}
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, "../..");
 

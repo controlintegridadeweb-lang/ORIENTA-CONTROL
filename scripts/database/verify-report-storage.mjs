@@ -6,9 +6,9 @@
 import { createHash } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import pg from "pg";
-import { loadEnv } from "../shared/load-env.mjs";
+import { prepareWritableEnvironment } from "../shared/writable-target.mjs";
 
-loadEnv();
+prepareWritableEnvironment();
 
 const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
