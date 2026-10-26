@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { PanelSection } from "@/shared/ui/components/panel-section";
-import { layout, typography } from "@/shared/layout/design-system";
+import { layout } from "@/shared/layout/design-system";
 import { useDebounce } from "@/shared/hooks/use-debounce";
 import { usePagination } from "@/shared/hooks/use-pagination";
 import { describeError, notify } from "@/infrastructure/notifications/notify";
@@ -14,24 +13,11 @@ import {
 } from "@/features/improvement-management/action-plans/export/integrity-plan-departure-client";
 import { downloadRespondentPortfolioExport } from "@/features/improvement-management/recommendations/export/portfolio-export-client";
 import type { RecommendationPortfolioExportFormat } from "@/features/improvement-management/recommendations/export/portfolio-export-types";
-import { Pagination } from "@/shared/ui/components/pagination";
-import { AsyncErrorState } from "@/shared/ui/components/async-error-state";
 import { useRespondentRecommendations } from "./hooks/use-respondent-recommendations";
-import { RespondentRecommendationList } from "./respondent-recommendation-list";
-import { RespondentSectionActionPlanList } from "./respondent-section-action-plan-list";
-import {
-  RespondentRecommendationEmptyState,
-  type EmptyVariant,
-} from "./respondent-recommendation-empty-state";
-import {
-  RespondentRecommendationFilters,
-  type RespondentRecommendationFilterValue,
-} from "./respondent-recommendation-filters";
-import {
-  RespondentRecommendationSummaryCards,
-  type SummaryCardKey,
-} from "./respondent-recommendation-summary-cards";
+import type { RespondentRecommendationFilterValue } from "./respondent-recommendation-filters";
+import type { SummaryCardKey } from "./respondent-recommendation-summary-cards";
 import { RespondentRecommendationsHero } from "./respondent-recommendations-hero";
+import { RespondentRecommendationsPanels } from "./respondent-recommendations-panels";
 import { RESPONDENT_PAGE_HERO_BLEED } from "@/shared/layout/respondent-page-layout";
 import { respondentActionWorkspacePath } from "@/shared/navigation/respondent-portfolio-paths";
 import {
@@ -42,7 +28,6 @@ import {
   type RespondentRecommendationListView,
 } from "@/shared/navigation/respondent-navigation-context";
 
-import { RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL } from "@/shared/navigation/respondent-portfolio-paths";
 import { isInvalidUuidParam, parseUuidParam, uuidParamOrEmpty } from "@/shared/validation/uuid";
 import { actionSearchHintsByRecommendation } from "@/features/improvement-management/action-plans/section-action-plan-copy";
 import {
@@ -433,41 +418,6 @@ export function RespondentRecommendationsShell() {
     });
   }
 
-  const hasActiveFilters =
-    Boolean(filter.search.trim()) ||
-    Boolean(filter.status) ||
-    Boolean(filter.cycleId) ||
-    Boolean(filter.formId) ||
-    Boolean(filter.axisId) ||
-    filter.withPlan !== (actionPlanView ? "with" : "all") ||
-    filter.pendingOnly;
-
-  const emptyVariant: EmptyVariant | null = (() => {
-    if (filteredRows.length > 0) return null;
-    if (rows.length === 0) return "no-recommendations";
-    if (actionPlanView && !hasActiveFilters) {
-      const hasEligibleRecommendationWithoutPlan = rows.some(
-        (item) => item.canCreateActionPlan && !item.hasPlan,
-      );
-      const hasRecommendationAwaitingConsolidation = rows.some(
-        (item) => !item.canCreateActionPlan,
-      );
-      if (!hasEligibleRecommendationWithoutPlan && hasRecommendationAwaitingConsolidation) {
-        return "awaiting-consolidation";
-      }
-      return "no-plan-linked";
-    }
-    if (hasActiveFilters) return actionPlanView ? "no-section-results" : "no-results";
-    return "no-recommendations";
-  })();
-
-  const listTitle = actionPlanView
-    ? RESPONDENT_ACTION_PLAN_LIST_TAB_LABEL
-    : "Recomendações";
-  const listDescription = actionPlanView
-    ? "A estrutura parte do diagnóstico e avança por eixo, seção, plano da seção e ações, mantendo as recomendações como referência para identificar a origem de cada ação."
-    : "Apresentadas na mesma sequência do diagnóstico, por eixo, seção e recomendação.";
-
   return (
     <div className={layout.pageStack}>
       <div className={RESPONDENT_PAGE_HERO_BLEED}>
@@ -481,116 +431,34 @@ export function RespondentRecommendationsShell() {
           integrityExportDisabled={!filteredRows.some((item) => item.plans.length > 0)}
         />
       </div>
-
-      <section className={`${layout.panelStack} pt-4`}>
-
-        {error ? (
-          <AsyncErrorState
-            title={
-              actionPlanView
-                ? "Não foi possível carregar o plano de integridade e compliance"
-                : "Não foi possível carregar as recomendações"
-            }
-            message={error}
-            onRetry={refetch}
-            retrying={loading}
-            compact={rows.length > 0}
-          />
-        ) : null}
-
-        {!actionPlanView ? (
-          <PanelSection
-            title="Indicadores"
-            description="Selecione um cartão para filtrar a lista."
-            variant="plain"
-          >
-            <RespondentRecommendationSummaryCards
-              summary={summary}
-              loading={loading && rows.length === 0}
-              activeKey={activeSummaryKey}
-              onSelect={handleSummarySelect}
-            />
-          </PanelSection>
-        ) : null}
-
-        <PanelSection
-          title="Filtros"
-          description="Refine a lista por situação, formulário, eixo ou diagnóstico."
-          variant="plain"
-        >
-          <RespondentRecommendationFilters
-            value={filter}
-            onChange={handleFilterChange}
-            onSearchFocus={() => {
-              searchFocusedRef.current = true;
-            }}
-            onSearchBlur={() => {
-              searchFocusedRef.current = false;
-            }}
-            onClear={handleClear}
-            forms={formOptions}
-            axes={axisOptions}
-            resultCount={actionPlanView ? actionPlanSectionCount : filteredRows.length}
-            resultLabels={
-              actionPlanView
-                ? { singular: "seção com plano", plural: "seções com plano" }
-                : undefined
-            }
-            lockedPlanScope={actionPlanView ? "with" : undefined}
-            cycleLabel={selectedCycleLabel}
-          />
-        </PanelSection>
-
-        <PanelSection
-          title={listTitle}
-          description={listDescription}
-          variant="plain"
-          contentClassName="space-y-4"
-        >
-          {(actionPlanView ? actionPlanSectionCount : filteredRows.length) !== totalForView ? (
-            <p className={typography.meta}>
-              Exibindo{" "}
-              <span className="font-medium tabular-nums text-slate-700">{actionPlanView ? actionPlanSectionCount : filteredRows.length}</span>{" "}
-              de <span className="tabular-nums text-slate-600">{totalForView}</span>{" "}
-              {actionPlanView ? "seções com plano" : "recomendações"} com os filtros atuais
-            </p>
-          ) : null}
-
-          {loading && rows.length === 0 ? (
-            <div className="space-y-4" aria-hidden>
-              {[1, 2, 3, 4].map((item) => (
-                <div
-                  key={item}
-                  className="h-44 animate-pulse rounded-xl border border-slate-100 bg-slate-50/80"
-                />
-              ))}
-            </div>
-          ) : emptyVariant ? (
-            <RespondentRecommendationEmptyState
-              variant={emptyVariant}
-              onClearFilters={hasActiveFilters ? handleClear : undefined}
-            />
-          ) : (
-            actionPlanView ? (
-              <RespondentSectionActionPlanList
-                items={rows}
-                matchingItems={filteredRows}
-                returnPath={listPath}
-              />
-            ) : (
-              <>
-                <RespondentRecommendationList items={pagedRows} returnPath={listPath} />
-                <Pagination
-                  pagination={pagination}
-                  variant="panel"
-                  resultLabel={{ singular: "recomendação", plural: "recomendações" }}
-                  aria-label="Paginação de recomendações"
-                />
-              </>
-            )
-          )}
-        </PanelSection>
-      </section>
+      <RespondentRecommendationsPanels
+        actionPlanView={actionPlanView}
+        error={error}
+        refetch={refetch}
+        loading={loading}
+        rows={rows}
+        summary={summary}
+        activeSummaryKey={activeSummaryKey}
+        onSummarySelect={handleSummarySelect}
+        filter={filter}
+        onFilterChange={handleFilterChange}
+        onSearchFocus={() => {
+          searchFocusedRef.current = true;
+        }}
+        onSearchBlur={() => {
+          searchFocusedRef.current = false;
+        }}
+        onClear={handleClear}
+        forms={formOptions}
+        axes={axisOptions}
+        actionPlanSectionCount={actionPlanSectionCount}
+        filteredRows={filteredRows}
+        selectedCycleLabel={selectedCycleLabel}
+        totalForView={totalForView}
+        pagedRows={pagedRows}
+        listPath={listPath}
+        pagination={pagination}
+      />
     </div>
   );
 }

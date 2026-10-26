@@ -4,13 +4,7 @@ import Link from "next/link";
 import { Filter, Inbox, Lightbulb, ListChecks } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { formSurface } from "@/shared/layout/form-surface";
-
-export type EmptyVariant =
-  | "no-recommendations"
-  | "no-results"
-  | "no-section-results"
-  | "no-plan-linked"
-  | "awaiting-consolidation";
+import type { EmptyVariant } from "./respondent-recommendation-list-state";
 
 type VariantDef = {
   icon: LucideIcon;
