@@ -13,7 +13,7 @@
 import { spawnSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { loadEnv, resolveDbUrl, supabaseProjectRef } from "../shared/load-env.mjs";
 import { runSupabase } from "../shared/supabase-cli-path.mjs";
 import {
@@ -27,6 +27,25 @@ const target = resolve(root, "src/infrastructure/supabase/database.types.ts");
 const generatedSnapshot = resolve(root, "var/database.generated.types.ts");
 const checkOnly = process.argv.includes("--check");
 
+export function postgresMetaMirrorImages(image) {
+  const match = /^public\.ecr\.aws\/supabase\/postgres-meta:(v[\w.-]+)$/.exec(image);
+  if (!match) return [];
+  const tag = match[1];
+  return [
+    `ghcr.io/supabase/postgres-meta:${tag}`,
+    `supabase/postgres-meta:${tag}`,
+  ];
+}
+
+function isCliEntry() {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  return import.meta.url === pathToFileURL(entry).href;
+}
+
+if (isCliEntry()) main();
+
+function main() {
 if (process.argv.includes("--self-check")) {
   const source = readFileSync(target, "utf8");
   reportComparison(compareGeneratedTypeContracts(source, source, { root }));
@@ -98,6 +117,7 @@ if (checkOnly) {
 
 writeFileSync(target, generated, "utf8");
 console.log(`Tipos gerados pelo Supabase CLI: ${target}`);
+}
 
 function reportComparison(comparison) {
   const { current, generated: generatedContract, structuralDiffs } = comparison;
@@ -202,18 +222,42 @@ function extractPostgresMetaImage(detail) {
   return match?.[0] ?? null;
 }
 
-function pullPostgresMetaImage(image) {
-  const pulled = spawnSync("docker", ["pull", image], {
+function runDocker(args) {
+  return spawnSync("docker", args, {
     encoding: "utf8",
     stdio: "pipe",
   });
-  if (pulled.status === 0) {
-    console.log(`Imagem ${image} disponível para a geração de tipos.`);
-    return true;
-  }
+}
+
+function pullImage(image) {
+  const pulled = runDocker(["pull", image]);
+  if (pulled.status === 0) return true;
   const detail = (pulled.stderr || pulled.stdout || "").trim();
   console.warn(`Falha ao baixar ${image}:`);
   console.warn(summarizeGenTypesError(detail || `docker pull saiu com status ${pulled.status}`));
+  return false;
+}
+
+function pullPostgresMetaImage(image) {
+  if (pullImage(image)) {
+    console.log(`Imagem ${image} disponível para a geração de tipos.`);
+    return true;
+  }
+
+  for (const mirror of postgresMetaMirrorImages(image)) {
+    console.warn(`O registro público da AWS limitou ${image}. Tentando ${mirror}.`);
+    if (!pullImage(mirror)) continue;
+    const tagged = runDocker(["tag", mirror, image]);
+    if (tagged.status !== 0) {
+      const detail = (tagged.stderr || tagged.stdout || "").trim();
+      console.warn(`Falha ao etiquetar ${mirror} como ${image}:`);
+      console.warn(summarizeGenTypesError(detail || `docker tag saiu com status ${tagged.status}`));
+      continue;
+    }
+    console.log(`Imagem ${mirror} etiquetada como ${image}.`);
+    return true;
+  }
+
   return false;
 }
 
