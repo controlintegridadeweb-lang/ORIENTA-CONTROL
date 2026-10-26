@@ -59,7 +59,7 @@ function AccessColumn({
 }) {
   return (
     <section className="min-w-0 px-1 pt-4 sm:px-3" aria-label={title}>
-      <h3 className="mb-3 text-center text-sm font-semibold text-slate-800">{title}</h3>
+      <h3 className={`${typography.cardTitle} mb-3 text-center`}>{title}</h3>
       <ul className="space-y-2">
         {members.map((member) => (
           <MemberCard key={member.userId} member={member} currentUserId={currentUserId} />
