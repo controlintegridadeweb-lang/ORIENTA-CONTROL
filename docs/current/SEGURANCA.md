@@ -71,8 +71,8 @@ primeira aplicação ou alteração de schema.
 ```bash
 supabase start
 supabase db reset --local
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres npm run db:verify
-npm run db:verify:reports
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres ORIENTA_TARGET=local npm run db:verify
+ORIENTA_TARGET=local npm run db:verify:reports
 ```
 
 A verificação cobre RLS, editabilidade por estado de ciclo, Storage, snapshots,

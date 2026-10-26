@@ -69,8 +69,9 @@ O arquivo é sensível, é ignorado pelo Git e deve ser removido após a entrega
 ```bash
 npm run bootstrap:2026:verify
 npm run check:generated-types
-npm run db:verify
 ```
+
+`npm run db:verify` grava fixtures e só aceita `ORIENTA_TARGET=local` ou `ORIENTA_TARGET=homologacao`. Não o aponte para o projeto oficial. O procedimento do projeto de testes está em [`HOMOLOGACAO.md`](./HOMOLOGACAO.md).
 
 Em ambiente com Docker/Supabase CLI, execute também a suíte de integração e E2E usada pelo CI.
 
