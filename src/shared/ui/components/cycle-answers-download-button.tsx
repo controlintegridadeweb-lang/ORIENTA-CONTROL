@@ -22,7 +22,7 @@ export function CycleAnswersDownloadButton({ cycleId, className }: Props) {
     try {
       await downloadHttpAttachment(cycleAnswersExportPath(cycleId), "respostas.xlsx");
     } catch (cause) {
-      setError(cause instanceof Error && cause.message ? cause.message : "Não foi possível baixar as respostas.");
+      setError(cause instanceof Error && cause.message ? cause.message : "Não foi possível baixar as perguntas.");
     } finally {
       setPending(false);
     }
@@ -38,7 +38,7 @@ export function CycleAnswersDownloadButton({ cycleId, className }: Props) {
         className={className ?? `${formSurface.secondaryButtonSm} w-full sm:w-auto`}
       >
         <FileSpreadsheet className="h-3.5 w-3.5" aria-hidden />
-        {pending ? "Baixando..." : "Baixar respostas"}
+        {pending ? "Baixando..." : "Baixar perguntas"}
       </button>
       {error ? (
         <p role="alert" className="basis-full text-xs text-rose-700">

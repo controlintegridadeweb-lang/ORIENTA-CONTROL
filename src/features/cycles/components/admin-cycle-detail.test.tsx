@@ -54,7 +54,7 @@ describe("AdminCycleDetail — reaberturas", () => {
       />,
     );
     expect(screen.queryByText("Reaberturas")).toBeNull();
-    expect(screen.getByRole("button", { name: /baixar respostas/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /baixar perguntas/i })).toBeTruthy();
   });
 
   it("exibe a quantidade depois da primeira reabertura", () => {

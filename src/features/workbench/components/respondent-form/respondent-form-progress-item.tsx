@@ -87,33 +87,25 @@ export function RespondentFormProgressItem({
         <p className="sr-only">{presentation.statusLabel}</p>
       )}
 
-      {presentation.primaryAction || presentation.secondaryAction ? (
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2.5">
-          {presentation.secondaryAction ? (
-            <Link
-              href={presentation.secondaryAction.href}
-              className={`${formSurface.secondaryButtonSm} w-full sm:w-auto`}
-            >
-              {presentation.secondaryAction.label}
-            </Link>
-          ) : null}
-          {presentation.primaryAction ? (
-            <Link
-              href={presentation.primaryAction.href}
-              className={`${formSurface.primaryButtonSm} w-full sm:w-auto`}
-            >
-              {presentation.primaryAction.label}
-            </Link>
-          ) : null}
-          {form.answeredQuestions > 0 ? (
-            <CycleAnswersDownloadButton cycleId={form.cycleId} />
-          ) : null}
-        </div>
-      ) : form.answeredQuestions > 0 ? (
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2.5">
-          <CycleAnswersDownloadButton cycleId={form.cycleId} />
-        </div>
-      ) : null}
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2.5">
+        {presentation.secondaryAction ? (
+          <Link
+            href={presentation.secondaryAction.href}
+            className={`${formSurface.secondaryButtonSm} w-full sm:w-auto`}
+          >
+            {presentation.secondaryAction.label}
+          </Link>
+        ) : null}
+        {presentation.primaryAction ? (
+          <Link
+            href={presentation.primaryAction.href}
+            className={`${formSurface.primaryButtonSm} w-full sm:w-auto`}
+          >
+            {presentation.primaryAction.label}
+          </Link>
+        ) : null}
+        <CycleAnswersDownloadButton cycleId={form.cycleId} />
+      </div>
     </div>
   );
 

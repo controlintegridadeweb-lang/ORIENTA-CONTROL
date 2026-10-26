@@ -20,9 +20,9 @@ describe("CycleAnswersDownloadButton", () => {
     downloadHttpAttachment.mockResolvedValue(undefined);
 
     render(<CycleAnswersDownloadButton cycleId="cycle-1" />);
-    fireEvent.click(screen.getByRole("button", { name: /baixar respostas/i }));
+    fireEvent.click(screen.getByRole("button", { name: /baixar perguntas/i }));
 
-    expect(await screen.findByRole("button", { name: /baixar respostas/i })).toBeTruthy();
+    expect(await screen.findByRole("button", { name: /baixar perguntas/i })).toBeTruthy();
     expect(downloadHttpAttachment).toHaveBeenCalledWith(
       "/api/cycles/cycle-1/answers/export",
       "respostas.xlsx",
@@ -34,7 +34,7 @@ describe("CycleAnswersDownloadButton", () => {
     downloadHttpAttachment.mockRejectedValue(new Error("Diagnóstico não encontrado."));
 
     render(<CycleAnswersDownloadButton cycleId="cycle-1" />);
-    fireEvent.click(screen.getByRole("button", { name: /baixar respostas/i }));
+    fireEvent.click(screen.getByRole("button", { name: /baixar perguntas/i }));
 
     expect((await screen.findByRole("alert")).textContent).toContain("Diagnóstico não encontrado.");
   });
