@@ -316,7 +316,6 @@ export function RespondentRecommendationsShell() {
       return;
     }
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- Sincroniza o filtro local com os parâmetros de busca externos da rota.
     setFilter((previous) => {
       const search = searchFocusedRef.current
         ? previous.search
