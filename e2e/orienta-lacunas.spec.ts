@@ -78,7 +78,7 @@ test.describe.serial("lacunas de homologação", () => {
     expect(progress.status).toBe(200);
     const reopened = (progress.body.items ?? []).find(
       (item: { formName?: string; state?: string; cycleId?: string }) =>
-        item.formName === "Diagnóstico E2E - Jornada Canônica" && item.state === "in_response",
+        item.formName === E2E.formName && item.state === "in_response",
     );
     const reopenedCycleId = reopened?.cycleId ?? "";
     expect(reopenedCycleId, JSON.stringify(progress.body.items)).toMatch(/^[0-9a-f-]{36}$/i);
