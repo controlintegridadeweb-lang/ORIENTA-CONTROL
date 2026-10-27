@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
- * Instala a fixture SQL do Diagnóstico de Integridade 2026 exclusivamente em
- * um PostgreSQL/Supabase local descartável.
+ * Instala a fixture SQL do Diagnóstico de Integridade 2026 em um destino
+ * autorizado: Supabase local na porta 54322 ou o projeto de homologação
+ * depois que a verificação de destino confirma que não é o projeto oficial.
  *
  * A fixture não pertence à baseline de produção. Este módulo existe para que
  * DB integration e E2E possam testá-la sem contaminar o schema canônico usado
@@ -11,15 +12,20 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import pg from "pg";
-import { loadEnv, resolveDbUrl } from "../shared/load-env.mjs";
+import { prepareWritableEnvironment } from "../shared/writable-target.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const localSupabaseDbUrl = "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
 
 export async function installDiagnosticTestFixture() {
-  loadEnv();
-  const databaseUrl = resolveDbUrl() ?? localSupabaseDbUrl;
-  assertLocalDatabase(databaseUrl);
+  if (process.env.ORIENTA_TARGET?.trim() === "local" && !process.env.DATABASE_URL && !process.env.SUPABASE_DB_URL) {
+    process.env.DATABASE_URL = localSupabaseDbUrl;
+  }
+  prepareWritableEnvironment();
+  const databaseUrl = process.env.SUPABASE_DB_URL?.trim() || process.env.DATABASE_URL?.trim();
+  if (!databaseUrl) {
+    throw new Error("A conexão Postgres do destino autorizado está ausente.");
+  }
 
   const fixturePath = resolve(
     root,
@@ -32,16 +38,6 @@ export async function installDiagnosticTestFixture() {
     await client.query("notify pgrst, 'reload schema'");
   } finally {
     await client.end();
-  }
-}
-
-function assertLocalDatabase(databaseUrl) {
-  const parsed = new URL(databaseUrl.replace(/^postgresql:/i, "http:"));
-  const localHost = parsed.hostname === "127.0.0.1" || parsed.hostname === "localhost";
-  if (!localHost || parsed.port !== "54322") {
-    throw new Error(
-      "A fixture de diagnóstico só pode ser instalada no PostgreSQL local do Supabase (127.0.0.1:54322).",
-    );
   }
 }
 

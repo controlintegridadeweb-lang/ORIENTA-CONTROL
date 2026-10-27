@@ -8,11 +8,18 @@
  * Token: https://supabase.com/dashboard/account/tokens
  */
 import { loadEnv, supabaseProjectRef } from "../shared/load-env.mjs";
+import { assertResetConfirmation } from "../shared/writable-target.mjs";
 
 loadEnv();
 
 const ref = supabaseProjectRef();
 const token = process.env.SUPABASE_ACCESS_TOKEN;
+try {
+  assertResetConfirmation(process.env);
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exit(2);
+}
 
 async function q(sql) {
   const r = await fetch(

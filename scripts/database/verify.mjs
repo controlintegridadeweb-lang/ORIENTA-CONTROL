@@ -2,25 +2,43 @@
 /**
  * Verificações de integração contra PostgreSQL real.
  *
- * Requer DATABASE_URL de um banco descartável (Supabase local após
- * `supabase db reset --local`, ou PostgreSQL efêmero). As fixtures usam a
- * role da URL — no stack local, `postgres` da instância de desenvolvimento.
+ * Requer ORIENTA_TARGET=local ou ORIENTA_TARGET=homologacao.
+ * Produção não é destino. No projeto hospedado, use DB_VERIFY_ONLY=1
+ * por meio de npm run db:verify:homologacao.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
+import { assertWritableTarget, readIsolatedEnv } from "../shared/writable-target.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, "../..");
 const migrationsDir = join(root, "supabase", "migrations");
 const verifyDir = join(root, "supabase", "verify");
 
-const DB = process.env.DATABASE_URL?.trim();
+let target;
+try {
+  target = assertWritableTarget(process.env, {
+    destructive: false,
+    productionEnv: readIsolatedEnv(".env.local"),
+  });
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exit(2);
+}
+
+const DB = (process.env.SUPABASE_DB_URL || process.env.DATABASE_URL || process.env.POSTGRES_URL)?.trim();
 const verifyOnly = process.env.DB_VERIFY_ONLY === "1";
 
 if (!DB) {
   console.error("Defina DATABASE_URL para um banco de teste descartável.");
+  process.exit(2);
+}
+if (target.target === "homologacao" && !verifyOnly) {
+  console.error(
+    "Homologação não recebe o preâmbulo local. Aplique as migrações com npm run db:push:homologacao e execute npm run db:verify:homologacao.",
+  );
   process.exit(2);
 }
 

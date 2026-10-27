@@ -127,7 +127,7 @@ describe("RespondentFormProgressItem", () => {
     );
 
     expect(screen.queryByRole("link", { name: /ver respostas/i })).toBeNull();
-    expect(screen.queryByRole("button", { name: /baixar respostas/i })).toBeNull();
+    expect(screen.getByRole("button", { name: /baixar perguntas/i })).toBeTruthy();
     expect(screen.getByRole("link", { name: /ver resultado fami/i })).toBeTruthy();
   });
 
@@ -223,7 +223,7 @@ describe("RespondentFormProgressItem", () => {
     expect(text.indexOf(orientation)).toBeGreaterThan(text.indexOf("Versão:"));
     expect(text.indexOf("Ver respostas")).toBeGreaterThan(text.indexOf(orientation));
     expect(text.indexOf("Ver Resultado FAMI")).toBeGreaterThan(text.indexOf("Ver respostas"));
-    expect(text.indexOf("Baixar respostas")).toBeGreaterThan(text.indexOf("Ver Resultado FAMI"));
-    expect(screen.getByRole("button", { name: /baixar respostas/i })).toBeTruthy();
+    expect(text.indexOf("Baixar perguntas")).toBeGreaterThan(text.indexOf("Ver Resultado FAMI"));
+    expect(screen.getByRole("button", { name: /baixar perguntas/i })).toBeTruthy();
   });
 });

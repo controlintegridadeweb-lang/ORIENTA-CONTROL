@@ -224,7 +224,7 @@ npm test
 npm run build
 
 supabase db reset --local
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres npm run db:verify
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres ORIENTA_TARGET=local npm run db:verify
 ```
 
 No piloto, abra a mesma resposta e a mesma ação em duas abas. Salve na primeira

@@ -29,15 +29,17 @@ A sequência evolutiva antiga `0001`–`0054` não participa mais da instalaçã
 5. Executar `npm run bootstrap:2026` para Auth e dados atuais de 2026.
 6. Executar verificações de integridade e E2E antes do go-live.
 
+`npm run supabase:env:local` recusa substituir um `.env.local` que já aponte para um projeto `supabase.co`. Nesse caso, exporte a URL local só na sessão do comando.
+
 ```bash
 npm run db:audit:migrations
 npm run supabase:start:clean
 npm run db:reset:local
 npm run supabase:env:local
 DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres SUPABASE_GEN_TYPES_MODE=local npm run check:generated-types
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres npm run supabase:fixture:diagnostic
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres DB_VERIFY_ONLY=1 npm run db:verify
-npm run db:verify:reports
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres ORIENTA_TARGET=local npm run supabase:fixture:diagnostic
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres ORIENTA_TARGET=local DB_VERIFY_ONLY=1 npm run db:verify
+ORIENTA_TARGET=local npm run db:verify:reports
 npm run lint
 npm run typecheck
 npm test

@@ -9,6 +9,7 @@ import {
   logout,
   selectOrganizationInFormAssignments,
 } from "../fixtures/orienta";
+import { journeyPeriodLabel } from "../fixtures/execution-id";
 import { createCompletedActionWithEvidence } from "./canonical-action-plan";
 import {
   addQuestion,
@@ -33,6 +34,11 @@ export type CanonicalJourneyState = {
   evidenceQuestionId: string;
   recommendationId: string;
   recommendationIds: string[];
+  /** Nome único desta execução. A unicidade de `forms.name` permanece a do produto. */
+  formName?: string;
+  periodLabel?: string;
+  /** Interrompe depois da validação, antes de concluir as ações em 100%. */
+  stopBeforeActionCompletion?: boolean;
 };
 
 export function createCanonicalJourneyState(): CanonicalJourneyState {
@@ -62,7 +68,7 @@ export async function adminCreatesFormAndOpensCycle(
   await loginAs(page, "admin");
   await page.goto("/admin/formularios/novo");
 
-  await page.getByLabel("Nome do formulário").fill(E2E.formName);
+  await page.getByLabel("Nome do formulário").fill(state.formName || E2E.formName);
   await page.getByRole("button", { name: "Continuar" }).click();
   await expect(page).toHaveURL(/\/admin\/formularios\/[^/]+\/configuracao\?etapa=2/);
 
@@ -126,7 +132,7 @@ export async function adminCreatesFormAndOpensCycle(
   expect(state.formId).toMatch(/^[0-9a-f-]{36}$/i);
 
   await expect(page.getByRole("status", { name: "Formulário publicado" })).toBeVisible();
-  await page.getByLabel("Período").fill("2026 — E2E");
+  await page.getByLabel("Período").fill(state.periodLabel || journeyPeriodLabel());
   await page.getByRole("radio", { name: /Abrir agora/ }).check();
   await page.getByLabel("Prazo de resposta").fill(futureFortalezaDateTimeInput(30));
 
@@ -217,7 +223,13 @@ export async function respondentSubmitsDiagnostic(
     const card = page.locator("li").filter({ hasText: prompt });
     await chooseCriterionAnswer(card, "Não se aplica neste diagnóstico");
     await card.getByLabel("Justificativa").fill(justification);
+    const justificationSave = page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/workbench/response") &&
+        response.request().method() === "POST",
+    );
     await card.getByRole("button", { name: "Salvar justificativa" }).click();
+    await expectSuccessfulResponse(await justificationSave, "justificativa");
     await expect(card.getByText("Aguardando validação da administração.")).toBeVisible();
   }
 
@@ -387,7 +399,9 @@ export async function respondentCorrectsAndAdminCloses(
   await evidenceValidationCard.getByRole("button", { name: "Confirmar: Aprovar evidência" }).click();
   await expect(page.getByRole("button", { name: "Concluir validação e calcular FAMI" })).toBeVisible();
   await clickWithPlatformConfirm(page, "Concluir validação e calcular FAMI", "Concluir e calcular FAMI");
-  await expect(page).toHaveURL(new RegExp(`/admin/ciclos/${state.cycleId}`));
+  await expect(page).toHaveURL(new RegExp(`/admin/ciclos/${state.cycleId}(?:\\?.*)?$`), {
+    timeout: 60_000,
+  });
   await expectAdminCycleState(page, /^Diagnóstico concluído$/);
   await expect(page.getByText("Validação concluída e resultado FAMI calculado.")).toBeVisible();
   await expect(page.getByRole("link", { name: "Ver Resultado FAMI" })).toBeVisible();
@@ -428,6 +442,7 @@ export async function respondentCorrectsAndAdminCloses(
     recommendationItems.some((item) => item.questionPrompt === E2E.approvedNaQuestion),
   ).toBe(false);
   await logout(page);
+  if (state.stopBeforeActionCompletion) return;
 
   await loginAs(page, "respondent");
   for (const [index, currentRecommendationId] of state.recommendationIds.entries()) {
@@ -536,11 +551,12 @@ export async function completedCycleBlocksAndReopens(
   await loginAs(page, "admin");
   await page.goto(`/admin/ciclos/${state.cycleId}`);
   await expectAdminCycleState(page, /^Avaliação encerrada$/);
-  await page
-    .getByLabel("Justificativa da reabertura")
-    .fill("Correção controlada do diagnóstico no fluxo E2E.");
-  await page.getByLabel("Novo prazo de resposta").fill(futureFortalezaDateTimeInput(7));
-  await clickWithPlatformConfirm(page, "Reabrir diagnóstico");
+  const reopen = page.getByRole("region", { name: "Reabertura do diagnóstico" });
+  await expect(reopen).toHaveCount(1);
+  await reopen.getByLabel("Justificativa da reabertura").fill("Correção controlada do diagnóstico no fluxo E2E.");
+  await reopen.getByLabel("Novo prazo de resposta").fill(futureFortalezaDateTimeInput(7));
+  await reopen.getByRole("button", { name: "Reabrir diagnóstico", exact: true }).click();
+  await acceptPlatformConfirm(page, "Reabrir diagnóstico");
   await expectAdminCycleState(page, /Em preenchimento|Em resposta/);
   const reopenField = page.locator("dl > div").filter({
     has: page.locator("dt", { hasText: /^Reaberturas$/ }),

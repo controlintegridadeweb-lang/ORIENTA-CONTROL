@@ -25,9 +25,9 @@ O gate rejeita URLs sem HTTPS, placeholders, segredos fracos/repetidos, webhooks
 supabase db reset --local
 npm run db:audit:migrations
 npm run db:greenfield
-npm run db:verify
+ORIENTA_TARGET=local npm run db:verify
 npm run check:generated-types
-npm run db:verify:reports
+ORIENTA_TARGET=local npm run db:verify:reports
 ```
 
 As 10 migrations da baseline consolidada (`20260812000100`–`20260812001000`) permanecem imutáveis, e todas as migrations evolutivas posteriores também devem ser aplicadas em ordem sem falha; os tipos gerados não podem divergir.

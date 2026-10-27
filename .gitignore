@@ -20,6 +20,7 @@ supabase/.temp/
 # Environment files (never commit secrets)
 .env*
 !.env.example
+!.env.homologacao.example
 *.env.bak
 
 # Vercel CLI project linking / payloads gerados
@@ -28,6 +29,9 @@ var/vercel-env.json
 
 # Credenciais temporárias geradas por bootstraps administrativos
 var/bootstrap/
+var/e2e-admin-totp.local
+var/e2e-active-role.local
+var/e2e-session-*.json
 *.credentials.csv
 
 # Importações históricas com dados pessoais e respostas institucionais
@@ -54,11 +58,6 @@ var/*.mjs
 # Carga inicial real de 2026: mantida localmente, nunca versionada
 data/bootstrap-2026/private/*
 !data/bootstrap-2026/private/.gitkeep
-
-# Relatórios/credenciais locais do bootstrap
-
-.vercel
-.env*
 
 tmp-official-report-sample.pdf
 .tmp-layout-ref/

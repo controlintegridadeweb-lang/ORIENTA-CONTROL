@@ -15,5 +15,8 @@
     "types": "off",
     "nsTypes": "off",
     "enumMembers": "off"
+  },
+  "playwright": {
+    "config": ["playwright.config.ts", "playwright.homologacao.config.ts"]
   }
 }

@@ -58,6 +58,7 @@ Requer Docker e Supabase CLI:
 supabase start
 supabase db reset --local
 DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres \
+ORIENTA_TARGET=local \
 DB_VERIFY_ONLY=1 npm run db:verify
 supabase stop
 ```

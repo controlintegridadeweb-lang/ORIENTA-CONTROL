@@ -5,26 +5,40 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, "../..");
 
+export function parseEnvText(content) {
+  const values = {};
+  for (const rawLine of content.split("\n")) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+    const eq = line.indexOf("=");
+    if (eq === -1) continue;
+    const key = line.slice(0, eq).trim();
+    let value = line.slice(eq + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    values[key] = value;
+  }
+  return values;
+}
+
+/** Lê um arquivo de ambiente sem gravá-lo em process.env. */
+export function readIsolatedEnv(fileName) {
+  const path = resolve(root, fileName);
+  if (!existsSync(path)) return null;
+  return parseEnvText(readFileSync(path, "utf8"));
+}
+
 /** Carrega .env.local e .env (sem sobrescrever variáveis já definidas). */
 export function loadEnv() {
   for (const name of [".env.local", ".env"]) {
-    const path = resolve(root, name);
-    if (!existsSync(path)) continue;
-    const content = readFileSync(path, "utf8");
-    for (const rawLine of content.split("\n")) {
-      const line = rawLine.trim();
-      if (!line || line.startsWith("#")) continue;
-      const eq = line.indexOf("=");
-      if (eq === -1) continue;
-      const key = line.slice(0, eq).trim();
+    const parsed = readIsolatedEnv(name);
+    if (!parsed) continue;
+    for (const [key, value] of Object.entries(parsed)) {
       if (process.env[key] !== undefined) continue;
-      let value = line.slice(eq + 1).trim();
-      if (
-        (value.startsWith('"') && value.endsWith('"')) ||
-        (value.startsWith("'") && value.endsWith("'"))
-      ) {
-        value = value.slice(1, -1);
-      }
       process.env[key] = value;
     }
   }

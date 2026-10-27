@@ -4,7 +4,7 @@ import { typography } from "@/shared/layout/design-system";
 import type { ReportLifecycleStatus } from "@/shared/domain/report-lifecycle";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import type { CycleListItem } from "@/features/cycles/cycle-queries";
 import { formSurface } from "@/shared/layout/form-surface";
 import { PLATFORM_TIME_ZONE_LABEL } from "@/shared/datetime/fortaleza-date-time";
@@ -25,18 +25,19 @@ function CycleActionSection({
   children?: ReactNode;
   error?: string | null;
 }) {
+  const headingId = useId();
   return (
-    <div className="mt-5 border-t border-slate-200 pt-5">
+    <section aria-labelledby={headingId} className="mt-5 border-t border-slate-200 pt-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
-          <h2 className={typography.cardTitle}>{title}</h2>
+          <h2 id={headingId} className={typography.cardTitle}>{title}</h2>
           <p className="mt-1 text-xs leading-relaxed text-slate-500">{description}</p>
           {error ? <p role="alert" className={`mt-2 ${formSurface.messageError}`}>{error}</p> : null}
           {children ? <div className="mt-4 space-y-3">{children}</div> : null}
         </div>
         {action ? <div className="flex shrink-0 flex-wrap items-start gap-2">{action}</div> : null}
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -285,18 +286,11 @@ function CompletedCycleActions({
           </Link>
         </p>
       ) : null}
-      <label className={formSurface.fieldGroup}>
-        <span className={formSurface.label}>Justificativa da reabertura</span>
-        <textarea
-          value={state.reopenReason}
-          onChange={(event) => patch({ reopenReason: event.target.value })}
-          className={formSurface.inputTextarea}
-          rows={3}
-          maxLength={2000}
-          placeholder="Explique o motivo institucional da reabertura e o que deverá ser corrigido."
-          disabled={!reportAvailable}
-        />
-      </label>
+      <ReopenReasonField
+        value={state.reopenReason}
+        onChange={(reopenReason) => patch({ reopenReason })}
+        disabled={!reportAvailable}
+      />
       <ScheduleInput
         label="Novo prazo de resposta"
         value={state.reopenDeadlineAt}
@@ -304,6 +298,36 @@ function CompletedCycleActions({
         disabled={!reportAvailable}
       />
     </CycleActionSection>
+  );
+}
+
+function ReopenReasonField({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  disabled: boolean;
+}) {
+  const reasonId = useId();
+  return (
+    <div className={formSurface.fieldGroup}>
+      <label htmlFor={reasonId} className={formSurface.label}>
+        Justificativa da reabertura
+      </label>
+      <textarea
+        id={reasonId}
+        name="reopenReason"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className={formSurface.inputTextarea}
+        rows={3}
+        maxLength={2000}
+        placeholder="Explique o motivo institucional da reabertura e o que deverá ser corrigido."
+        disabled={disabled}
+      />
+    </div>
   );
 }
 

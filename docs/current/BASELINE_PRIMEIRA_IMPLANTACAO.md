@@ -51,7 +51,7 @@ Nenhum dado real deve ser versionado dentro das migrations.
 ```bash
 npm run db:audit:migrations
 supabase db reset --local
-npm run db:verify
+ORIENTA_TARGET=local npm run db:verify
 npm run check:generated-types
 ```
 

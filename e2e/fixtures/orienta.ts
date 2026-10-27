@@ -1,5 +1,7 @@
 import { createHmac } from "node:crypto";
-import { expect, type Page } from "@playwright/test";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { expect, type Cookie, type Page } from "@playwright/test";
+import { journeyFormName } from "./execution-id";
 
 export const E2E = {
   adminEmail: process.env.E2E_ADMIN_EMAIL ?? "admin.e2e@orienta.local",
@@ -9,7 +11,7 @@ export const E2E = {
   organizationName: process.env.E2E_ORGANIZATION_NAME ?? "Órgão de Teste E2E",
   outsiderOrganizationName:
     process.env.E2E_OUTSIDER_ORGANIZATION_NAME ?? "Órgão Externo E2E",
-  formName: "Diagnóstico E2E - Jornada Canônica",
+  formName: journeyFormName(),
   evidenceQuestion: "E2E: a unidade possui procedimento de integridade formalizado?",
   recommendationQuestion: "E2E: existe plano de integridade e compliance institucional monitorado?",
   approvedNaQuestion: "E2E: este critério não se aplica por ausência de competência legal?",
@@ -18,7 +20,25 @@ export const E2E = {
 
 export type E2ERole = "admin" | "respondent" | "outsider";
 
-let adminTotpSecret: string | null = null;
+const ADMIN_TOTP_FILE = "var/e2e-admin-totp.local";
+const ACTIVE_ROLE_FILE = "var/e2e-active-role.local";
+const sessionFile = (role: E2ERole) => `var/e2e-session-${role}.json`;
+
+function readStoredTotp(): string | null {
+  try {
+    const secret = readFileSync(ADMIN_TOTP_FILE, "utf8").trim();
+    return secret || null;
+  } catch {
+    return null;
+  }
+}
+
+function storeTotp(secret: string) {
+  mkdirSync("var", { recursive: true });
+  writeFileSync(ADMIN_TOTP_FILE, secret, { encoding: "utf8", mode: 0o600 });
+}
+
+let adminTotpSecret: string | null = readStoredTotp();
 
 function decodeBase32(value: string): Buffer {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
@@ -54,16 +74,24 @@ async function completeAdminMfa(page: Page) {
   await expect(page).toHaveURL(/\/auth\/mfa/);
   await expect(page.getByRole("heading", { name: "Autenticação em duas etapas" })).toBeVisible();
 
-  if (!adminTotpSecret) {
-    const manualKey = page.locator("p").filter({ hasText: /Chave manual:/ });
+  const manualKey = page.locator("p").filter({ hasText: /Chave manual:/ });
+  const enrolling = await manualKey
+    .waitFor({ state: "visible", timeout: adminTotpSecret ? 3_000 : 30_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (enrolling) {
     // O enroll é assíncrono (SDK do Auth). getByText(/Chave manual:/) casa o
     // <strong> interno e o innerText vem sem o segredo.
-    await expect(manualKey).toBeVisible({ timeout: 30_000 });
     const secret = (await manualKey.innerText()).replace(/^Chave manual:\s*/i, "").trim();
     if (!secret) {
       throw new Error("O E2E não encontrou a chave TOTP do administrador.");
     }
     adminTotpSecret = secret;
+    storeTotp(secret);
+  } else if (!adminTotpSecret) {
+    throw new Error(
+      "O administrador já possui TOTP e esta execução não guardou a chave. Remova o fator fictício antes de repetir.",
+    );
   }
 
   const codeField = page.getByLabel("Código de seis dígitos");
@@ -87,7 +115,71 @@ async function completeAdminMfa(page: Page) {
 }
 
 
+type StoredCookie = {
+  name: string;
+  value: string;
+  domain: string;
+  path: string;
+  expires?: number;
+  httpOnly: boolean;
+  secure: boolean;
+  sameSite: Cookie["sameSite"];
+};
+
+function readSession(role: E2ERole): StoredCookie[] | null {
+  try {
+    const parsed = JSON.parse(readFileSync(sessionFile(role), "utf8")) as StoredCookie[];
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function persistableCookies(cookies: Cookie[]): StoredCookie[] {
+  return cookies.map((cookie) => {
+    const next: StoredCookie = {
+      name: cookie.name,
+      value: cookie.value,
+      domain: cookie.domain,
+      path: cookie.path,
+      httpOnly: cookie.httpOnly,
+      secure: cookie.secure,
+      sameSite: cookie.sameSite,
+    };
+    if (cookie.expires > 0) next.expires = cookie.expires;
+    return next;
+  });
+}
+
+function writeSession(role: E2ERole, cookies: Cookie[]) {
+  const persistable = persistableCookies(cookies);
+  if (persistable.length === 0) return;
+  mkdirSync("var", { recursive: true });
+  writeFileSync(sessionFile(role), JSON.stringify(persistable), { encoding: "utf8", mode: 0o600 });
+  writeFileSync(ACTIVE_ROLE_FILE, role, { encoding: "utf8", mode: 0o600 });
+}
+
+async function restoreSession(page: Page, role: E2ERole): Promise<boolean> {
+  const cookies = readSession(role);
+  if (!cookies) return false;
+  await page.context().clearCookies();
+  await page.context().addCookies(cookies);
+  await page.goto(role === "admin" ? "/admin" : "/respondente");
+  const expected = role === "admin" ? /\/admin(?:\/|$|\?)/ : /\/respondente(?:\/|$|\?)/;
+  try {
+    await page.waitForURL(expected, { timeout: 15_000 });
+  } catch {
+    // Cookies de outro papel deixam a sessão antiga no navegador e o login
+    // nem chega a aparecer. A falha de restauração volta ao formulário limpo.
+    await page.context().clearCookies();
+    return false;
+  }
+  writeSession(role, await page.context().cookies());
+  return true;
+}
+
 export async function loginAs(page: Page, role: E2ERole) {
+  if (await restoreSession(page, role)) return;
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Entrar na conta" })).toBeVisible();
 
@@ -137,14 +229,24 @@ export async function loginAs(page: Page, role: E2ERole) {
     throw new Error(`${detail} | url=${url} | heading=${heading}`);
   }
   await expect(page).toHaveURL(expectedUrl);
+  writeSession(role, await page.context().cookies());
 }
 
 export async function logout(page: Page) {
-  const logoutButton = page.getByRole("button", { name: "Sair" });
-  if (await logoutButton.isVisible()) {
-    await logoutButton.click();
-    await expect(page).toHaveURL(/\/$/);
+  // A rota de login aceita 8 tentativas por conta a cada 15 minutos.
+  // A troca de papel grava os cookies atuais, limpa o navegador e restaura a
+  // sessão já autenticada. Não clica em Sair, para não revogar o fator TOTP.
+  try {
+    const role = readFileSync(ACTIVE_ROLE_FILE, "utf8").trim();
+    if (role === "admin" || role === "respondent" || role === "outsider") {
+      writeSession(role, await page.context().cookies());
+    }
+  } catch {
+    // A primeira visita ainda não autenticou ninguém.
   }
+  await page.context().clearCookies();
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Entrar na conta" })).toBeVisible();
 }
 
 /** Marca uma organização na etapa de atribuições do formulário. */
@@ -197,8 +299,18 @@ export async function clickWithPlatformConfirm(
 
 /** Verifica a situação exibida no painel do diagnóstico administrativo. */
 export async function expectAdminCycleState(page: Page, pattern: RegExp | string) {
-  const stateField = page.locator("dl > div").filter({
+  const stateValues = page.getByRole("main").locator("dl > div").filter({
     has: page.locator("dt", { hasText: /^(Estado|Situação)$/ }),
-  });
-  await expect(stateField.locator("dd")).toHaveText(pattern);
+  }).locator("dd");
+  const expected = pattern instanceof RegExp ? pattern : new RegExp(`^${escapeRegExp(pattern)}$`);
+
+  await expect(async () => {
+    const texts = (await stateValues.allTextContents()).map((text) => text.replace(/\s+/g, " ").trim());
+    expect(texts.length).toBeGreaterThan(0);
+    for (const text of texts) expect(text).toMatch(expected);
+  }).toPass({ timeout: 15_000 });
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

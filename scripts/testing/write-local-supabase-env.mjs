@@ -5,9 +5,27 @@
  */
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { readIsolatedEnv } from "../shared/load-env.mjs";
 import { runSupabase } from "../shared/supabase-cli-path.mjs";
+import { projectRefFromSupabaseUrl } from "../shared/writable-target.mjs";
 
 const root = process.cwd();
+const existing = readIsolatedEnv(".env.local");
+if (existing?.NEXT_PUBLIC_SUPABASE_URL) {
+  let remoteRef = null;
+  try {
+    remoteRef = projectRefFromSupabaseUrl(existing.NEXT_PUBLIC_SUPABASE_URL);
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(2);
+  }
+  if (remoteRef && process.env.ORIENTA_REPLACE_LOCAL_ENV !== "substituir-env-local") {
+    console.error(
+      "`.env.local` aponta para um projeto Supabase remoto. Este comando substituiria o arquivo. Defina ORIENTA_REPLACE_LOCAL_ENV=substituir-env-local apenas para trocar o arquivo pelo stack Docker local.",
+    );
+    process.exit(2);
+  }
+}
 const status = runSupabase(["status", "-o", "env"], {
   cwd: root,
   stdio: "pipe",
