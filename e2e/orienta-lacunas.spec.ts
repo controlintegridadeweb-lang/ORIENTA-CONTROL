@@ -1,9 +1,15 @@
 import { readFileSync } from "node:fs";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { E2E, loginAs, logout } from "./fixtures/orienta";
 
 const MEMBER_EMAIL = "membro.lacuna@orienta.test";
 const MEMBER_NAME = "Membro Lacuna E2E";
+
+function memberRow(page: Page) {
+  return page.getByRole("article").filter({
+    has: page.locator(`input[value="${MEMBER_EMAIL}"]`),
+  });
+}
 
 test.describe.serial("lacunas de homologação", () => {
   test.setTimeout(180_000);
@@ -32,9 +38,7 @@ test.describe.serial("lacunas de homologação", () => {
     );
 
     await page.goto(`/admin/usuarios?q=${encodeURIComponent(MEMBER_EMAIL)}`);
-    const existing = page.locator("article").filter({
-      has: page.locator(`input[value="${MEMBER_EMAIL}"]`),
-    });
+    const existing = memberRow(page);
     if ((await existing.count()) === 0) {
       await page.goto("/admin/usuarios");
       await createForm.getByLabel("E-mail").fill(MEMBER_EMAIL);
@@ -47,9 +51,7 @@ test.describe.serial("lacunas de homologação", () => {
       await page.goto(`/admin/usuarios?q=${encodeURIComponent(MEMBER_EMAIL)}`);
     }
 
-    const row = page.locator("article").filter({
-      has: page.locator(`input[value="${MEMBER_EMAIL}"]`),
-    });
+    const row = memberRow(page);
     await expect(row).toBeVisible();
     await expect(row.getByLabel("Cargo")).toHaveValue("suplente");
     await expect(row.getByLabel("Organização").locator("option:checked")).toHaveText(

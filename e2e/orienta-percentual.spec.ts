@@ -131,7 +131,7 @@ test.describe.serial("acompanhamento percentual em ciclo validado", () => {
     expect([403, 404]).toContain(outsider);
 
     const anonymous = await request.post("/api/respondent/action-plans", {
-      headers: { Origin: "http://127.0.0.1:3003" },
+      headers: { Origin: new URL(page.url()).origin },
       data: {
         intent: "update_progress",
         planId: first.planId,
