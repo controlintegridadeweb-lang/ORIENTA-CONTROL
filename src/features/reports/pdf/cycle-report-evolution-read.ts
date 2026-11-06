@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { loadFrozenFamiScopeCatalog } from "@/features/fami/server";
+import { selectOfficialDiagnostic } from "@/features/fami/comparison-policy";
 import type { CycleReportScope, ReportEvolutionPoint } from "./report-types";
 
 function referencePeriodLabel(startYear: number, endYear: number): string {
@@ -10,6 +11,7 @@ function referencePeriodLabel(startYear: number, endYear: number): string {
 
 type EvolutionCycleRow = {
   id: string;
+  form_version_id: string;
   period_label: string;
   reference_start_year: number | null;
   reference_end_year: number | null;
@@ -21,6 +23,7 @@ type EvolutionProcessingRow = {
   processing_version: number;
   fami_policy_version: string;
   created_at: string;
+  completed_at: string | null;
 };
 
 type EvolutionResultRow = {
@@ -46,7 +49,7 @@ export async function loadCycleFamiEvolutionByReferencePeriod(
 
   const { data: cyclesData, error: cyclesError } = await supabase
     .from("cycles")
-    .select("id, period_label, reference_start_year, reference_end_year, form_versions!inner(form_id)")
+    .select("id, form_version_id, period_label, reference_start_year, reference_end_year, form_versions!inner(form_id)")
     .eq("organization_id", scope.organizationId)
     .eq("form_versions.form_id", scope.formId)
     .not("reference_start_year", "is", null)
@@ -56,6 +59,7 @@ export async function loadCycleFamiEvolutionByReferencePeriod(
 
   const cycles: EvolutionCycleRow[] = (cyclesData ?? []).map((row) => ({
     id: String(row.id),
+    form_version_id: String(row.form_version_id ?? ""),
     period_label: String(row.period_label ?? ""),
     reference_start_year: row.reference_start_year == null ? null : Number(row.reference_start_year),
     reference_end_year: row.reference_end_year == null ? null : Number(row.reference_end_year),
@@ -64,7 +68,7 @@ export async function loadCycleFamiEvolutionByReferencePeriod(
 
   const { data: processingsData, error: processingsError } = await supabase
     .from("cycle_processings")
-    .select("id, cycle_id, processing_version, fami_policy_version, created_at")
+    .select("id, cycle_id, processing_version, fami_policy_version, created_at, completed_at")
     .in("cycle_id", cycles.map((row) => row.id))
     .eq("status", "completed")
     .order("processing_version", { ascending: false });
@@ -76,6 +80,7 @@ export async function loadCycleFamiEvolutionByReferencePeriod(
     processing_version: Number(row.processing_version),
     fami_policy_version: String(row.fami_policy_version ?? ""),
     created_at: String(row.created_at ?? ""),
+    completed_at: row.completed_at == null ? null : String(row.completed_at),
   }));
 
   const selectedByCycle = new Map<string, EvolutionProcessingRow>();
@@ -123,29 +128,52 @@ export async function loadCycleFamiEvolutionByReferencePeriod(
     if (!global) continue;
     const catalog = await loadFrozenFamiScopeCatalog(supabase, processing.cycle_id);
     const axisPercentages: Record<string, number | null> = {};
+    const axes: ReportEvolutionPoint["axes"] = [];
     for (const row of rows) {
       if (row.scope_type !== "axis" || !row.scope_id) continue;
-      axisPercentages[catalog.axes.get(row.scope_id)?.name ?? "Eixo histórico sem identificação"] =
-        row.maturity_level == null ? null : Number(row.percentage ?? 0);
+      const axisName = catalog.axes.get(row.scope_id)?.name ?? "Eixo histórico sem identificação";
+      const percentage = row.maturity_level == null ? null : Number(row.percentage ?? 0);
+      axisPercentages[axisName] = percentage;
+      axes.push({ axisId: row.scope_id, axisName, percentage });
     }
     points.push({
       cycleId: processing.cycle_id,
+      formVersionId: cycle.form_version_id,
       referenceStartYear: cycle.reference_start_year,
       referenceEndYear: cycle.reference_end_year,
       referenceLabel: referencePeriodLabel(cycle.reference_start_year, cycle.reference_end_year),
       processingVersion: processing.processing_version,
       policyVersion: processing.fami_policy_version,
       createdAt: String(global.created_at ?? processing.created_at),
+      completedAt: processing.completed_at,
       globalPercentage: global.maturity_level == null ? null : Number(global.percentage ?? 0),
       globalMaturityLevel: global.maturity_level == null ? null : Number(global.maturity_level),
       axisPercentages,
+      axes,
     });
   }
 
-  return points.sort(
+  const byReferencePeriod = new Map<string, ReportEvolutionPoint[]>();
+  for (const point of points) {
+    const key = `${point.referenceStartYear}:${point.referenceEndYear}`;
+    const group = byReferencePeriod.get(key) ?? [];
+    group.push(point);
+    byReferencePeriod.set(key, group);
+  }
+  const selectedPoints: ReportEvolutionPoint[] = [];
+  for (const group of byReferencePeriod.values()) {
+    const selected = selectOfficialDiagnostic(
+      group.map((point) => ({
+        ...point,
+        completedAt: point.completedAt,
+      })),
+    );
+    if (selected) selectedPoints.push(selected);
+  }
+
+  return selectedPoints.sort(
     (a, b) =>
       a.referenceStartYear - b.referenceStartYear ||
-      a.referenceEndYear - b.referenceEndYear ||
-      a.processingVersion - b.processingVersion,
+      a.referenceEndYear - b.referenceEndYear,
   );
 }

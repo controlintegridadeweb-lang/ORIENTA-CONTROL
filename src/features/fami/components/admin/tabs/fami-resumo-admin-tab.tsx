@@ -7,6 +7,7 @@ import {
   TREND_META,
   type EvolutionDelta,
 } from "@/features/fami/respondent-presentation";
+import { formatPercentagePoints } from "@/features/fami/comparison-policy";
 import { PanelSection } from "@/shared/ui/components/panel-section";
 import { MetricCard } from "@/shared/ui/components/metric-card";
 import { adminQueueSegmentHref } from "@/features/admin";
@@ -74,8 +75,12 @@ export function FamiResumoAdminTab({
 
       {delta.delta != null ? (
         <PanelSection
-          title="Comparativo"
-          description="Variação em pontos percentuais em relação ao diagnóstico anterior."
+          title="Diferença global"
+          description={
+            delta.strict
+              ? "Variação em pontos percentuais entre os dois últimos processamentos, com a mesma política FAMI."
+              : "Variação em pontos percentuais entre os percentuais oficiais congelados. Sem a mesma política, isto não é evolução estrita."
+          }
           variant="plain"
         >
           <div className="max-w-sm">
@@ -88,10 +93,10 @@ export function FamiResumoAdminTab({
                     ? "danger"
                     : "neutral"
               }
-              label="Vs. diagnóstico anterior"
-              value={`${delta.delta > 0 ? "+" : ""}${delta.delta.toFixed(1)} p.p.`}
-              secondary={TREND_META[delta.trend].label}
-              htmlTitle="Variação em pontos percentuais em relação ao diagnóstico anterior."
+              label="Vs. processamento anterior"
+              value={formatPercentagePoints(delta.delta)}
+              secondary={delta.strict ? TREND_META[delta.trend].label : "Diferença global, sem evolução estrita"}
+              htmlTitle="Diferença entre percentuais oficiais congelados, em pontos percentuais."
             />
           </div>
         </PanelSection>

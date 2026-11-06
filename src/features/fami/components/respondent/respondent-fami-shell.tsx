@@ -121,7 +121,6 @@ export function RespondentFamiShell({
   const detailMeta = activeSnapshot?.latestVersionMeta ?? null;
   const preliminaryReferenceYear = snapshotYearFilter ?? (detailMeta?.createdAt ? getCalendarYearBrt(detailMeta.createdAt) : currentBrtYear());
   const preliminary = useFamiPreliminary(selectedCycle?.id, preliminaryReferenceYear);
-  const evolutionByYear = activeSnapshot?.evolutionByYear ?? [];
   const availableYears = activeSnapshot?.availableYears ?? [];
 
   const insights = useMemo(() => interpretSnapshot(detailSnapshot), [detailSnapshot]);
@@ -308,7 +307,7 @@ export function RespondentFamiShell({
                   <RespondentFamiSectionList sections={detailSnapshot.sections} />
                 ) : (
                   <div className="space-y-6">
-                    <RespondentFamiEvolution granularity="years" points={evolutionByYear} />
+                    <RespondentFamiEvolution granularity="versions" points={activeSnapshot?.evolution ?? []} />
                     <FamiPreliminaryPanel
                       cycleId={selectedCycle?.id}
                       referenceYear={preliminaryReferenceYear}

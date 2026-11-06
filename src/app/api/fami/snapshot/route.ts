@@ -53,7 +53,7 @@ export async function GET(request: Request) {
     );
     if (assignmentError) return assignmentError;
 
-    const mode = evolutionMode ?? "years";
+    const mode = evolutionMode ?? "versions";
     const [availableYears, latestVersionMeta, evolutionPayload, snapshot] = await Promise.all([
       getAvailableFamiYearsForCycle(cycleId),
       getLatestFamiVersionForCycle(cycleId),

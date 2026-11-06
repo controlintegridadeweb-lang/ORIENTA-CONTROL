@@ -95,6 +95,15 @@ describe("evolutionDelta", () => {
     expect(d.trend).toBe("down");
   });
 
+  it("não trata políticas diferentes como evolução estrita", () => {
+    const d = evolutionDelta([
+      makePoint({ processingVersion: 1, policyVersion: "v5", globalPercentage: 40 }),
+      makePoint({ processingVersion: 2, policyVersion: "v7", globalPercentage: 55 }),
+    ]);
+    expect(d.delta).toBe(15);
+    expect(d.strict).toBe(false);
+  });
+
   it("não converte períodos N/A em zero nem calcula variação artificial", () => {
     const d = evolutionDelta([
       makePoint({ processingVersion: 1, globalPercentage: 70 }),

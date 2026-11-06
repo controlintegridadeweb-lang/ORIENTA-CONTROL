@@ -1,6 +1,11 @@
 import type { Cursor, OrientaPdfDocument } from "../document";
 import { contentWidth, reportTheme } from "../theme";
 import { drawSparkline } from "../helpers";
+import {
+  formatPercentagePoints,
+  globalPercentagePointDelta,
+  isStrictEvolution,
+} from "@/features/fami/comparison-policy";
 
 export function hasComparableFamiEvolution(
   points: Array<{ globalPercentage: number | null }>,
@@ -36,13 +41,23 @@ export function renderEvolutionSubsection(
   const values = sorted.map((point) => point.globalPercentage!);
   const current = sorted[sorted.length - 1]!;
   const previous = sorted[sorted.length - 2]!;
-  const delta = current.globalPercentage! - previous.globalPercentage!;
+  const delta = globalPercentagePointDelta(current.globalPercentage, previous.globalPercentage);
+  const strict = isStrictEvolution({
+    sameForm: true,
+    sameOrganization: true,
+    samePolicy: current.policyVersion !== "" && current.policyVersion === previous.policyVersion,
+    compatibleBase: current.formVersionId !== "" && current.formVersionId === previous.formVersionId,
+  });
 
-  const sign = delta >= 0 ? "+" : "";
-  const trend = delta > 0 ? "crescimento" : delta < 0 ? "retração" : "estabilidade";
   cur = doc.drawParagraph(
     cur,
-    `Variação do período anterior para o atual: ${sign}${delta.toFixed(1)} p.p. (${trend}).`,
+    delta == null
+      ? "A diferença global não é calculada quando um dos percentuais oficiais está ausente."
+      : `Diferença global do período anterior para o atual: ${formatPercentagePoints(delta)}.${
+          strict
+            ? " Mesma política FAMI e mesma versão do formulário."
+            : " Sem a mesma política e a mesma versão do formulário, esta diferença não é evolução estrita."
+        }`,
     { size: 10, bold: true, gap: 8 },
   );
 
@@ -71,14 +86,13 @@ export function renderEvolutionSubsection(
     });
     cur = { ...cur, y: cur.y - 16 };
 
-    const axisNames = Object.entries(pt.axisPercentages)
-      .filter((entry): entry is [string, number] => entry[1] != null)
-      .map(([name]) => name);
-    if (axisNames.length > 0) {
-      const parts = axisNames
-        .slice(0, 3)
-        .map((name) => `${name}: ${pt.axisPercentages[name]!.toFixed(0)}%`);
-      cur = doc.drawParagraph(cur, parts.join(" · "), { size: 8, indent: 8, gap: 2 });
+    const axisParts = [...(pt.axes ?? [])]
+      .filter((axis) => axis.percentage != null)
+      .sort((left, right) => left.axisId.localeCompare(right.axisId))
+      .slice(0, 3)
+      .map((axis) => `${axis.axisName}: ${axis.percentage!.toFixed(0)}%`);
+    if (axisParts.length > 0) {
+      cur = doc.drawParagraph(cur, axisParts.join(" · "), { size: 8, indent: 8, gap: 2 });
     }
     cur = { ...cur, y: cur.y - 8 };
   }
