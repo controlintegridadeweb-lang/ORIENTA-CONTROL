@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const envKeys = [
@@ -31,6 +32,13 @@ describe("supabase server clients", () => {
     clearEnv();
     const { createSupabaseServiceRoleClient } = await import("./server");
     expect(() => createSupabaseServiceRoleClient()).toThrow("NEXT_PUBLIC_SUPABASE_URL");
+  });
+
+  it("pede a recuperação de senha sem PKCE para o link abrir em outro aparelho", () => {
+    const source = fs.readFileSync(new URL("./server.ts", import.meta.url), "utf8");
+    const recovery = source.slice(source.indexOf("function createSupabasePasswordRecoveryClient"));
+    expect(recovery).toContain('flowType: "implicit"');
+    expect(recovery).toContain("persistSession: false");
   });
 
   it("falha quando faltam variaveis para client de usuario", async () => {

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/features/auth/components/login-form";
+import { RecoveryLandingRedirect } from "@/features/auth/components/recovery-landing-redirect";
 import { AuthSplitLayout } from "@/features/auth/components/auth-split-layout";
 import {
   CurrentUserProfileError,
@@ -59,6 +60,7 @@ export default async function Home({
 
   return (
     <AuthSplitLayout>
+      <RecoveryLandingRedirect />
       <LoginForm redirectTo={redirectTo} />
     </AuthSplitLayout>
   );

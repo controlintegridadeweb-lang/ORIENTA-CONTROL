@@ -19,10 +19,16 @@ vi.mock("@/infrastructure/observability/logger", () => ({
 vi.mock("@/infrastructure/supabase/auth-server", () => ({
   createSupabaseServerActionClient: vi.fn().mockResolvedValue({
     auth: {
-      resetPasswordForEmail: mocks.resetPasswordForEmail,
       signOut: mocks.signOut,
     },
   }),
+}));
+vi.mock("@/infrastructure/supabase/server", () => ({
+  createSupabasePasswordRecoveryClient: vi.fn(() => ({
+    auth: {
+      resetPasswordForEmail: mocks.resetPasswordForEmail,
+    },
+  })),
 }));
 
 import { requestPasswordResetAction } from "./server-actions";

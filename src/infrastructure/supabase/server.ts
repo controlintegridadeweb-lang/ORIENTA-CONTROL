@@ -86,6 +86,31 @@ export function createSupabaseEphemeralAuthClient() {
   });
 }
 
+/**
+ * Pedido de e-mail de recuperação sem PKCE.
+ *
+ * O cliente de sessão grava o code verifier apenas no navegador que solicitou
+ * o link. Quem abre o e-mail em outro aparelho não tem esse cookie, e a troca
+ * do `code` falha. Sem PKCE, o Auth devolve a sessão no fragmento da URL e
+ * `/auth/update-password` conclui com `setSession`.
+ */
+export function createSupabasePasswordRecoveryClient() {
+  const url = requireEnv("NEXT_PUBLIC_SUPABASE_URL");
+  const anonKey = requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+
+  return createClient(url, anonKey, {
+    auth: {
+      flowType: "implicit",
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false,
+    },
+    global: {
+      fetch: fetchWithoutStaleKeepAlive,
+    },
+  });
+}
+
 // Tipo canônico do cliente Supabase usado pelos serviços da aplicação.
 import type { SupabaseClient } from "@supabase/supabase-js";
 export type TypedSupabaseClient = SupabaseClient<Database>;

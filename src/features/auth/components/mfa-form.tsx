@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, CheckCircle2, ShieldCheck } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle2, ShieldCheck } from "lucide-react";
+import { logoutAction } from "@/features/auth";
 import { createSupabaseBrowserClient } from "@/infrastructure/supabase/browser";
 import { safePostLoginRedirect } from "@/infrastructure/auth/safe-redirect";
 import { AuthGlassCard } from "@/features/auth/components/auth-glass-card";
@@ -40,6 +41,7 @@ export function MfaForm({ redirectTo }: { redirectTo: string }) {
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [leaving, startLeaving] = useTransition();
 
   function client(): BrowserClient {
     if (!clientRef.current) clientRef.current = createSupabaseBrowserClient();
@@ -244,6 +246,22 @@ export function MfaForm({ redirectTo }: { redirectTo: string }) {
           ) : null}
         </div>
       ) : null}
+
+      <p className={`mt-8 text-center ${typography.auxiliary}`}>
+        <button
+          type="button"
+          disabled={leaving || pending}
+          onClick={() => {
+            startLeaving(() => {
+              void logoutAction();
+            });
+          }}
+          className="inline-flex items-center justify-center gap-1.5 font-medium text-brand-800 underline decoration-brand-800/30 underline-offset-1 transition hover:text-brand-900 hover:decoration-brand-900/50 focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden />
+          {leaving ? "Voltando…" : "Voltar para o login"}
+        </button>
+      </p>
     </AuthGlassCard>
   );
 }

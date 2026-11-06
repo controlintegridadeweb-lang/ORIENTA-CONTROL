@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { passwordRecoveryRedirectUrl } from "@/shared/config/app-url";
 import { createSupabaseServerActionClient } from "@/infrastructure/supabase/auth-server";
+import { createSupabasePasswordRecoveryClient } from "@/infrastructure/supabase/server";
 import { logError } from "@/infrastructure/observability/logger";
 import { consumeRateLimit, type RateLimitResult } from "@/infrastructure/security/rate-limit";
 import { normalizedEmailSubject, requestNetworkSubject } from "@/infrastructure/security/request-subject";
@@ -70,7 +71,7 @@ export async function requestPasswordResetAction(
   }
 
   const redirectTo = passwordRecoveryRedirectUrl(headerStore.get("origin"));
-  const supabase = await createSupabaseServerActionClient();
+  const supabase = createSupabasePasswordRecoveryClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
 
   if (error) {
@@ -83,7 +84,8 @@ export async function requestPasswordResetAction(
 
   return {
     status: "success",
-    message: "Se houver uma conta para este e-mail, o link de recuperação será enviado.",
+    message:
+      "Se houver uma conta para este e-mail, o link de recuperação será enviado. Confira também a caixa de spam.",
   };
 }
 
