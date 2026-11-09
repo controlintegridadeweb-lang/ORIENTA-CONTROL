@@ -1,8 +1,8 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { selectOfficialDiagnostic } from "@/features/fami";
 import { loadFrozenFamiScopeCatalog } from "@/features/fami/server";
-import { selectOfficialDiagnostic } from "@/features/fami/comparison-policy";
 import type { CycleReportScope, ReportEvolutionPoint } from "./report-types";
 
 function referencePeriodLabel(startYear: number, endYear: number): string {

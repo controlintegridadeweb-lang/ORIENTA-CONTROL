@@ -17,4 +17,10 @@ export {
 export { brtYearUtcBounds, currentBrtYear, getCalendarYearBrt } from "./fami-year";
 export { FAMI_SCORING_GROUPS } from "./methodology-content";
 export { levelMeta } from "./respondent-presentation";
+export {
+  formatPercentagePoints,
+  globalPercentagePointDelta,
+  isStrictEvolution,
+  selectOfficialDiagnostic,
+} from "./comparison-policy";
 export type { AxisMaturity } from "./types";

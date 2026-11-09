@@ -5,7 +5,7 @@ import {
   formatPercentagePoints,
   globalPercentagePointDelta,
   isStrictEvolution,
-} from "@/features/fami/comparison-policy";
+} from "@/features/fami";
 
 export function hasComparableFamiEvolution(
   points: Array<{ globalPercentage: number | null }>,

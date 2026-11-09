@@ -45,7 +45,7 @@ describe("gestão de formulário — RPC + FAMI (PGlite)", () => {
 
       expect(existsSync(reportPath)).toBe(true);
       const report = JSON.parse(readFileSync(reportPath, "utf8"));
-      expect(report.appliedCount).toBe(27);
+      expect(report.appliedCount).toBe(28);
       expect(report.failures).toEqual([]);
       expect(report.verdict).toBe("PASS_FORM_MANAGEMENT_RPC");
 

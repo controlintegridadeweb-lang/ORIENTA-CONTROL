@@ -2,7 +2,7 @@ import "server-only";
 
 import type { TypedSupabaseClient } from "@/infrastructure/supabase/server";
 import type { Bimester } from "@/shared/domain/calendar-periods";
-import { assertInterimMonitoringAllowed } from "@/features/fami/comparison-policy";
+import { assertInterimMonitoringAllowed } from "@/shared/domain/interim-monitoring";
 import { listBimonthlyReports } from "./read";
 
 export async function materializeBimonthlyReport(
