@@ -2,33 +2,18 @@
  * Regras dos três comparativos do FAMI.
  * A diferença global usa percentuais oficiais congelados.
  * A evolução estrita exige formulário, órgão, política e base compatíveis.
+ *
+ * A exclusão do acompanhamento intermediário vive em shared para o plano de
+ * integridade e compliance não depender deste domínio.
  */
-
-export const INTERIM_MONITORING_EXCLUDED_YEAR = 2026;
-
-export const INTERIM_MONITORING_EXCLUDED_CODE = "interim_monitoring_excluded_for_exercise";
-
-export const INTERIM_MONITORING_EXCLUDED_MESSAGE =
-  "Em 2026 não há relatório de monitoramento nem FAMI preliminar. O resultado oficial é calculado uma única vez no fechamento do diagnóstico.";
-
-export function exerciseAllowsInterimMonitoring(referenceYear: number): boolean {
-  return referenceYear !== INTERIM_MONITORING_EXCLUDED_YEAR;
-}
-
-export class InterimExerciseExcludedError extends Error {
-  readonly code = INTERIM_MONITORING_EXCLUDED_CODE;
-
-  constructor() {
-    super(INTERIM_MONITORING_EXCLUDED_CODE);
-    this.name = "InterimExerciseExcludedError";
-  }
-}
-
-export function assertInterimMonitoringAllowed(referenceYear: number): void {
-  if (!exerciseAllowsInterimMonitoring(referenceYear)) {
-    throw new InterimExerciseExcludedError();
-  }
-}
+export {
+  INTERIM_MONITORING_EXCLUDED_CODE,
+  INTERIM_MONITORING_EXCLUDED_MESSAGE,
+  INTERIM_MONITORING_EXCLUDED_YEAR,
+  InterimExerciseExcludedError,
+  assertInterimMonitoringAllowed,
+  exerciseAllowsInterimMonitoring,
+} from "@/shared/domain/interim-monitoring";
 
 /** Diferença global: percentual oficial atual menos o anterior, em pontos percentuais. */
 export function globalPercentagePointDelta(
