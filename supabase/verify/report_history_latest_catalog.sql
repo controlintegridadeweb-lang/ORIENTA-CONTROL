@@ -75,34 +75,35 @@ begin
     (v_second ->> 'id')::uuid, repeat('c', 64), repeat('d', 64), 256
   );
 
+  -- 2025, não 2026: o exercício de 2026 não admite relatório de monitoramento.
   insert into public.action_plan_bimonthly_reports (
     id, cycle_id, source_cycle_processing_id, reference_year, bimester, report_version,
     period_start, period_end, generated_by, generation_kind, generated_at
   ) values
     (
       '00000000-0000-0000-0000-00000000b029',
-      v_cycle, v_processing, 2026, 4, 2,
-      '2026-07-01', '2026-08-31', v_actor, 'manual', now() - interval '15 minutes'
+      v_cycle, v_processing, 2025, 4, 2,
+      '2025-07-01', '2025-08-31', v_actor, 'manual', now() - interval '15 minutes'
     ),
     (
       '00000000-0000-0000-0000-00000000b039',
-      v_cycle, v_processing, 2026, 4, 3,
-      '2026-07-01', '2026-08-31', v_actor, 'manual', now() - interval '4 minutes'
+      v_cycle, v_processing, 2025, 4, 3,
+      '2025-07-01', '2025-08-31', v_actor, 'manual', now() - interval '4 minutes'
     ),
     (
       '00000000-0000-0000-0000-00000000b049',
-      v_cycle, v_processing, 2026, 4, 4,
-      '2026-07-01', '2026-08-31', v_actor, 'manual', now() - interval '8 minutes'
+      v_cycle, v_processing, 2025, 4, 4,
+      '2025-07-01', '2025-08-31', v_actor, 'manual', now() - interval '8 minutes'
     ),
     (
       '00000000-0000-0000-0000-00000000b019',
-      v_cycle, v_processing, 2026, 3, 1,
-      '2026-05-01', '2026-06-30', v_actor, 'manual', now() - interval '40 days'
+      v_cycle, v_processing, 2025, 3, 1,
+      '2025-05-01', '2025-06-30', v_actor, 'manual', now() - interval '40 days'
     );
 
   select count(*) into v_stored_bimester
   from public.action_plan_bimonthly_reports
-  where cycle_id = v_cycle and reference_year = 2026 and bimester = 4;
+  where cycle_id = v_cycle and reference_year = 2025 and bimester = 4;
   if v_stored_bimester <> 3 then
     raise exception 'FALHOU(auditoria bimestral): stored=%', v_stored_bimester;
   end if;
