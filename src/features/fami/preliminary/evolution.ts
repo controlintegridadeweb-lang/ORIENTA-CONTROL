@@ -52,22 +52,19 @@ export function buildQuadrimesterEvolution(input: {
   }>;
 }): QuadrimesterEvolution {
   const previousById = new Map(input.previous.map((row) => [row.questionVersionId, row]));
-  const rows: CriterionEvolutionRow[] = input.current.map((row) => {
+  const rows: CriterionEvolutionRow[] = [];
+  for (const row of input.current) {
     const previous = previousById.get(row.questionVersionId);
-    const recoveredPoints = Math.max(
-      0,
-      round2(row.recoveredPoints - (previous?.recoveredPoints ?? 0)),
-    );
-    return {
+    if (!previous) continue;
+    const recoveredPoints = Math.max(0, round2(row.recoveredPoints - previous.recoveredPoints));
+    rows.push({
       questionVersionId: row.questionVersionId,
-      questionPrompt: row.questionPrompt ?? previous?.questionPrompt ?? row.questionVersionId,
-      previousStatus: previous
-        ? statusOf(previous)
-        : statusOf({ criterionCompleted: false, activeActionCount: 0, recoveredPoints: 0 }),
+      questionPrompt: row.questionPrompt ?? previous.questionPrompt ?? row.questionVersionId,
+      previousStatus: statusOf(previous),
       currentStatus: statusOf(row),
       recoveredPoints,
-    };
-  });
+    });
+  }
   const criteriaNowScoring = rows.filter(
     (row) => row.currentStatus === "concluido" && row.previousStatus !== "concluido",
   ).length;

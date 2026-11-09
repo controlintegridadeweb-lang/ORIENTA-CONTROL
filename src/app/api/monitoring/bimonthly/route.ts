@@ -8,6 +8,7 @@ import { resolveCycleOperationalScope } from "@/infrastructure/supabase/cycle-op
 import { createSupabaseServiceRoleClient } from "@/infrastructure/supabase/server";
 import { listBimonthlyReports } from "@/features/improvement-management/monitoring/bimonthly/read";
 import { materializeBimonthlyReport } from "@/features/improvement-management/monitoring/bimonthly/materialize-service";
+import { INTERIM_MONITORING_EXCLUDED_MESSAGE } from "@/features/fami/comparison-policy";
 
 const querySchema = z.object({
   cycleId: z.string().uuid(),
@@ -62,6 +63,9 @@ function bimonthlyErrorResponse(error: unknown): NextResponse | null {
   }
   if (message.includes("bimonthly_cycle_not_found")) {
     return NextResponse.json({ error: "Diagnóstico não encontrado." }, { status: 404 });
+  }
+  if (message.includes("interim_monitoring_excluded_for_exercise")) {
+    return NextResponse.json({ error: INTERIM_MONITORING_EXCLUDED_MESSAGE }, { status: 409 });
   }
   if (message.includes("bimonthly_admin_required") || message.includes("preliminary_admin_required")) {
     return NextResponse.json(

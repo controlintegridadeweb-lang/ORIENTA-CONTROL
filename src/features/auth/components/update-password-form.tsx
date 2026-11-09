@@ -5,6 +5,11 @@ import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/infrastructure/supabase/browser";
 import { MIN_PASSWORD_LENGTH, validatePassword } from "@/infrastructure/auth/password-policy";
 import {
+  readRecoveryCallback,
+  RECOVERY_LINK_INVALID,
+  RECOVERY_LINK_MISSING,
+} from "@/features/auth/recovery-callback";
+import {
   AUTH_INPUT_CLASS,
   AUTH_LABEL_CLASS,
   AUTH_PRIMARY_BUTTON_CLASS,
@@ -22,67 +27,92 @@ export function UpdatePasswordForm() {
   const clientRef = useRef<BrowserClient | null>(null);
   function getClient(): BrowserClient {
     if (!clientRef.current) {
-      clientRef.current = createSupabaseBrowserClient();
+      // A sessão do e-mail vem no fragmento. A detecção automática do cliente
+      // PKCE rejeita esse formato e concorreria com setSession.
+      clientRef.current = createSupabaseBrowserClient({
+        detectSessionInUrl: false,
+        lock: async (_name, _acquireTimeout, fn) => fn(),
+      });
     }
     return clientRef.current;
   }
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [status, setStatus] = useState<"idle" | "error" | "success">("idle");
+  const [status, setStatus] = useState<"checking" | "idle" | "error" | "success">("checking");
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
 
   useEffect(() => {
-    const currentUrl = new URL(window.location.href);
+    const callback = readRecoveryCallback(window.location.href);
     const client = getClient();
-    const tokenHash = currentUrl.searchParams.get("token_hash");
-    const otpType = currentUrl.searchParams.get("type");
-    const code = currentUrl.searchParams.get("code");
 
     function clearAuthParamsFromUrl() {
-      window.history.replaceState({}, "", currentUrl.pathname);
+      window.history.replaceState({}, "", window.location.pathname);
     }
 
-    // Link gerado no admin (generateLink): PKCE não tem code_verifier no browser.
-    if (tokenHash && otpType === "recovery") {
-      void client.auth
-        .verifyOtp({ token_hash: tokenHash, type: "recovery" })
-        .then(({ error }) => {
-          if (error) {
-            setStatus("error");
-            setMessage("Link de recuperação inválido ou expirado.");
-            return;
-          }
-          clearAuthParamsFromUrl();
+    async function establishRecoverySession() {
+      if (callback.kind === "error") {
+        setStatus("error");
+        setMessage(callback.message);
+        return;
+      }
+
+      if (callback.kind === "otp") {
+        const { error } = await client.auth.verifyOtp({
+          token_hash: callback.tokenHash,
+          type: "recovery",
         });
-      return;
-    }
-
-    if (code) {
-      void client.auth.exchangeCodeForSession(code).then(({ error }) => {
         if (error) {
           setStatus("error");
-          setMessage("Link de recuperação inválido ou expirado.");
+          setMessage(RECOVERY_LINK_INVALID);
           return;
         }
         clearAuthParamsFromUrl();
-      });
-      return;
+        setStatus("idle");
+        return;
+      }
+
+      if (callback.kind === "session") {
+        const { error } = await client.auth.setSession({
+          access_token: callback.accessToken,
+          refresh_token: callback.refreshToken,
+        });
+        if (error) {
+          setStatus("error");
+          setMessage(RECOVERY_LINK_INVALID);
+          return;
+        }
+        clearAuthParamsFromUrl();
+        setStatus("idle");
+        return;
+      }
+
+      if (callback.kind === "code") {
+        const exchanged = await client.auth.exchangeCodeForSession(callback.code);
+        if (exchanged.error) {
+          const existing = await client.auth.getSession();
+          if (!existing.data.session) {
+            setStatus("error");
+            setMessage(RECOVERY_LINK_INVALID);
+            return;
+          }
+        }
+        clearAuthParamsFromUrl();
+        setStatus("idle");
+        return;
+      }
+
+      const existing = await client.auth.getSession();
+      if (!existing.data.session) {
+        setStatus("error");
+        setMessage(RECOVERY_LINK_MISSING);
+        return;
+      }
+      setStatus("idle");
     }
 
-    // Fluxo legado (implicit): tokens vêm no hash (#access_token&type=recovery).
-    const hash = currentUrl.hash.replace(/^#/, "");
-    if (!hash) return;
-    const params = new URLSearchParams(hash);
-    if (params.get("type") !== "recovery" && !params.get("access_token")) return;
-
-    void client.auth.getSession().then(({ data, error }) => {
-      if (error || !data.session) {
-        setStatus("error");
-        setMessage("Link de recuperação inválido ou expirado.");
-      }
-    });
+    void establishRecoverySession();
   }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -158,7 +188,7 @@ export function UpdatePasswordForm() {
         />
       </div>
 
-      {status !== "idle" && message ? (
+      {status !== "idle" && status !== "checking" && message ? (
         <div role="alert" className={`flex gap-3 ${authAlertClass(status === "success" ? "success" : "error")}`}>
           {status === "success" ? (
             <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" aria-hidden />
@@ -171,8 +201,8 @@ export function UpdatePasswordForm() {
 
       <LoadingButton
         type="submit"
-        pending={pending}
-        pendingLabel="Atualizando…"
+        pending={pending || status === "checking"}
+        pendingLabel={status === "checking" ? "Validando link…" : "Atualizando…"}
         spinnerSize="lg"
         className={AUTH_PRIMARY_BUTTON_CLASS}
       >

@@ -4,9 +4,9 @@ import { AuthSplitLayout } from "@/features/auth/components/auth-split-layout";
 import { UpdatePasswordForm } from "@/features/auth/components/update-password-form";
 import { typography } from "@/shared/layout/design-system";
 
-// Página de callback de recuperação de senha: lê o `code` da URL em runtime e
-// troca por sessão no Supabase. Não faz sentido como asset estático — força
-// renderização sob demanda (evita prerender no build e seus efeitos colaterais).
+// Página de callback de recuperação de senha: o cliente lê o retorno da URL
+// (fragmento, token_hash ou code) e troca por sessão no Supabase. Não faz
+// sentido como asset estático — força renderização sob demanda.
 export const dynamic = "force-dynamic";
 
 export default function UpdatePasswordPage() {

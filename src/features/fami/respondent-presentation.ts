@@ -179,6 +179,11 @@ export type EvolutionDelta = {
   /** Crescimento percentual relativo. */
   growth: number | null;
   trend: "up" | "down" | "flat" | "unknown";
+  /**
+   * A diferença global só é evolução estrita quando a política coincide
+   * e a série pertence à mesma base de critérios.
+   */
+  strict: boolean;
   /** Pontuacao das ultimas N versoes (para mini-sparkline). */
   sparkline: number[];
 };
@@ -191,6 +196,7 @@ export function evolutionDelta(points: FamiEvolutionPoint[]): EvolutionDelta {
       delta: null,
       growth: null,
       trend: "unknown",
+      strict: false,
       sparkline: [],
     };
   }
@@ -216,7 +222,14 @@ export function evolutionDelta(points: FamiEvolutionPoint[]): EvolutionDelta {
     .filter((p) => typeof p.globalPercentage === "number")
     .slice(-5)
     .map((p) => p.globalPercentage as number);
-  return { currentPercentage: current, previousPercentage: previous, delta, growth, trend, sparkline };
+  const previousPoint = sorted.length >= 2 ? sorted[sorted.length - 2] : null;
+  const currentPoint = sorted[sorted.length - 1];
+  const strict = delta != null
+    && previousPoint != null
+    && currentPoint != null
+    && currentPoint.policyVersion !== ""
+    && currentPoint.policyVersion === previousPoint.policyVersion;
+  return { currentPercentage: current, previousPercentage: previous, delta, growth, trend, strict, sparkline };
 }
 
 export function evolutionDeltaByYear(points: FamiEvolutionYearPoint[]): EvolutionDelta {
@@ -227,6 +240,7 @@ export function evolutionDeltaByYear(points: FamiEvolutionYearPoint[]): Evolutio
       delta: null,
       growth: null,
       trend: "unknown",
+      strict: false,
       sparkline: [],
     };
   }
@@ -249,7 +263,14 @@ export function evolutionDeltaByYear(points: FamiEvolutionYearPoint[]): Evolutio
     .filter((p) => typeof p.globalPercentage === "number")
     .slice(-5)
     .map((p) => p.globalPercentage as number);
-  return { currentPercentage: current, previousPercentage: previous, delta, growth, trend, sparkline };
+  const previousPoint = sorted.length >= 2 ? sorted[sorted.length - 2] : null;
+  const currentPoint = sorted[sorted.length - 1];
+  const strict = delta != null
+    && previousPoint != null
+    && currentPoint != null
+    && currentPoint.policyVersion !== ""
+    && currentPoint.policyVersion === previousPoint.policyVersion;
+  return { currentPercentage: current, previousPercentage: previous, delta, growth, trend, strict, sparkline };
 }
 
 export const TREND_META: Record<EvolutionDelta["trend"], {

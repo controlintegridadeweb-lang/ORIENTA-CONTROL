@@ -174,7 +174,7 @@ export function useFamiSnapshot({
         cycleId: effectiveCycle.id,
         authRole: mode,
         year: snapshotYearFilter ?? undefined,
-        evolutionMode: "years",
+        evolutionMode: "versions",
       });
       if (isLatestSnapshotRequest(requestId)) patchState({ data: response });
     } catch (error: unknown) {

@@ -24,6 +24,10 @@ import type { Bimester } from "@/shared/domain/calendar-periods";
 import type { PreliminaryCheckpoint, PreliminaryPayload } from "./use-fami-preliminary";
 import { useBimonthlyReports } from "./use-bimonthly-reports";
 import { QuadrimesterEvolutionModal } from "./quadrimester-evolution-modal";
+import {
+  INTERIM_MONITORING_EXCLUDED_MESSAGE,
+  exerciseAllowsInterimMonitoring,
+} from "@/features/fami/comparison-policy";
 
 type Props = {
   cycleId: string | null | undefined;
@@ -153,6 +157,7 @@ export function FamiPreliminaryPanel({
       }),
     [closedBimesters, payload.tracking.officialAvailableAt, referenceYear],
   );
+  const interimAllowed = exerciseAllowsInterimMonitoring(referenceYear);
   const busy = loading || bimonthly.loading;
   const combinedError = error ?? bimonthly.error;
   const actionsBusy = submitting !== null || bimonthly.submitting !== null || bimonthly.downloadingId != null;
@@ -182,6 +187,9 @@ export function FamiPreliminaryPanel({
       }
     >
       <div className="space-y-3">
+        {interimAllowed ? null : (
+          <p className={formSurface.messageNeutral}>{INTERIM_MONITORING_EXCLUDED_MESSAGE}</p>
+        )}
         {busy ? <p className={typography.auxiliary}>Carregando acompanhamento…</p> : null}
         {message ? <p className={formSurface.messageSuccess}>{message}</p> : null}
         {combinedError ? (
@@ -241,6 +249,7 @@ export function FamiPreliminaryPanel({
                     })
                   : null;
                 const canCalculate =
+                  interimAllowed &&
                   canMaterialize &&
                   display &&
                   (display.action === "calculate" || display.action === "recalculate");
@@ -265,7 +274,7 @@ export function FamiPreliminaryPanel({
                     </td>
                     <td className={`${formSurface.brandTable.cell} text-slate-700`}>
                       <p>{formatBimesterSummary(report?.summary ?? null)}</p>
-                      {quadrimester && checkpoint ? (
+                      {quadrimester && checkpoint && interimAllowed ? (
                         <>
                           <p className="mt-2 text-sm font-medium text-slate-900">
                             {famiPreliminaryLabels.panoramaLabel}:{" "}
@@ -287,7 +296,7 @@ export function FamiPreliminaryPanel({
                     </td>
                     <td className={formSurface.brandTable.cell}>
                       <div className="flex flex-wrap items-center gap-2">
-                        {canMaterialize && row.canGenerateManually ? (
+                        {interimAllowed && canMaterialize && row.canGenerateManually ? (
                           <LoadingButton
                             type="button"
                             pending={bimonthly.submitting === row.bimester}

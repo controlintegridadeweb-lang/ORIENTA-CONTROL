@@ -198,7 +198,7 @@ export function useRespondentFami(
           cycleId: selectedCycle.id,
           authRole: "respondent",
           year: snapshotYearFilter ?? undefined,
-          evolutionMode: "years",
+          evolutionMode: "versions",
         }),
         getRespondentEvidenceStats({ cycleId: selectedCycle.id }).catch(() => null),
       ]);

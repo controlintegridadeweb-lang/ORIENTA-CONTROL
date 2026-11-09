@@ -2,6 +2,7 @@ import "server-only";
 
 import type { TypedSupabaseClient } from "@/infrastructure/supabase/server";
 import type { Bimester } from "@/shared/domain/calendar-periods";
+import { assertInterimMonitoringAllowed } from "@/features/fami/comparison-policy";
 import { listBimonthlyReports } from "./read";
 
 export async function materializeBimonthlyReport(
@@ -13,6 +14,7 @@ export async function materializeBimonthlyReport(
     actorUserId: string | null;
   },
 ) {
+  assertInterimMonitoringAllowed(input.referenceYear);
   const { data, error } = await client.rpc("materialize_action_plan_bimonthly_report", {
     p_cycle_id: input.cycleId,
     p_reference_year: input.referenceYear,

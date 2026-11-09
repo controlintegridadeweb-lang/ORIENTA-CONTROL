@@ -7,6 +7,10 @@ import { ensureRespondentAssignmentAccess } from "@/features/forms/assignments/h
 import { resolveCycleOperationalScope } from "@/infrastructure/supabase/cycle-operational-scope";
 import { createSupabaseServiceRoleClient } from "@/infrastructure/supabase/server";
 import { listPreliminaryCheckpoints } from "@/features/fami/preliminary/read";
+import {
+  INTERIM_MONITORING_EXCLUDED_MESSAGE,
+  exerciseAllowsInterimMonitoring,
+} from "@/features/fami/comparison-policy";
 
 const querySchema = z.object({
   cycleId: z.string().uuid(),
@@ -57,6 +61,9 @@ function preliminaryErrorResponse(error: unknown): NextResponse | null {
       { error: "O Resultado FAMI oficial histórico não pôde ser reproduzido com segurança. O indicador preliminar não foi registrado." },
       { status: 409 },
     );
+  }
+  if (message.includes("interim_monitoring_excluded_for_exercise")) {
+    return NextResponse.json({ error: INTERIM_MONITORING_EXCLUDED_MESSAGE }, { status: 409 });
   }
   if (message.includes("preliminary_cycle_not_found")) {
     return NextResponse.json({ error: "Diagnóstico não encontrado." }, { status: 404 });
@@ -129,6 +136,9 @@ export const POST = withRoute(
 
     const accessError = await assertCycleAccess(parsed.data.cycleId, auth);
     if (accessError) return accessError;
+    if (!exerciseAllowsInterimMonitoring(parsed.data.referenceYear)) {
+      return NextResponse.json({ error: INTERIM_MONITORING_EXCLUDED_MESSAGE }, { status: 409 });
+    }
 
     const client = createSupabaseServiceRoleClient();
     const { data, error } = await client.rpc("materialize_fami_preliminary", {

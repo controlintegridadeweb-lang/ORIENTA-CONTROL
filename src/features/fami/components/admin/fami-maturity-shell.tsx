@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { evolutionDeltaByYear } from "@/features/fami/respondent-presentation";
+import { evolutionDelta } from "@/features/fami/respondent-presentation";
 import { formSurface } from "@/shared/layout/form-surface";
 import { PanelSection } from "@/shared/ui/components/panel-section";
 import { SegmentedTabs } from "@/shared/ui/components/segmented-tabs";
@@ -157,8 +157,8 @@ export function FamiMaturityShell({
     downloadFamiCsv(csv, `fami-${scopeSlug}-${processingSuffix}.csv`);
   }
 
-  const evolutionByYear = useMemo(() => data?.evolutionByYear ?? [], [data?.evolutionByYear]);
-  const delta = useMemo(() => evolutionDeltaByYear(evolutionByYear), [evolutionByYear]);
+  const internalEvolution = useMemo(() => data?.evolution ?? [], [data?.evolution]);
+  const delta = useMemo(() => evolutionDelta(internalEvolution), [internalEvolution]);
   const queueScope = useMemo(
     () => ({ globalView: false, organizationId: organizationId || "" }),
     [organizationId],

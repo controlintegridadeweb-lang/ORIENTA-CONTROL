@@ -29,13 +29,13 @@ export function FamiEvolucaoTab({
   return (
     <div className={FAMI_SECTION_STACK}>
       <PanelSection
-        title="Evolução temporal"
-        description="Comparativo entre processamentos oficiais do diagnóstico e o acompanhamento do plano de integridade e compliance no mesmo ano."
+        title="Evolução interna"
+        description="Processamentos concluídos deste diagnóstico, na ordem da versão. A diferença é em pontos percentuais e não usa o ano-calendário."
         variant="card"
         contentClassName="p-5 sm:p-6"
       >
         <div className="min-h-88">
-          <FamiEvolutionChart variant="years" data={data?.evolutionByYear ?? []} />
+          <FamiEvolutionChart variant="versions" data={data?.evolution ?? []} />
         </div>
       </PanelSection>
 

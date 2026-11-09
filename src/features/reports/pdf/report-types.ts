@@ -123,17 +123,27 @@ export type ReportDiagnostic = {
   byAxis: ReportDiagnosticAxisSummary[];
 };
 
+export type ReportEvolutionAxis = {
+  axisId: string;
+  axisName: string;
+  percentage: number | null;
+};
+
 export type ReportEvolutionPoint = {
   cycleId: string;
+  formVersionId: string;
   referenceStartYear: number;
   referenceEndYear: number;
   referenceLabel: string;
   processingVersion: number;
   policyVersion: string;
   createdAt: string;
+  completedAt: string | null;
   globalPercentage: number | null;
   globalMaturityLevel: number | null;
+  /** Nome histórico do eixo neste período. A continuidade entre períodos é `axes.axisId`. */
   axisPercentages: Record<string, number | null>;
+  axes: ReportEvolutionAxis[];
 };
 
 export type ReportDocumentIdentity = {
