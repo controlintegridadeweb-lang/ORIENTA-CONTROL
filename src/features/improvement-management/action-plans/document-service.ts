@@ -165,7 +165,8 @@ const DOCUMENT_ROW_COLUMNS =
  * arquivo fica só no Storage.
  */
 function isAmbiguousCommitTargetError(error: unknown): boolean {
-  return databaseErrorSqlState(error) === "42702";
+  if (databaseErrorSqlState(error) === "42702") return true;
+  return /column reference ["']?\w+["']? is ambiguous/i.test(errorMessage(error));
 }
 
 function isTransientStorageVerificationError(error: unknown): boolean {

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { fetch as undiciFetch } from "undici";
 import type { TypedSupabaseClient } from "@/infrastructure/supabase/server";
 import type { EvidenceFileDescriptor } from "./file-validation";
 import {
@@ -12,10 +13,8 @@ import {
 
 /**
  * Confirma tamanho, assinatura real e estrutura mínima do objeto já gravado.
- * O download usa o cliente de Storage autenticado (service role no workbench),
- * não o `fetch` instrumentado do Next.js — esse `fetch` não conclui o GET da
- * URL assinada para o Storage local (o PUT do navegador retorna 200; o PATCH
- * fica pendente indefinidamente).
+ * A URL assinada sai do cliente de Storage. Os bytes vêm pelo fetch do Node,
+ * porque o fetch instrumentado do Next.js não conclui o GET do objeto.
  */
 export async function verifyStoredEvidenceFile(input: {
   supabase: TypedSupabaseClient;
@@ -51,11 +50,15 @@ async function downloadStoredObject(
   bucket: string,
   storagePath: string,
 ): Promise<Uint8Array> {
-  const { data, error } = await supabase.storage.from(bucket).download(storagePath);
-  if (error || !data) {
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(storagePath, 60);
+  if (error || !data?.signedUrl) {
     throw new Error(
-      `storage_object_download_failed:${error?.message ?? "empty_object"}`,
+      `storage_object_download_failed:${error?.message ?? "signed_url_missing"}`,
     );
   }
-  return new Uint8Array(await data.arrayBuffer());
+  const response = await undiciFetch(data.signedUrl);
+  if (!response.ok) {
+    throw new Error(`storage_object_download_failed:${response.status}`);
+  }
+  return new Uint8Array(await response.arrayBuffer());
 }
