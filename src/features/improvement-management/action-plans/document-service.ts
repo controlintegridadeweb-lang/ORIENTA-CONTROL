@@ -3,7 +3,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { DomainConflictError } from "@/infrastructure/api/domain-errors";
-import { hasDatabaseErrorCode } from "@/infrastructure/supabase/database-error";
+import { databaseErrorSqlState, hasDatabaseErrorCode } from "@/infrastructure/supabase/database-error";
 import { logError } from "@/infrastructure/observability/logger";
 import {
   createSupabaseServiceRoleClient,
@@ -155,6 +155,19 @@ function throwDocumentWriteError(error: unknown): never {
   throw error;
 }
 
+const DOCUMENT_ROW_COLUMNS =
+  "id,action_plan_id,action_revision,kind,title,storage_path,external_link,original_filename,mime_type,size_bytes,file_validation_status,validated_at,created_at";
+
+/**
+ * `commit_action_plan_document_upload` devolve colunas chamadas `id`, `title`
+ * e outras que também são variáveis OUT. Enquanto a migração que qualifica
+ * essas referências não estiver aplicada, o PostgreSQL aborta com 42702 e o
+ * arquivo fica só no Storage.
+ */
+function isAmbiguousCommitTargetError(error: unknown): boolean {
+  return databaseErrorSqlState(error) === "42702";
+}
+
 function isTransientStorageVerificationError(error: unknown): boolean {
   const message = errorMessage(error);
   return (
@@ -270,7 +283,7 @@ export class ActionPlanDocumentService {
         file_validation_status: "not_applicable",
         uploaded_by: caller.userId,
       })
-      .select("id,action_plan_id,action_revision,kind,title,storage_path,external_link,original_filename,mime_type,size_bytes,file_validation_status,validated_at,created_at")
+      .select(DOCUMENT_ROW_COLUMNS)
       .single();
     if (error) throwDocumentWriteError(error);
     return toDocument(documentRowSchema.parse(data));
@@ -352,7 +365,7 @@ export class ActionPlanDocumentService {
   }, caller: RespondentCaller): Promise<ActionPlanDocument> {
     const { data: existingDocument, error: existingDocumentError } = await this.supabase
       .from("action_plan_documents")
-      .select("id,action_plan_id,action_revision,kind,title,storage_path,external_link,original_filename,mime_type,size_bytes,file_validation_status,validated_at,created_at")
+      .select(DOCUMENT_ROW_COLUMNS)
       .eq("id", input.pendingUploadId)
       .eq("action_plan_id", input.planId)
       .eq("organization_id", caller.organizationId)
@@ -422,10 +435,60 @@ export class ActionPlanDocumentService {
         p_verified_mime_type: verifiedMimeType,
       },
     );
-    if (commitError) throwDocumentWriteError(commitError);
+    if (commitError) {
+      if (!isAmbiguousCommitTargetError(commitError)) throwDocumentWriteError(commitError);
+      return this.commitVerifiedFileDirectly(pending, verifiedMimeType, plan, caller);
+    }
     const row = Array.isArray(committed) ? committed[0] : committed;
     if (!row) throw new Error("action_plan_document_commit_missing_result");
     return toDocument(documentRowSchema.parse(row));
+  }
+
+  /**
+   * Mesma gravação da RPC, usada só quando ela ainda falha por ambiguidade de
+   * coluna. Os gatilhos de escopo, aceite e auditoria continuam valendo.
+   */
+  private async commitVerifiedFileDirectly(
+    pending: z.infer<typeof pendingUploadRowSchema>,
+    verifiedMimeType: string,
+    plan: PlanScope,
+    caller: RespondentCaller,
+  ): Promise<ActionPlanDocument> {
+    const { data: inserted, error: insertError } = await this.supabase
+      .from("action_plan_documents")
+      .insert({
+        id: pending.id,
+        action_plan_id: plan.planId,
+        organization_id: caller.organizationId,
+        action_revision: plan.revision,
+        kind: "file",
+        title: pending.title,
+        storage_path: pending.storage_path,
+        original_filename: pending.original_filename,
+        mime_type: verifiedMimeType,
+        size_bytes: pending.size_bytes,
+        file_validation_status: "valid",
+        validated_at: new Date().toISOString(),
+        uploaded_by: caller.userId,
+      })
+      .select(DOCUMENT_ROW_COLUMNS)
+      .single();
+    if (insertError) throwDocumentWriteError(insertError);
+
+    const { error: deleteError } = await this.supabase
+      .from("pending_action_plan_document_uploads")
+      .delete()
+      .eq("id", pending.id)
+      .eq("action_plan_id", plan.planId)
+      .eq("organization_id", caller.organizationId)
+      .eq("uploaded_by", caller.userId);
+    if (deleteError) {
+      logError("Failed to remove pending action plan document after direct commit", deleteError, {
+        pendingUploadId: pending.id,
+      });
+    }
+
+    return toDocument(documentRowSchema.parse(inserted));
   }
 
   async discardPendingFile(input: {
