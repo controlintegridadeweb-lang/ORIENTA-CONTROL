@@ -45,6 +45,14 @@ describe("contrato canônico da supervisão do plano de integridade e compliance
     expect(recommendationStatus).not.toContain("file_validation_status='valid'");
   });
 
+  it("confirma o arquivo sem ambiguidade entre colunas OUT e campos do registro", () => {
+    const fix = compactSql(read("20261124140000_commit_action_plan_document_column_reference.sql"));
+    expect(fix).toContain("functionpublic.commit_action_plan_document_upload");
+    expect(fix).toContain("#variable_conflictuse_column");
+    expect(fix).toContain("(v_document).id");
+    expect(fix).toContain("(v_pending).storage_path");
+  });
+
   it("promove uploads diretos por RPC atômica, idempotente e com limpeza durável", () => {
     expect(schema).toContain("pending_action_plan_document_uploads");
     expect(functions).toContain("functionpublic.initialize_action_plan_document_upload");
