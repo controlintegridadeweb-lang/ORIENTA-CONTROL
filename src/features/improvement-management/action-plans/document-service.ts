@@ -563,10 +563,10 @@ export class ActionPlanDocumentService {
       p_expected_revision: input.expectedRevision,
       p_reason: reason,
     });
-    if (error) throwDocumentWriteError(error);
-
-    const row = Array.isArray(data) ? data[0] : data;
-    const storagePath = row?.storage_path ?? null;
+    const committed = Array.isArray(data) ? data[0] : data;
+    const storagePath = error
+      ? await this.storagePathAfterAmbiguousDeactivation(error, input, caller, reason)
+      : committed?.storage_path ?? null;
     if (storagePath) {
       const { error: storageError } = await this.supabase.storage
         .from(ACTION_PLAN_DOCUMENT_BUCKET)
@@ -593,6 +593,45 @@ export class ActionPlanDocumentService {
         });
       }
     }
+  }
+
+  /**
+   * A RPC ainda aborta com 42702 enquanto a migração que qualifica
+   * `storage_path` não estiver aplicada. A desativação em si é um UPDATE;
+   * os gatilhos de escopo, aceite e auditoria continuam valendo.
+   */
+  private async storagePathAfterAmbiguousDeactivation(
+    error: unknown,
+    input: {
+      planId: string;
+      documentId: string;
+      expectedRevision: number;
+    },
+    caller: RespondentCaller,
+    reason: string,
+  ): Promise<string | null> {
+    if (!isAmbiguousCommitTargetError(error)) throwDocumentWriteError(error);
+    await this.requirePlan(input.planId, input.expectedRevision, caller);
+
+    const { data, error: updateError } = await this.supabase
+      .from("action_plan_documents")
+      .update({
+        deactivated_at: new Date().toISOString(),
+        deactivated_by: caller.userId,
+        deactivation_reason: reason,
+      })
+      .eq("id", input.documentId)
+      .eq("action_plan_id", input.planId)
+      .eq("organization_id", caller.organizationId)
+      .eq("action_revision", input.expectedRevision)
+      .is("deactivated_at", null)
+      .select("storage_path")
+      .maybeSingle();
+    if (updateError) throwDocumentWriteError(updateError);
+    if (!data) {
+      throw new ActionPlansNotFoundError("Upload temporário, comprovação ou ação não encontrado.");
+    }
+    return data.storage_path;
   }
 }
 

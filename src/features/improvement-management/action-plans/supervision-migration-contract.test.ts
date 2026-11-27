@@ -67,6 +67,14 @@ describe("contrato canônico da supervisão do plano de integridade e compliance
     expect(functions).toContain("action_plan_document_approval_effective");
   });
 
+  it("remove e descarta comprovação sem ambiguidade da coluna storage_path", () => {
+    const fix = compactSql(read("20261127120000_action_plan_document_storage_path_reference.sql"));
+    expect(fix).toContain("functionpublic.deactivate_action_plan_document");
+    expect(fix).toContain("functionpublic.discard_pending_action_plan_document_upload");
+    expect(fix).toContain("#variable_conflictuse_column");
+    expect(fix).toContain("onconflictonconstraintaction_plan_storage_cleanup_queue_pkey");
+  });
+
   it("direciona notificações ao responsável e mantém triggers de supervisão", () => {
     expect(functions).toContain("action_plan_supervision_acknowledged");
     expect(functions).toContain("action_plan_supervision_decided");

@@ -35,6 +35,7 @@ export function UpdateActionProgressForm({
   const [progressPercentage, setProgressPercentage] = useState(plan.progressPercentage);
   const [error, setError] = useState<string | null>(null);
   const progressLabelId = useId();
+  const formId = `action-progress-${useId().replace(/:/g, "")}`;
   const committedProgress = plan.progressPercentage;
   const derivedStatus = deriveActionStatus(progressPercentage, false);
   const progressLocked = committedProgress >= 100;
@@ -79,14 +80,14 @@ export function UpdateActionProgressForm({
         <p className="line-clamp-2 text-sm text-slate-600">{plan.actionText}</p>
       )}
 
-      <form
-        onSubmit={handleSubmit}
+      <div
         className={
           embedded
             ? "space-y-5"
             : "space-y-5 rounded-xl bg-white p-4 shadow-sm sm:p-5"
         }
       >
+      <form id={formId} onSubmit={handleSubmit} className="space-y-5">
         {error ? <p role="alert" className={formSurface.messageError}>{error}</p> : null}
 
         <div className={formSurface.fieldGroup}>
@@ -159,17 +160,20 @@ export function UpdateActionProgressForm({
           />
         </label>
 
-        <ActionPlanEvidenceManager embedded plan={plan} onChanged={onSaved} />
-
-        <LoadingButton
-          type="submit"
-          pending={pending}
-          pendingLabel="Salvando..."
-          className={`${formSurface.primaryButton} w-full justify-center sm:w-auto sm:min-w-40`}
-        >
-          Salvar atualização
-        </LoadingButton>
       </form>
+
+      <ActionPlanEvidenceManager embedded plan={plan} onChanged={onSaved} />
+
+      <LoadingButton
+        type="submit"
+        form={formId}
+        pending={pending}
+        pendingLabel="Salvando..."
+        className={`${formSurface.primaryButton} w-full justify-center sm:w-auto sm:min-w-40`}
+      >
+        Salvar atualização
+      </LoadingButton>
+      </div>
     </div>
   );
 }
